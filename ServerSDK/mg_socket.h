@@ -11,14 +11,14 @@ namespace mg
 
     enum SOCKER_TYPE
     {
-        TCP_SOCKET = 1,
-        UDP_SOCKET = 2
+        TCP_SOCKET = 1, // TCP套接字连接
+        UDP_SOCKET = 2  // UDP套接字连接
     };
 
     enum DOMAIN_TYPE
     {
-        IPV4_DOMAIN = 1,
-        IPV6_DOMAIN = 2
+        IPV4_DOMAIN = 1, // IPV4地址
+        IPV6_DOMAIN = 2  // IPV6地址
     };
 };
 
