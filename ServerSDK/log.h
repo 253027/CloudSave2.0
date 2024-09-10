@@ -5,7 +5,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/async.h>
 
-#include "mg_singleton.h"
+#include "singleton.h"
 
 // 日志相关操作的宏封装
 #define INITLOG(configuraion) mg::Logger::getInstance()->init(configuraion)

@@ -1,4 +1,4 @@
-#include "mg_socket.h"
+#include "socket.h"
 
 mg::Socket::Socket(int socket_fd) : socket_fd(socket_fd) {}
 

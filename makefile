@@ -19,10 +19,10 @@ $(shell mkdir -p $(OBJ_DIR))
 OBJ := $(patsubst $(ROOT_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
 
 # 预编译头文件路径 (在ServerSDK目录下)
-PCH := $(OBJ_DIR)/mg_pch.h.gch
+PCH := $(OBJ_DIR)/pch.h.gch
 
 # 预编译头文件的源文件路径 (ServerSDK/pch.h)
-PCH_SRC := $(ROOT_DIR)/ServerSDK/mg_pch.h
+PCH_SRC := $(ROOT_DIR)/ServerSDK/pch.h
 
 # 编译器和编译选项
 CC := g++
