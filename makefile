@@ -8,7 +8,7 @@ SUBDIRS := ServerSDK
 SRC_DIRS := $(addprefix $(ROOT_DIR)/, $(SUBDIRS))
 
 # 搜索源文件并为每个文件构造完整的路径
-SRC := server.cpp \
+SRC := ./SessionServer/server.cpp \
        $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.cpp))
 
 # 设置对象文件的输出目录
@@ -31,7 +31,7 @@ LDFLAGS := -L./lib
 LDLIBS := -lcrypt -lmysqlclient -lspdlog
 
 # 生成可执行文件
-server: $(OBJ)
+./SessionServer/server: $(OBJ)
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) $(LDLIBS)
 
 # 生成预编译头文件 (从ServerSDK/pch.h)
