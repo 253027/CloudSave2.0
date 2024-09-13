@@ -25,6 +25,10 @@ namespace mg
 
         uint16_t port() const;
 
+        sockaddr_in &getSockAddress_4() { return _address4; };
+
+        sockaddr_in6 &getSockAddress_6() { return _address6; };
+
     private:
         union
         {

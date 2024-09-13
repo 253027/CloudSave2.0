@@ -42,7 +42,12 @@ mg::InternetAddress::InternetAddress(const std::string &ip, uint16_t port, bool 
 
 std::string mg::InternetAddress::toIp() const
 {
-    return std::string();
+    char buf[64] = {0};
+    if (_ipv6)
+        ::inet_ntop(AF_INET6, &_address6.sin6_addr, buf, sizeof(buf) - 1);
+    else
+        ::inet_ntop(AF_INET, &_address4.sin_addr, buf, sizeof(buf) - 1);
+    return buf;
 }
 
 std::string mg::InternetAddress::toIpPort() const
