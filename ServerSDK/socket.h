@@ -2,6 +2,8 @@
 #define __MG_SOCKET_H__
 
 #include <unistd.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 
 #include "noncopyable.h"
@@ -24,10 +26,12 @@ namespace mg
 
 namespace mg
 {
+    class InternetAddress;
+
     class Socket : noncopyable
     {
     public:
-        Socket(int socket_fd);
+        explicit Socket(int socket_fd);
 
         ~Socket();
 
@@ -44,8 +48,31 @@ namespace mg
          */
         bool setSocketType(int domain, int type);
 
+        /**
+         * @brief 将封装过的地址绑定套套接口下
+         */
+        void bind(const InternetAddress &address);
+
+        /**
+         * @brief 套接口实施监听
+         */
+        void listen();
+
+        /**
+         *@brief 函数调用成功后，返回一个非负数表示该链接的文件描述，
+         *       默认设置为非阻塞套接字，并将远端地址填入peer_address中
+         *       如果发生错误，则返回-1，并且*peer_address被设置为为不可使用的
+         *
+         * @return 返回接收到的连接的文件描述符
+         */
+        int accept(InternetAddress *peer_address);
+
     private:
         int socket_fd;
+
+        int type;
+
+        int domain;
     };
 };
 

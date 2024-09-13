@@ -10,6 +10,8 @@ namespace mg
 {
     class InternetAddress
     {
+        friend class Socket;
+
     public:
         explicit InternetAddress(uint16_t port = 0, bool isIpv6 = false);
 
