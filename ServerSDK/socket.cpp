@@ -8,6 +8,9 @@ mg::Socket::~Socket() {}
 
 bool mg::Socket::setSocketType(int domain, int type)
 {
+    this->type = type;
+    this->domain = domain;
+
     switch (domain)
     {
     case IPV4_DOMAIN:
@@ -17,7 +20,8 @@ bool mg::Socket::setSocketType(int domain, int type)
         domain = AF_INET6;
         break;
     default:
-        break;
+        LOG_DEBUG("Unknown domain: {}", domain);
+        return false;
     }
 
     switch (type)
@@ -29,25 +33,33 @@ bool mg::Socket::setSocketType(int domain, int type)
         type = SOCK_DGRAM;
         break;
     default:
-        break;
+        LOG_DEBUG("Unknown socket type: {}", type);
+        return false;
     }
 
     socket_fd = ::socket(domain, type, 0);
-
-    this->type = type;
-    this->domain = domain;
+    if (socket_fd == -1)
+        LOG_DEBUG("socket error");
 
     return socket_fd != -1;
 }
 
 void mg::Socket::bind(const InternetAddress &address)
 {
-    ;
+    int ret = 0;
+    if (address._ipv6)
+        ret = ::bind(this->socket_fd, (struct sockaddr *)&address._address6, sizeof(address._address6));
+    else
+        ret = ::bind(this->socket_fd, (struct sockaddr *)&address._address4, sizeof(address._address4));
+
+    if (ret == -1)
+        LOG_DEBUG("socket: {} bind error", this->socket_fd);
 }
 
 void mg::Socket::listen()
 {
-    ;
+    if (::listen(this->socket_fd, SOMAXCONN) == -1)
+        LOG_DEBUG("socket: {} listen error", this->socket_fd);
 }
 
 int mg::Socket::accept(InternetAddress *peer_address)
@@ -58,7 +70,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     {
         sockaddr_in address;
         len = sizeof(address);
-        connnect_fd = ::accept4(this->socket_fd, (sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+        connnect_fd = ::accept4(this->socket_fd, (struct sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
         if (peer_address)
             peer_address->_address4 = address;
     }
@@ -66,7 +78,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     {
         sockaddr_in6 address;
         len = sizeof(address);
-        connnect_fd = ::accept4(this->socket_fd, (sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+        connnect_fd = ::accept4(this->socket_fd, (struct sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
         if (peer_address)
         {
             peer_address->_address6 = address;
@@ -75,7 +87,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     }
 
     if (connnect_fd == -1)
-        LOG_DEBUG("socket:{} accept4() failed", this->socket_fd);
+        LOG_DEBUG("socket: {} accept4() failed", this->socket_fd);
 
     return connnect_fd;
 }

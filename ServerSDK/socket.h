@@ -31,6 +31,8 @@ namespace mg
     class Socket : noncopyable
     {
     public:
+        Socket() : socket_fd(0) {}
+
         explicit Socket(int socket_fd);
 
         ~Socket();
@@ -61,9 +63,9 @@ namespace mg
         /**
          *@brief 函数调用成功后，返回一个非负数表示该链接的文件描述，
          *       默认设置为非阻塞套接字，并将远端地址填入peer_address中
-         *       如果发生错误，则返回-1，并且*peer_address被设置为为不可使用的
+         *       如果发生错误，则返回-1，并且*peer_address被设置为不可使用的
          *
-         * @return 返回接收到的连接的文件描述符
+         * @return 返回接收到的连接代表的文件描述符
          */
         int accept(InternetAddress *peer_address);
 

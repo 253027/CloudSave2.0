@@ -26,7 +26,18 @@ PCH_SRC := $(ROOT_DIR)/ServerSDK/pch.h
 
 # 编译器和编译选项
 CC := g++
-CFLAGS := -g -lpthread -fsanitize=address
+
+# 是否启用调试模式 (默认为 1，即调试模式)
+DEBUG ?= 1
+
+# 根据 DEBUG 变量设置编译选项
+ifeq ($(DEBUG), 1)
+    CFLAGS := -g -D_DEBUG -lpthread -fsanitize=address
+else
+    CFLAGS := -O2 -lpthread
+endif
+
+# 链接选项
 LDFLAGS := -L./lib
 LDLIBS := -lcrypt -lmysqlclient -lspdlog
 
@@ -36,7 +47,7 @@ LDLIBS := -lcrypt -lmysqlclient -lspdlog
 
 # 生成预编译头文件 (从ServerSDK/pch.h)
 $(PCH): $(PCH_SRC)
-	$(CC) -c $(PCH_SRC) -o $(PCH)
+	$(CC) -c $(PCH_SRC) -o $(PCH) $(CFLAGS)
 
 # 模式规则，从%.cpp生成%.o，使用预编译头文件
 $(OBJ_DIR)/%.o: $(ROOT_DIR)/%.cpp $(PCH)
@@ -47,5 +58,3 @@ $(OBJ_DIR)/%.o: $(ROOT_DIR)/%.cpp $(PCH)
 .PHONY: clean
 clean:
 	$(RM) -r $(OBJ_DIR) server
-
-
