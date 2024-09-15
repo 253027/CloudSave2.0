@@ -91,3 +91,15 @@ int mg::Socket::accept(InternetAddress *peer_address)
 
     return connnect_fd;
 }
+
+void mg::Socket::setTcpNoDelay(bool on)
+{
+    int option = on ? 1 : 0;
+    ::setsockopt(this->socket_fd, IPPROTO_TCP, TCP_NODELAY, &option, sizeof(option));
+}
+
+void mg::Socket::setReuseAddress(bool on)
+{
+    int option = on ? 1 : 0;
+    ::setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+}

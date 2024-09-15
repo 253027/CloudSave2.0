@@ -69,6 +69,16 @@ namespace mg
          */
         int accept(InternetAddress *peer_address);
 
+        /**
+         * @brief 是否禁用Nagle算法，对实时性有较高要求的启用
+         */
+        void setTcpNoDelay(bool on);
+
+        /**
+         * @brief 设置地址复用也就是处于Time-wait的地址
+         */
+        void setReuseAddress(bool on);
+
     private:
         int socket_fd;
 
