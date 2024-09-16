@@ -20,7 +20,7 @@ bool mg::Socket::setSocketType(int domain, int type)
         domain = AF_INET6;
         break;
     default:
-        LOG_DEBUG("Unknown domain: {}", domain);
+        LOG_ERROR("Unknown domain: {}", domain);
         return false;
     }
 
@@ -33,13 +33,13 @@ bool mg::Socket::setSocketType(int domain, int type)
         type = SOCK_DGRAM;
         break;
     default:
-        LOG_DEBUG("Unknown socket type: {}", type);
+        LOG_ERROR("Unknown socket type: {}", type);
         return false;
     }
 
     socket_fd = ::socket(domain, type, 0);
     if (socket_fd == -1)
-        LOG_DEBUG("socket error");
+        LOG_ERROR("socket error");
 
     return socket_fd != -1;
 }
@@ -53,13 +53,13 @@ void mg::Socket::bind(const InternetAddress &address)
         ret = ::bind(this->socket_fd, (struct sockaddr *)&address._address4, sizeof(address._address4));
 
     if (ret == -1)
-        LOG_DEBUG("socket: {} bind error", this->socket_fd);
+        LOG_ERROR("socket: {} bind error", this->socket_fd);
 }
 
 void mg::Socket::listen()
 {
     if (::listen(this->socket_fd, SOMAXCONN) == -1)
-        LOG_DEBUG("socket: {} listen error", this->socket_fd);
+        LOG_ERROR("socket: {} listen error", this->socket_fd);
 }
 
 int mg::Socket::accept(InternetAddress *peer_address)
@@ -87,7 +87,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     }
 
     if (connnect_fd == -1)
-        LOG_DEBUG("socket: {} accept4() failed", this->socket_fd);
+        LOG_ERROR("socket: {} accept4() failed", this->socket_fd);
 
     return connnect_fd;
 }

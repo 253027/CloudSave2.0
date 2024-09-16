@@ -1,7 +1,7 @@
 /**
  * @brief 单例模板类
  *
- * @anchor mogaitesheng
+ * @author mogaitesheng
  *
  * @date 2024-07-09
  */

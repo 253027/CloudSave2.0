@@ -1,3 +1,10 @@
+/**
+ * @brief 时间戳表示类
+ *
+ * @author mogaitesheng
+ *
+ * @date 2024-09-16
+ */
 #ifndef __MG_TIME_STAMP_H__
 #define __MG_TIME_STAMP_H__
 
@@ -49,7 +56,7 @@ namespace mg
     private:
         // 自1970年1月1日至今的微秒数
         int64_t _microsecond;
-        // 1秒等于的毫秒数
+        // 1秒等于的微秒数
         static const int _mircoSecondsPerSecond = 10'000 * 10'000;
     };
 }
