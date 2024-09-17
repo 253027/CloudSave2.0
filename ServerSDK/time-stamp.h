@@ -29,8 +29,9 @@ namespace mg
         /**
          * @brief 将unix时间戳转化为标准时间格式"20240916-04:29:39"
          *        showMileSecond = true 显示为"20240916-04:29:39.728531"
+         *        needUTC = true 转换为UTC时间，否则根据本地时区转换为本地时间
          */
-        std::string toFormatString(bool showMileSecond = false) const;
+        std::string toFormatString(bool showMileSecond = false, bool needUTC = false) const;
 
         /**
          * @brief 获取当前时间戳

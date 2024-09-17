@@ -21,12 +21,16 @@ std::string mg::TimeStamp::toString() const
     return ret;
 }
 
-std::string mg::TimeStamp::toFormatString(bool showMileSecond) const
+std::string mg::TimeStamp::toFormatString(bool showMileSecond, bool needUTC) const
 {
     char buf[64] = {0};
     time_t seconds = static_cast<time_t>(_microsecond / _mircoSecondsPerSecond);
     struct tm tm_time;
-    gmtime_r(&seconds, &tm_time);
+
+    if (needUTC)
+        gmtime_r(&seconds, &tm_time);
+    else
+        localtime_r(&seconds, &tm_time);
 
     int len = snprintf(buf, sizeof(buf) - 1, "%4d%02d%02d-%02d:%02d:%02d",
                        tm_time.tm_year + 1900, tm_time.tm_mon + 1,
