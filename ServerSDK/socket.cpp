@@ -4,7 +4,10 @@
 
 mg::Socket::Socket(int socket_fd) : socket_fd(socket_fd) {}
 
-mg::Socket::~Socket() {}
+mg::Socket::~Socket()
+{
+    ::close(this->socket_fd);
+}
 
 bool mg::Socket::setSocketType(int domain, int type)
 {
