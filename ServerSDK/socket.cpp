@@ -73,7 +73,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     {
         sockaddr_in address;
         len = sizeof(address);
-        connnect_fd = ::accept4(this->socket_fd, (struct sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+        TEMP_FAILURE_RETRY(connnect_fd = ::accept4(this->socket_fd, (struct sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC));
         if (peer_address)
             peer_address->_address4 = address;
     }
@@ -81,7 +81,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     {
         sockaddr_in6 address;
         len = sizeof(address);
-        connnect_fd = ::accept4(this->socket_fd, (struct sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+        TEMP_FAILURE_RETRY(connnect_fd = ::accept4(this->socket_fd, (struct sockaddr *)&address, &len, SOCK_NONBLOCK | SOCK_CLOEXEC));
         if (peer_address)
         {
             peer_address->_address6 = address;
