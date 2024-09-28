@@ -22,6 +22,8 @@ namespace mg
 
         void join();
 
+        inline const std::string &name() const { return this->_name; };
+
     private:
         void setDefaultName();
 
