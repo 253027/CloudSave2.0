@@ -32,8 +32,9 @@ namespace mg
          *
          * @param domain DOMAIN_TYPE
          * @param type SOCKER_TYPE
+         * @param return 返回创建的socket文件描述符句柄
          */
-        void createNonBlockScoket(int domain, int type);
+        int createNonBlockScoket(int domain, int type);
 
         /**
          * @brief 接受连接的套接口有读事件时的表现

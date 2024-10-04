@@ -5,11 +5,9 @@
 #include <fcntl.h>
 
 mg::Acceptor::Acceptor(int domain, int type, EventLoop *loop, const InternetAddress &listenAddress, bool reusePort)
-    : _loop(loop), _socket(0), _channel(loop, _socket.fd()),
+    : _loop(loop), _socket(0), _channel(loop, createNonBlockScoket(domain, type)),
       _vacantFd(::open("/dev/null", O_RDWR | O_CLOEXEC))
 {
-    LOG_DEBUG("Acceptor create nonoblocking socket[{}]", _socket.fd());
-    createNonBlockScoket(domain, type);
     _socket.setReuseAddress(true);
     _socket.bind(listenAddress);
 }
@@ -28,8 +26,8 @@ bool mg::Acceptor::isListening()
 void mg::Acceptor::listen()
 {
     this->_listen = true;
-    this->_socket.listen();
     this->_channel.enableReading();
+    this->_socket.listen();
 }
 
 void mg::Acceptor::setNewConnectionCallBack(const NewConnectionCallBack callback)
@@ -37,11 +35,12 @@ void mg::Acceptor::setNewConnectionCallBack(const NewConnectionCallBack callback
     this->_callback = std::move(callback);
 }
 
-void mg::Acceptor::createNonBlockScoket(int domain, int type)
+int mg::Acceptor::createNonBlockScoket(int domain, int type)
 {
     this->_socket.setSocketType(domain, type);
     if (::fcntl(this->_socket.fd(), F_SETFL, ::fcntl(this->_socket.fd(), F_GETFL, 0) | O_NONBLOCK | O_CLOEXEC) < 0)
         LOG_ERROR("create nonblocksocket failed");
+    return this->_socket.fd();
 }
 
 void mg::Acceptor::handleReadEvent()
