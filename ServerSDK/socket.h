@@ -53,12 +53,12 @@ namespace mg
         /**
          * @brief 将封装过的地址绑定套套接口下
          */
-        void bind(const InternetAddress &address);
+        bool bind(const InternetAddress &address);
 
         /**
          * @brief 套接口实施监听
          */
-        void listen();
+        bool listen();
 
         /**
          *@brief 函数调用成功后，返回一个非负数表示该链接的文件描述，

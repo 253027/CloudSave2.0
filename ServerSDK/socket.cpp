@@ -43,11 +43,13 @@ bool mg::Socket::setSocketType(int domain, int type)
     socket_fd = ::socket(domain, type, 0);
     if (socket_fd == -1)
         LOG_ERROR("socket error");
+    else
+        LOG_DEBUG("New scoket fd[{}]", socket_fd);
 
     return socket_fd != -1;
 }
 
-void mg::Socket::bind(const InternetAddress &address)
+bool mg::Socket::bind(const InternetAddress &address)
 {
     int ret = 0;
     if (address._ipv6)
@@ -56,13 +58,21 @@ void mg::Socket::bind(const InternetAddress &address)
         ret = ::bind(this->socket_fd, (struct sockaddr *)&address._address4, sizeof(address._address4));
 
     if (ret == -1)
+    {
         LOG_ERROR("socket: {} bind error", this->socket_fd);
+        return false;
+    }
+    return true;
 }
 
-void mg::Socket::listen()
+bool mg::Socket::listen()
 {
     if (::listen(this->socket_fd, SOMAXCONN) == -1)
+    {
         LOG_ERROR("socket: {} listen error", this->socket_fd);
+        return false;
+    }
+    return true;
 }
 
 int mg::Socket::accept(InternetAddress *peer_address)
