@@ -43,16 +43,16 @@ LDLIBS := -lcrypt -lmysqlclient -lspdlog
 
 # 生成可执行文件
 ./SessionServer/server: $(OBJ)
-	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) $(LDLIBS)
+	$(CC) $^ $(CFLAGS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 # 生成预编译头文件 (从ServerSDK/pch.h)
 $(PCH): $(PCH_SRC)
-	$(CC) -c $(PCH_SRC) -o $(PCH) $(CFLAGS)
+	$(CC) -c $(CFLAGS) $(PCH_SRC) -o $(PCH)
 
 # 模式规则，从%.cpp生成%.o，使用预编译头文件
 $(OBJ_DIR)/%.o: $(ROOT_DIR)/%.cpp $(PCH)
 	@mkdir -p $(dir $@)
-	$(CC) -c $< -o $@ $(CFLAGS) -include $(PCH_SRC)
+	$(CC) -c $(CFLAGS) $< -o $@ -include $(PCH_SRC)
 
 # 清理规则，删除生成的二进制文件和对象文件
 .PHONY: clean
