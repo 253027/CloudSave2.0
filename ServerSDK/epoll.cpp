@@ -10,7 +10,7 @@ Epoll::Epoll(EventLoop *loop) : Poller(loop)
     if (this->_epoll_fd < 0)
         LOG_ERROR("Epoll create failed");
     else
-        LOG_INFO("New epoll_fd is created: {}", this->_epoll_fd);
+        LOG_INFO("New epoll fd[{}]", this->_epoll_fd);
     _events.resize(_events_initial_size);
 }
 
@@ -21,11 +21,11 @@ Epoll::~Epoll()
 
 TimeStamp Epoll::poll(std::vector<Channel *> &channelList, int timeout)
 {
-    LOG_INFO("epoll[{}] has {} channels", this->_epoll_fd, this->_channels.size());
+    LOG_DEBUG("epoll[{}] has {} channels", this->_epoll_fd, this->_channels.size());
     int nums = ::epoll_wait(this->_epoll_fd, _events.data(), static_cast<int>(_events.size()), timeout);
     if (nums >= 0)
     {
-        LOG_INFO("epoll[{}] receive {} evetns", this->_epoll_fd, nums);
+        LOG_DEBUG("epoll[{}] receive {} evetns", this->_epoll_fd, nums);
         if (nums == _events.size())
             _events.resize(nums << 1);
         this->fillActiveChannels(nums, channelList);
@@ -37,6 +37,9 @@ TimeStamp Epoll::poll(std::vector<Channel *> &channelList, int timeout)
 
 void mg::Epoll::updateChannel(Channel *channel)
 {
+    if(!channel)
+        return;
+    LOG_DEBUG("epoll[{}] update channel[{}]", this->_epoll_fd, channel->fd());
     const int index = channel->index();
     if (index == newChannel || index == deletedChannel)
     {
@@ -62,6 +65,7 @@ void mg::Epoll::removeChannel(Channel *channel)
 {
     if (!channel)
         return;
+    LOG_DEBUG("epoll[{}] remove channel[{}]", this->_epoll_fd, channel->fd());
     this->_channels.erase(channel->fd());
     if (channel->index() == addedChannel)
         this->update(EPOLL_CTL_DEL, channel);
