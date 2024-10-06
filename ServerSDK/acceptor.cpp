@@ -10,12 +10,14 @@ mg::Acceptor::Acceptor(int domain, int type, EventLoop *loop, const InternetAddr
 {
     _socket.setReuseAddress(true);
     _socket.bind(listenAddress);
+    _channel.setReadCallback(std::bind(&Acceptor::handleReadEvent, this));
 }
 
 mg::Acceptor::~Acceptor()
 {
     this->_channel.disableAllEvents();
     this->_channel.remove();
+    ::close(this->_vacantFd);
 }
 
 bool mg::Acceptor::isListening()

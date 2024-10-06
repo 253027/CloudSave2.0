@@ -64,7 +64,7 @@ bool mg::Socket::bind(const InternetAddress &address)
 
     if (ret == -1)
     {
-        LOG_ERROR("socket: {} bind error", this->socket_fd);
+        LOG_ERROR("socket[{}]: {}", this->socket_fd, strerror(errno));
         return false;
     }
     return true;
@@ -74,7 +74,7 @@ bool mg::Socket::listen()
 {
     if (::listen(this->socket_fd, SOMAXCONN) == -1)
     {
-        LOG_ERROR("socket: {} listen error", this->socket_fd);
+        LOG_ERROR("socket[{}]: {}", this->socket_fd, strerror(errno));
         return false;
     }
     return true;
@@ -105,7 +105,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     }
 
     if (connnect_fd == -1)
-        LOG_ERROR("socket: {} accept4() failed", this->socket_fd);
+        LOG_ERROR("socket[{}]: {}", this->socket_fd, strerror(errno));
 
     return connnect_fd;
 }
