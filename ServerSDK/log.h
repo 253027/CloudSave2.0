@@ -27,6 +27,12 @@ namespace mg
         std::string logFileName;
         int64_t size = 1024 * 512;
         int32_t fileNums = 10;
+        /**
+         * @brief 日志配置文件
+         * @param level 日志级别 trace, debug, info, warn, err, critical
+         * @param path 文件路径
+         * @param filename 文件名
+         */
         LogConfig(const std::string &level, const std::string &path, const std::string &filename)
         {
             this->level = level;
