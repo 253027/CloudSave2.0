@@ -2,7 +2,12 @@
 #include "inet-address.h"
 #include "log.h"
 
-mg::Socket::Socket(int socket_fd) : socket_fd(socket_fd) {}
+mg::Socket::Socket(int socket_fd)
+    : socket_fd(socket_fd), type(0),
+      domain(0)
+{
+    ;
+}
 
 mg::Socket::~Socket()
 {
