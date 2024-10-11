@@ -29,7 +29,7 @@ void mg::Channel::handleEvent(TimeStamp receiveTime)
         handleEventWithGuard(receiveTime);
 }
 
-void mg::Channel::setReadCallback(EventCallback readBack)
+void mg::Channel::setReadCallback(ReadEventCallback readBack)
 {
     this->_readCallback = std::move(readBack);
 }
@@ -166,7 +166,7 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     if (this->_activeEvents & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
         if (_readCallback)
-            _readCallback();
+            _readCallback(time);
         LOG_TRACE("Channel[{}] read event", this->_fd);
     }
 

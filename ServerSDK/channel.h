@@ -19,6 +19,7 @@ namespace mg
     public:
         // 事件循环回调函数
         using EventCallback = std::function<void()>;
+        using ReadEventCallback = std::function<void(TimeStamp)>;
 
         /**
          * @brief Channel需要知道自己管理的那一个fd，以及自己属于那一个EventLoop
@@ -36,7 +37,7 @@ namespace mg
         /**
          * @brief 设置读事件回调函数
          */
-        void setReadCallback(EventCallback readBack);
+        void setReadCallback(ReadEventCallback readBack);
 
         /**
          * @brief 设置写事件回调函数
@@ -157,7 +158,7 @@ namespace mg
 
         EventCallback _errorCallback;
 
-        EventCallback _readCallback;
+        ReadEventCallback _readCallback;
 
         std::weak_ptr<void> _tie;
 
