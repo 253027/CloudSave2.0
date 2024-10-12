@@ -55,7 +55,7 @@ void mg::Buffer::retrieve(int len)
 void mg::Buffer::retrieveAll()
 {
     this->_readIndex = this->_headSize;
-    this->_writeIndex = this->_writeIndex;
+    this->_writeIndex = this->_headSize;
 }
 
 std::string mg::Buffer::retrieveAllAsString()
