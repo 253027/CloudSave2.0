@@ -117,6 +117,7 @@ void mg::Channel::disableAllEvents()
 {
     this->_events = 0;
     this->update();
+    LOG_DEBUG("Channel[{}]", this->_fd);
 }
 
 void mg::Channel::remove()

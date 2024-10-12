@@ -37,9 +37,8 @@ TimeStamp Epoll::poll(std::vector<Channel *> &channelList, int timeout)
 
 void mg::Epoll::updateChannel(Channel *channel)
 {
-    if(!channel)
+    if (!channel)
         return;
-    LOG_DEBUG("epoll[{}] update channel[{}]", this->_epoll_fd, channel->fd());
     const int index = channel->index();
     if (index == newChannel || index == deletedChannel)
     {
@@ -48,6 +47,7 @@ void mg::Epoll::updateChannel(Channel *channel)
             this->_channels[fd] = channel;
         channel->setIndex(addedChannel);
         this->update(EPOLL_CTL_ADD, channel);
+        LOG_DEBUG("epoll[{}] EPOLL_CTL_ADD channel[{}]", this->_epoll_fd, channel->fd());
     }
     else
     {
@@ -55,9 +55,13 @@ void mg::Epoll::updateChannel(Channel *channel)
         {
             this->update(EPOLL_CTL_DEL, channel);
             channel->setIndex(deletedChannel);
+            LOG_DEBUG("epoll[{}] EPOLL_CTL_DEL channel[{}]", this->_epoll_fd, channel->fd());
         }
         else
+        {
             this->update(EPOLL_CTL_MOD, channel);
+            LOG_DEBUG("epoll[{}] EPOLL_CTL_MOD channel[{}]", this->_epoll_fd, channel->fd());
+        }
     }
 }
 
