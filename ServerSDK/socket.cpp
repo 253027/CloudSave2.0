@@ -125,7 +125,7 @@ void mg::Socket::setReuseAddress(bool on)
 void mg::Socket::setReusePort(bool on)
 {
     int option = on;
-    ::setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+    ::setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEPORT, &option, sizeof(option));
 }
 
 void mg::Socket::setKeepLive(bool on)
