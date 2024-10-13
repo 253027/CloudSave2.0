@@ -16,7 +16,7 @@ mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int s
 
 mg::TcpConnection::~TcpConnection()
 {
-    LOG_TRACE("TcpConnection[{}] called ~TcpConnection()", this->_name);
+    LOG_TRACE("[{}] called ~TcpConnection()", this->_name);
 }
 
 void mg::TcpConnection::setConnectionCallback(TcpConnectionCallback callback)
@@ -124,10 +124,10 @@ void mg::TcpConnection::handleClose()
     this->_channel->disableAllEvents();
     TcpConnectionPointer temp(shared_from_this());
     if (!this->_connectionCallback)
-        LOG_ERROR("TcpConnection[{}] _connectionCallback failed", this->_name);
+        LOG_ERROR("[{}] _connectionCallback failed", this->_name);
     this->_connectionCallback(temp);
     if (!this->_closeCallback)
-        LOG_ERROR("TcpConnection[{}] _closeCallback failed", this->_name);
+        LOG_ERROR("[{}] _closeCallback failed", this->_name);
     this->_closeCallback(temp);
 }
 
@@ -164,7 +164,7 @@ void mg::TcpConnection::handleWrite()
             LOG_ERROR("[{}] {}", this->_name, ::strerror(saveError));
     }
     else
-        LOG_ERROR("TcpConnection[{}] don't need to send", this->_name);
+        LOG_ERROR("[{}] don't need to send", this->_name);
 }
 
 void mg::TcpConnection::shutDownInOwnerLoop()

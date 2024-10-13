@@ -117,7 +117,7 @@ void mg::Channel::disableAllEvents()
 {
     this->_events = 0;
     this->update();
-    LOG_DEBUG("Channel[{}]", this->_fd);
+    LOG_DEBUG("[{}] disableAllEvents", this->_fd);
 }
 
 void mg::Channel::remove()
@@ -140,7 +140,7 @@ void mg::Channel::update()
 {
     if (!this->_loop)
     {
-        LOG_ERROR("Channel[{}] call update error is nullptr", this->_fd);
+        LOG_ERROR("[{}] call update error is nullptr", this->_fd);
         return;
     }
     this->_loop->updateChannel(this);
@@ -153,14 +153,14 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     {
         if (_closeCallback)
             _closeCallback();
-        LOG_TRACE("Channel[{}] closed event", this->_fd);
+        LOG_TRACE("[{}] closed event", this->_fd);
     }
 
     if (this->_activeEvents & EPOLLERR)
     {
         if (_errorCallback)
             _errorCallback();
-        LOG_TRACE("Channel[{}] error event", this->_fd);
+        LOG_TRACE("[{}] error event", this->_fd);
     }
 
     // EPOLLIN表示普通数据和优先数据可读，EPOLLPRI表示高优先数据可读，EPOLLRDHUP表示TCP连接对方关闭或者对方关闭写端
@@ -168,7 +168,7 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     {
         if (_readCallback)
             _readCallback(time);
-        LOG_TRACE("Channel[{}] read event", this->_fd);
+        LOG_TRACE("[{}] read event", this->_fd);
     }
 
     // 写事件发生，处理可写事件
@@ -176,6 +176,6 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     {
         if (_writeCallback)
             _writeCallback();
-        LOG_TRACE("Channel[{}] write event", this->_fd);
+        LOG_TRACE("[{}] write event", this->_fd);
     }
 }

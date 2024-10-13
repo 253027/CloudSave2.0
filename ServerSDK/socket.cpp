@@ -64,7 +64,7 @@ bool mg::Socket::bind(const InternetAddress &address)
 
     if (ret == -1)
     {
-        LOG_ERROR("socket[{}]: {}", this->socket_fd, strerror(errno));
+        LOG_ERROR("[{}]: {}", this->socket_fd, strerror(errno));
         return false;
     }
     return true;
@@ -74,7 +74,7 @@ bool mg::Socket::listen()
 {
     if (::listen(this->socket_fd, SOMAXCONN) == -1)
     {
-        LOG_ERROR("socket[{}]: {}", this->socket_fd, strerror(errno));
+        LOG_ERROR("[{}]: {}", this->socket_fd, strerror(errno));
         return false;
     }
     return true;
@@ -105,7 +105,7 @@ int mg::Socket::accept(InternetAddress *peer_address)
     }
 
     if (connnect_fd == -1)
-        LOG_ERROR("socket[{}]: {}", this->socket_fd, strerror(errno));
+        LOG_ERROR("[{}]: {}", this->socket_fd, strerror(errno));
 
     return connnect_fd;
 }
@@ -137,5 +137,5 @@ void mg::Socket::setKeepLive(bool on)
 void mg::Socket::shutDownWrite()
 {
     if (::shutdown(this->socket_fd, SHUT_WR) < 0)
-        LOG_ERROR("Socker[{}] {}", this->socket_fd, ::strerror(errno));
+        LOG_ERROR("[{}] {}", this->socket_fd, ::strerror(errno));
 }
