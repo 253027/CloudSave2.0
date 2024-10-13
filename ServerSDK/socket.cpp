@@ -121,3 +121,21 @@ void mg::Socket::setReuseAddress(bool on)
     int option = on ? 1 : 0;
     ::setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 }
+
+void mg::Socket::setReusePort(bool on)
+{
+    int option = on;
+    ::setsockopt(this->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+}
+
+void mg::Socket::setKeepLive(bool on)
+{
+    int option = on;
+    ::setsockopt(this->socket_fd, SOL_SOCKET, SO_KEEPALIVE, &option, sizeof(option));
+}
+
+void mg::Socket::shutDownWrite()
+{
+    if (::shutdown(this->socket_fd, SHUT_WR) < 0)
+        LOG_ERROR("Socker[{}] {}", this->socket_fd, ::strerror(errno));
+}

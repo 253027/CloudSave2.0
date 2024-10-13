@@ -79,6 +79,21 @@ namespace mg
          */
         void setReuseAddress(bool on);
 
+        /**
+         * @brief 设置端口复用
+         */
+        void setReusePort(bool on);
+
+        /**
+         * @brief 设置长连接
+         */
+        void setKeepLive(bool on);
+
+        /**
+         * @brief 套接口关闭写端
+         */
+        void shutDownWrite();
+
     private:
         int socket_fd;
 
