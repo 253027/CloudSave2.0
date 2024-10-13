@@ -58,20 +58,26 @@ namespace mg
          */
         int receive(int fd, int &saveError);
 
-        static const int _headSize = 4;       // 每个数据包的包头长度
-        static const int _initialSize = 1024; // 缓冲区长度
-
-    private:
         /**
-         * @brief 获取缓存发送数据的大小
+         * @brief 从可读区域中取出数据
+         * @param len 取出数据的字节数
          */
-        int writeableBytes();
+        void retrieve(int len);
 
         /**
          * @brief 获取可以读数据的大小
          */
         int readableBytes();
 
+        /**
+         * @brief 获取缓存发送数据的大小
+         */
+        int writeableBytes();
+
+        static const int _headSize = 4;       // 每个数据包的包头长度
+        static const int _initialSize = 1024; // 缓冲区长度
+
+    private:
         /**
          * @brief 获取已经读取的数据大小
          */
@@ -100,12 +106,6 @@ namespace mg
          * @brief 调整buffer空间至少有len大小
          */
         void allocate(int len);
-
-        /**
-         * @brief 从可读区域中取出数据
-         * @param len 取出数据的字节数
-         */
-        void retrieve(int len);
 
         /**
          * @brief 取出所有可读数据
