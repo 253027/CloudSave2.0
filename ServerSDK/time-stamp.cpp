@@ -40,3 +40,9 @@ std::string mg::TimeStamp::toFormatString(bool showMileSecond, bool needUTC) con
         snprintf(buf + len, sizeof(buf) - len - 1, ".%06d", static_cast<int>(_microsecond % _mircoSecondsPerSecond));
     return buf;
 }
+
+mg::TimeStamp mg::addTime(mg::TimeStamp timestamp, double seconds)
+{
+    int64_t delta = static_cast<int64_t>(seconds * mg::TimeStamp::_mircoSecondsPerSecond);
+    return mg::TimeStamp(timestamp._microsecond + delta);
+}
