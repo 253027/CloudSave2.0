@@ -34,6 +34,11 @@ namespace mg
         std::string toFormatString(bool showMileSecond = false, bool needUTC = false) const;
 
         /**
+         * @brief 得到TimeStamp对象具体的Unix时间戳（UTC时间）
+         */
+        inline int64_t getMircoSecond() const { return this->_microsecond; };
+
+        /**
          * @brief 获取当前时间戳
          */
         static TimeStamp now();
@@ -41,7 +46,7 @@ namespace mg
         /**
          * @brief 比较两个时间的大小
          */
-        inline bool operator<(TimeStamp &rhs)
+        inline bool operator<(const TimeStamp &rhs) const
         {
             return this->_microsecond < rhs._microsecond;
         }
@@ -49,7 +54,7 @@ namespace mg
         /**
          * @brief 判断两个时间戳是否相等
          */
-        inline bool operator==(TimeStamp &rhs)
+        inline bool operator==(const TimeStamp &rhs) const
         {
             return this->_microsecond == rhs._microsecond;
         }
