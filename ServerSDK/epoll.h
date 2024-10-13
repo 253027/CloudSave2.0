@@ -20,7 +20,7 @@ namespace mg
     class Channel;
     class EventLoop;
 
-    class Epoll : Poller
+    class Epoll : public Poller
     {
     public:
         explicit Epoll(EventLoop *loop);
