@@ -1,0 +1,148 @@
+#include "event-loop.h"
+#include "log.h"
+#include "channel.h"
+
+#include <sys/eventfd.h>
+
+__thread mg::EventLoop *t_loopInThisThread = nullptr;
+const int waitTime = 10'000;
+
+mg::EventLoop::EventLoop(const std::string &name) : _name(name), _epoller(this),
+                                                    _epollReturnTime(0), _looping(false),
+                                                    _quit(false), _callingPendingFunctions(false),
+                                                    _wakeupFd(createEventFd()),
+                                                    _wakeupChannel(new Channel(this, _wakeupFd)),
+                                                    _threadId(currentThread::tid())
+{
+    if (t_loopInThisThread)
+        LOG_ERROR("[{}] eventLoop existed, repeated create", _name);
+    else
+        t_loopInThisThread = this;
+    LOG_INFO("EventLoop[{}] created", this->_name.c_str());
+    _wakeupChannel->setReadCallback(std::bind(&EventLoop::handleReadCallBack, this));
+    _wakeupChannel->enableReading();
+}
+
+mg::EventLoop::~EventLoop()
+{
+    this->_wakeupChannel->disableAllEvents();
+    this->_wakeupChannel->remove();
+    ::close(this->_wakeupFd);
+    t_loopInThisThread = nullptr;
+}
+
+void mg::EventLoop::loop()
+{
+    this->_looping = true;
+    this->_quit = false;
+    LOG_INFO("EventLoop[{}] start looping", this->_name.c_str());
+    while (!this->_quit)
+    {
+        this->_channelList.clear();
+        _epollReturnTime = _epoller.poll(_channelList, waitTime);
+        for (auto &channel : _channelList)
+            channel->handleEvent(_epollReturnTime);
+        this->doPendingFunctions();
+    }
+    this->_looping = false;
+}
+
+void mg::EventLoop::quit()
+{
+    this->_quit = true;
+    this->wakeup();
+    LOG_DEBUG("EventLoop[{}] quit", this->_name.c_str());
+}
+
+void mg::EventLoop::wakeup()
+{
+    uint64_t one = 1;
+    int len = ::write(this->_wakeupFd, &one, sizeof(one));
+    if (len != sizeof(one))
+        LOG_ERROR("EventLoop[{}] wakeup failed", this->_name.c_str());
+}
+
+void mg::EventLoop::updateChannel(Channel *channel)
+{
+    this->_epoller.updateChannel(channel);
+}
+
+void mg::EventLoop::removeChannel(Channel *channel)
+{
+    this->_epoller.removeChannel(channel);
+}
+
+bool mg::EventLoop::hasChannel(Channel *channel) const
+{
+    return this->_epoller.hasChannel(channel);
+}
+
+void mg::EventLoop::run(std::function<void()> callBack)
+{
+    if (this->isInOwnerThread())
+        callBack();
+    else
+        push(callBack);
+}
+
+void mg::EventLoop::push(std::function<void()> callBack)
+{
+    {
+        std::unique_lock<std::mutex> lock(this->_mutex);
+        this->_functions.emplace_back(callBack);
+    }
+    /*
+     *  这里是 _callingPendingFunctions是个小优化，当插入回调时，线程正在执行回调。此时，
+     *  队列中的回调不会被遍历到，于是会发生阻塞。
+     */
+    if (!this->isInOwnerThread() || _callingPendingFunctions)
+        this->wakeup();
+}
+
+void mg::EventLoop::runAt(TimeStamp time, std::function<void()> &callback)
+{
+    _timeQueue->addTimer(std::move(callback), time, 0.0);
+}
+
+void mg::EventLoop::runAfter(double delay, std::function<void()> &callback)
+{
+    this->runAt(addTime(TimeStamp::now(), delay), callback);
+}
+
+void mg::EventLoop::runEvery(double interval, std::function<void()> &callback)
+{
+    _timeQueue->addTimer(callback, addTime(TimeStamp::now(), interval), interval);
+}
+
+int mg::EventLoop::createEventFd()
+{
+    int ret = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (ret < 0)
+        LOG_ERROR("eventFd error: {}", errno);
+    LOG_INFO("New wakeup fd[{}]", ret);
+    return ret;
+}
+
+void mg::EventLoop::handleReadCallBack()
+{
+    uint64_t one = 1;
+    ssize_t len = ::read(this->_wakeupFd, &one, sizeof(one));
+    if (len != sizeof(len))
+        LOG_ERROR("EventLoop[{}] handleReadCallbak error", this->_name.c_str());
+}
+
+void mg::EventLoop::doPendingFunctions()
+{
+    std::vector<std::function<void()>> memo;
+    this->_callingPendingFunctions = true;
+    {
+        std::unique_lock<std::mutex> lock(this->_mutex);
+        this->_functions.swap(memo);
+    }
+    for (auto &x : memo)
+    {
+        x();
+        std::function<void()>().swap(x);
+    }
+    this->_callingPendingFunctions = false;
+}
