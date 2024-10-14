@@ -11,7 +11,8 @@ static void resetTimerFd(int timefd, mg::TimeStamp expiration);
 
 mg::TimerQueue::TimerQueue(EventLoop *loop)
     : _loop(loop), _timerFd(createTimerFd()),
-      _channel(_loop, _timerFd), _list()
+      _channel(_loop, _timerFd),
+      _isCallingExpiredTimers(false)
 {
     _channel.setReadCallback(std::bind(&TimerQueue::handleRead, this));
     _channel.enableReading();
