@@ -59,6 +59,11 @@ namespace mg
             return this->_microsecond == rhs._microsecond;
         }
 
+        inline bool operator>(const TimeStamp &rhs) const
+        {
+            return this->_microsecond > rhs._microsecond;
+        }
+
         // 1秒等于的微秒数
         static const int _mircoSecondsPerSecond = 10'000 * 10'000;
 
