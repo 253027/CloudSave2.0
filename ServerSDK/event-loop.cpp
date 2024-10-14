@@ -12,7 +12,7 @@ mg::EventLoop::EventLoop(const std::string &name) : _name(name), _epoller(this),
                                                     _quit(false), _callingPendingFunctions(false),
                                                     _wakeupFd(createEventFd()),
                                                     _wakeupChannel(new Channel(this, _wakeupFd)),
-                                                    _threadId(currentThread::tid())
+                                                    _threadId(currentThread::tid()), _timeQueue(new TimerQueue(this))
 {
     if (t_loopInThisThread)
         LOG_ERROR("[{}] eventLoop existed, repeated create", _name);
