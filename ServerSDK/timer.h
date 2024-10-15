@@ -13,7 +13,11 @@ namespace mg
     public:
         using TimerCallback = std::function<void()>;
 
+        Timer();
+
         Timer(TimerCallback cb, TimeStamp time, double interval);
+
+        ~Timer();
 
         /**
          * @brief 执行定时器保存的回调函数

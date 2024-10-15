@@ -1,10 +1,22 @@
 #include "timer.h"
 #include <assert.h>
+#include "log.h"
+
+mg::Timer::Timer() : _callback(), _expiration(0),
+                     _interval(0), _repeat(false)
+{
+    ;
+}
 
 mg::Timer::Timer(TimerCallback cb, TimeStamp time, double interval)
     : _callback(cb), _expiration(time), _interval(interval), _repeat(interval > 0.0)
 {
     ;
+}
+
+mg::Timer::~Timer()
+{
+    LOG_TRACE("Timer called ~Timer()");
 }
 
 void mg::Timer::run()

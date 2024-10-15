@@ -65,7 +65,7 @@ namespace mg
         }
 
         // 1秒等于的微秒数
-        static const int _mircoSecondsPerSecond = 10'000 * 10'000;
+        static const int _mircoSecondsPerSecond = 10'00 * 10'00;
 
         friend TimeStamp addTime(TimeStamp timestamp, double seconds);
 
