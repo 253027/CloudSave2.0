@@ -40,6 +40,11 @@ namespace mg
          */
         void restart(TimeStamp now);
 
+        /**
+         * @brief 返回Timer类的唯一标识符
+         */
+        const int64_t getTimerId() const;
+
     private:
         const TimerCallback _callback; // 超时后执行的回调
         TimeStamp _expiration;         // 超时时间

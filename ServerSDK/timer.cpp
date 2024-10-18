@@ -52,3 +52,8 @@ void mg::Timer::restart(TimeStamp now)
     else
         _expiration = mg::TimeStamp(0);
 }
+
+const int64_t mg::Timer::getTimerId() const
+{
+    return this->_id;
+}
