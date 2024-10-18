@@ -2,14 +2,23 @@
 #include <assert.h>
 #include "log.h"
 
+static std::atomic_int64_t timeSequence = 0;
+static int64_t generateAndGetID()
+{
+    return ++timeSequence;
+}
+
 mg::Timer::Timer() : _callback(), _expiration(0),
-                     _interval(0), _repeat(false)
+                     _interval(0), _repeat(false),
+                     _id(0)
 {
     ;
 }
 
 mg::Timer::Timer(TimerCallback cb, TimeStamp time, double interval)
-    : _callback(cb), _expiration(time), _interval(interval), _repeat(interval > 0.0)
+    : _callback(cb), _expiration(time),
+      _interval(interval), _repeat(interval > 0.0),
+      _id(generateAndGetID())
 {
     ;
 }

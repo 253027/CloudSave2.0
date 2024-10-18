@@ -45,6 +45,7 @@ namespace mg
         TimeStamp _expiration;         // 超时时间
         const double _interval;        // 超时时间间隔
         const bool _repeat;            // 是否可复用
+        const int64_t _id;             // 标识timer的唯一id
     };
 };
 
