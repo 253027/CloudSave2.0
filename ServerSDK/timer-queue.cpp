@@ -4,6 +4,7 @@
 
 #include <sys/timerfd.h>
 #include <unistd.h>
+#include <assert.h>
 
 static int createTimerFd();
 static void readTimerFd(int fd);
@@ -11,8 +12,9 @@ static void resetTimerFd(int timefd, mg::TimeStamp expiration);
 
 mg::TimerQueue::TimerQueue(EventLoop *loop)
     : _loop(loop), _timerFd(createTimerFd()),
-      _channel(_loop, _timerFd),
-      _isCallingExpiredTimers(false)
+      _channel(_loop, _timerFd), _list(),
+      _activeTimers(), _isCallingExpiredTimers(false),
+      _cancleingTimers()
 {
     _channel.setReadCallback(std::bind(&TimerQueue::handleRead, this));
     _channel.enableReading();
@@ -23,16 +25,30 @@ mg::TimerQueue::~TimerQueue()
     _channel.disableAllEvents();
     _channel.remove();
     ::close(_timerFd);
+    for (auto &x : _list)
+        delete x.second;
 }
 
-void mg::TimerQueue::addTimer(std::function<void()> callback, TimeStamp time, double interval)
+mg::TimerId mg::TimerQueue::addTimer(std::function<void()> callback, TimeStamp time, double interval)
 {
-    auto timer = std::make_shared<Timer>(std::move(callback), time, interval);
+    auto timer = new Timer(std::move(callback), time, interval);
     _loop->run(std::bind(&TimerQueue::addTimerInOwnerLoop, this, timer));
+    return TimerId(timer, timer->getTimerId());
 }
 
-void mg::TimerQueue::addTimerInOwnerLoop(const std::shared_ptr<Timer> &timer)
+void mg::TimerQueue::cancel(TimerId timerId)
 {
+    LOG_DEBUG("[{}] cancled", timerId._sequence);
+    _loop->run(std::bind(&TimerQueue::cancelInOwnerLoop, this, timerId));
+}
+
+void mg::TimerQueue::addTimerInOwnerLoop(Timer *timer)
+{
+    if (!_loop->isInOwnerThread())
+    {
+        LOG_ERROR("未在所属线程添加定时器");
+        return;
+    }
     if (this->insert(timer))
         resetTimerFd(this->_timerFd, timer->expiration());
 }
@@ -44,17 +60,24 @@ void mg::TimerQueue::handleRead()
 
     auto expired = this->getExpired(now);
     _isCallingExpiredTimers = true;
+    _cancleingTimers.clear();
     for (auto &x : expired)
         x.second->run();
     _isCallingExpiredTimers = false;
+    this->reset(expired, now);
 }
 
 std::vector<mg::TimerQueue::Entry> mg::TimerQueue::getExpired(TimeStamp time)
 {
     std::vector<Entry> expired;
-    auto end = _list.upper_bound(Entry(time, reinterpret_cast<Timer *>(UINTPTR_MAX))); // 找到超过给定时间的集合
-    std::copy(_list.begin(), end, std::back_inserter(expired));                        // 这里不能写expired.end()会导致未定义行为
+    auto end = _list.upper_bound(Entry(time, nullptr));         // 找到超过给定时间的集合
+    std::copy(_list.begin(), end, std::back_inserter(expired)); // 这里不能写expired.end()会导致未定义行为
     _list.erase(_list.begin(), end);
+    for (auto &x : expired)
+    {
+        ActiveTimer timer(x.second, x.second->getTimerId());
+        _activeTimers.erase(timer);
+    }
     return expired;
 }
 
@@ -63,36 +86,56 @@ void mg::TimerQueue::reset(const std::vector<Entry> &expired, TimeStamp now)
     TimeStamp nextExpire;
     for (auto &x : expired)
     {
-        if (x.second->isRepeated())
+        ActiveTimer timer(x.second, x.second->getTimerId());
+        if (x.second->isRepeated() && _cancleingTimers.find(timer) == _cancleingTimers.end())
         {
             x.second->restart(TimeStamp::now());
             this->insert(x.second);
         }
+        else
+            delete x.second;
     }
 
+    // 重置timerEpoll时间
     if (!_list.empty())
         nextExpire = _list.begin()->second->expiration();
-
     if (nextExpire.getMircoSecond())
         resetTimerFd(_timerFd, nextExpire);
 }
 
-bool mg::TimerQueue::insert(const std::shared_ptr<Timer> &timer)
+bool mg::TimerQueue::insert(Timer *timer)
 {
     bool res = false;
     TimeStamp when = timer->expiration();
-    if (_list.size() && when < _list.begin()->first)
+    if (!_list.size() || (_list.size() && when < _list.begin()->first))
         res = true;
-    res = _list.insert(Entry(when, timer)).second && res;
+    _list.insert(Entry(when, timer)).second;
+    _activeTimers.insert(std::make_pair(timer, timer->getTimerId()));
     return res;
+}
+
+void mg::TimerQueue::cancelInOwnerLoop(TimerId id)
+{
+    assert(_loop->isInOwnerThread());
+    assert(_list.size() == _activeTimers.size());
+    ActiveTimer timer(id._timer, id._sequence);
+    auto it = _activeTimers.find(timer);
+    if (it != _activeTimers.end())
+    {
+        _list.erase(Entry(it->first->expiration(), it->first));
+        delete it->first;
+        _activeTimers.erase(it);
+    }
+    else if (_isCallingExpiredTimers)
+        _cancleingTimers.insert(timer);
 }
 
 static int createTimerFd()
 {
     int timeFd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-    LOG_DEBUG("Create TimerFd[{}]", timeFd);
+    LOG_DEBUG("New TimerFd[{}]", timeFd);
     if (timeFd < 0)
-        LOG_ERROR("Create TimerFd failed {}", ::strerror(errno));
+        LOG_ERROR("New TimerFd failed {}", ::strerror(errno));
     return timeFd;
 }
 
@@ -116,8 +159,8 @@ static void resetTimerFd(int timefd, mg::TimeStamp expiration)
 
     struct timespec ts;
     ts.tv_sec = static_cast<time_t>(diff / mg::TimeStamp::_mircoSecondsPerSecond);
-    ts.tv_nsec = static_cast<long>(diff % mg::TimeStamp::_mircoSecondsPerSecond * 1000);
+    ts.tv_nsec = static_cast<long>((diff % mg::TimeStamp::_mircoSecondsPerSecond) * 1000);
     newValue.it_value = ts;
-    if (::timerfd_settime(timefd, 0, &newValue, &oldValue))
-        LOG_ERROR("Timer[{}] resetTimerFd failed", timefd);
+    if (::timerfd_settime(timefd, 0, &newValue, &oldValue) < 0)
+        LOG_ERROR("Timer[{}] {}", timefd, ::strerror(errno));
 }
