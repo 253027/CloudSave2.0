@@ -99,19 +99,19 @@ void mg::EventLoop::push(std::function<void()> callBack)
         this->wakeup();
 }
 
-void mg::EventLoop::runAt(TimeStamp time, std::function<void()> callback)
+mg::TimerId mg::EventLoop::runAt(TimeStamp time, std::function<void()> callback)
 {
-    _timeQueue->addTimer(std::move(callback), time, 0.0);
+    return _timeQueue->addTimer(std::move(callback), time, 0.0);
 }
 
-void mg::EventLoop::runAfter(double delay, std::function<void()> callback)
+mg::TimerId mg::EventLoop::runAfter(double delay, std::function<void()> callback)
 {
-    this->runAt(addTime(TimeStamp::now(), delay), callback);
+    return this->runAt(addTime(TimeStamp::now(), delay), callback);
 }
 
-void mg::EventLoop::runEvery(double interval, std::function<void()> callback)
+mg::TimerId mg::EventLoop::runEvery(double interval, std::function<void()> callback)
 {
-    _timeQueue->addTimer(callback, addTime(TimeStamp::now(), interval), interval);
+    return _timeQueue->addTimer(callback, addTime(TimeStamp::now(), interval), interval);
 }
 
 int mg::EventLoop::createEventFd()

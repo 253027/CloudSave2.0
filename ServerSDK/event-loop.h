@@ -75,19 +75,19 @@ namespace mg
          * @param time 给定时间
          * @param callback 待执行回调
          */
-        void runAt(TimeStamp time, std::function<void()> callback);
+        TimerId runAt(TimeStamp time, std::function<void()> callback);
 
         /**
          * @brief 给定延迟time秒后执行回调
          * @param time 延迟秒数
          */
-        void runAfter(double delay, std::function<void()> callback);
+        TimerId runAfter(double delay, std::function<void()> callback);
 
         /**
          * @brief 每delay延迟执行一次
          * @param interval 循环执行时间
          */
-        void runEvery(double interval, std::function<void()> callback);
+        TimerId runEvery(double interval, std::function<void()> callback);
 
     private:
         // 申请_wakeupFd实例
