@@ -114,6 +114,11 @@ mg::TimerId mg::EventLoop::runEvery(double interval, std::function<void()> callb
     return _timeQueue->addTimer(callback, addTime(TimeStamp::now(), interval), interval);
 }
 
+void mg::EventLoop::cancel(TimerId timerId)
+{
+    _timeQueue->cancel(timerId);
+}
+
 int mg::EventLoop::createEventFd()
 {
     int ret = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);

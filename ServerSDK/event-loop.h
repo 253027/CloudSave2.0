@@ -89,6 +89,12 @@ namespace mg
          */
         TimerId runEvery(double interval, std::function<void()> callback);
 
+        /**
+         * @brief 取消定时器任务
+         * @param 定时器序列号
+         */
+        void cancel(TimerId timerId);
+
     private:
         // 申请_wakeupFd实例
         int createEventFd();
