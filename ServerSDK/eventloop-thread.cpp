@@ -13,7 +13,7 @@ mg::EventLoopThread::EventLoopThread(ThreadInitialFunction function, std::string
 mg::EventLoopThread::~EventLoopThread()
 {
     this->_quit = true;
-    if (!this->_loop)
+    if (this->_loop)
     {
         _loop->quit();
         _thread.join();
