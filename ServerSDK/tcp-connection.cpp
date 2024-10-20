@@ -45,6 +45,11 @@ void mg::TcpConnection::setHighWaterMarkCallback(HighWaterMarkCallback callback,
     this->_highWaterMark = len;
 }
 
+bool mg::TcpConnection::connected()
+{
+    return this->_state == CONNECTED;
+}
+
 void mg::TcpConnection::send(const std::string &data)
 {
     if (_state != CONNECTED)
@@ -193,6 +198,7 @@ void mg::TcpConnection::sendInOwnerLoop(const void *data, int len)
             if (!remain && _writeCompleteCallback)
                 _loop->push(std::bind(_writeCompleteCallback, shared_from_this()));
         }
+        else
         {
             hasWrite = 0;
             if ((errno != EWOULDBLOCK) && (errno == EPIPE || errno == ECONNRESET))

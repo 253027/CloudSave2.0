@@ -40,6 +40,8 @@ namespace mg
 
         void setHighWaterMarkCallback(HighWaterMarkCallback callback, int len);
 
+        bool connected();
+
         /**
          * @brief 发送数据
          * @param data 待发送的数据
@@ -53,6 +55,8 @@ namespace mg
          */
         void connectionEstablished();
         void connectionDestoryed();
+
+        friend class TcpPacketParser;
 
     private:
         enum State
