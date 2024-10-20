@@ -21,11 +21,11 @@ Epoll::~Epoll()
 
 TimeStamp Epoll::poll(std::vector<Channel *> &channelList, int timeout)
 {
-    LOG_DEBUG("epoll[{}] has {} channels", this->_epoll_fd, this->_channels.size());
+    LOG_TRACE("epoll[{}] has {} channels", this->_epoll_fd, this->_channels.size());
     int nums = ::epoll_wait(this->_epoll_fd, _events.data(), static_cast<int>(_events.size()), timeout);
     if (nums >= 0)
     {
-        LOG_DEBUG("epoll[{}] receive {} evetns", this->_epoll_fd, nums);
+        LOG_TRACE("epoll[{}] receive {} evetns", this->_epoll_fd, nums);
         if (nums == _events.size())
             _events.resize(nums << 1);
         this->fillActiveChannels(nums, channelList);
