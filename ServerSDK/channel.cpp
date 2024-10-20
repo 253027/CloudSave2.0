@@ -115,9 +115,9 @@ bool mg::Channel::isReading() const
 
 void mg::Channel::disableAllEvents()
 {
+    LOG_DEBUG("[{}] disableAllEvents", this->_fd);
     this->_events = 0;
     this->update();
-    LOG_DEBUG("[{}] disableAllEvents", this->_fd);
 }
 
 void mg::Channel::remove()
@@ -151,31 +151,31 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     // 对方关闭连接会触发EPOLLHUP
     if ((this->_activeEvents & EPOLLHUP) && !(this->_activeEvents & EPOLLIN))
     {
+        LOG_TRACE("[{}] closed event", this->_fd);
         if (_closeCallback)
             _closeCallback();
-        LOG_TRACE("[{}] closed event", this->_fd);
     }
 
     if (this->_activeEvents & EPOLLERR)
     {
+        LOG_TRACE("[{}] error event", this->_fd);
         if (_errorCallback)
             _errorCallback();
-        LOG_TRACE("[{}] error event", this->_fd);
     }
 
     // EPOLLIN表示普通数据和优先数据可读，EPOLLPRI表示高优先数据可读，EPOLLRDHUP表示TCP连接对方关闭或者对方关闭写端
     if (this->_activeEvents & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
+        LOG_TRACE("[{}] read event", this->_fd);
         if (_readCallback)
             _readCallback(time);
-        LOG_TRACE("[{}] read event", this->_fd);
     }
 
     // 写事件发生，处理可写事件
     if (this->_activeEvents & EPOLLOUT)
     {
+        LOG_TRACE("[{}] write event", this->_fd);
         if (_writeCallback)
             _writeCallback();
-        LOG_TRACE("[{}] write event", this->_fd);
     }
 }
