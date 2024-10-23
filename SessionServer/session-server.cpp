@@ -18,7 +18,7 @@ void SessionServer::start()
 {
     _server->setConnectionCallback(std::bind(&SessionServer::onConnectionStateChanged, this, std::placeholders::_1));
     _server->setMessageCallback(std::bind(&SessionServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    //_server->setThreadNums(3);
+    _server->setThreadNums(2);
     _server->start();
     _loop->loop();
 }
