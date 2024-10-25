@@ -9,6 +9,7 @@ SRC_DIRS := $(addprefix $(ROOT_DIR)/, $(SUBDIRS))
 
 # 搜索 ServerSDK 源文件并为每个文件构造完整的路径
 SDK_SRC := $(wildcard $(ROOT_DIR)/ServerSDK/*.cpp)
+SESSION_SRC := $(wildcard $(ROOT_DIR)/SessionServer/*.cpp)
 
 # 设置对象文件的输出目录
 OBJ_DIR := build
@@ -16,6 +17,7 @@ $(shell mkdir -p $(OBJ_DIR))
 
 # 构造对象文件路径（保留子目录结构）
 SDK_OBJ := $(patsubst $(ROOT_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SDK_SRC))
+SESSION_OBJ := $(patsubst $(ROOT_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SESSION_SRC))
 
 # 预编译头文件路径 (在ServerSDK目录下)
 PCH := $(OBJ_DIR)/pch.h.gch
@@ -41,7 +43,7 @@ LDFLAGS := -L./lib
 LDLIBS := -lcrypt -lmysqlclient -lspdlog
 
 # 生成 SessionServer 可执行文件
-./SessionServer/server: $(SDK_OBJ)
+./SessionServer/server: $(SDK_OBJ) $(SESSION_OBJ)
 	$(MAKE) -C SessionServer
 
 # 生成预编译头文件 (从ServerSDK/pch.h)
