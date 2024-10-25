@@ -2,7 +2,7 @@
 #include "tcp-connection.h"
 #include "log.h"
 
-bool mg::TcpPacketParser::send(const mg::TcpConnectionPointer con, std::string &data)
+bool mg::TcpPacketParser::send(const mg::TcpConnectionPointer con, const std::string &data)
 {
     int len = ::htonl(data.size());
     std::string buf((char *)&len, headSize);

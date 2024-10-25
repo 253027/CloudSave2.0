@@ -14,7 +14,7 @@ namespace mg
          * @param con 待发送链接
          * @param data 待发送数据
          */
-        bool send(const mg::TcpConnectionPointer con, std::string &data);
+        bool send(const mg::TcpConnectionPointer con, const std::string &data);
 
         /**
          * @brief 按边界接受数据（前4字节为头部信息）
