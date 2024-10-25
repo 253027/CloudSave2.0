@@ -8,6 +8,7 @@ void sighandle(int sig)
         return;
     SessionServer::getMe().quit();
     sleep(1);
+    exit(0);
 }
 
 int main()
