@@ -17,7 +17,7 @@ namespace Protocal
 
     inline TLV parse(std::string &data)
     {
-        if (data.size() < 8)
+        if (data.size() < 4)
             return {};
         int type = *((int *)data.data());
         std::string ret_data(data.begin() + 4, data.end());
