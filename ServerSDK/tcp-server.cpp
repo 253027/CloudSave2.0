@@ -6,7 +6,7 @@ mg::TcpServer::TcpServer(EventLoop *loop, const InternetAddress &listenAddress, 
       _acceptor(new Acceptor(domain, type, loop, listenAddress, true)),
       _connectionID(0),
       _threadInitialCallback(), _threadPool(new EventLoopThreadPool(loop, name)),
-      _address(), _callBack()
+      _address()
 
 {
     this->_acceptor->setNewConnectionCallBack(std::bind(&TcpServer::acceptorCallback, this, std::placeholders::_1, std::placeholders::_2));
@@ -22,7 +22,7 @@ mg::TcpServer::~TcpServer()
     }
 }
 
-void mg::TcpServer::setThreadInitialCallback(std::function<void(EventLoop *)> callback)
+void mg::TcpServer::setThreadInitialCallback(ThreadInitialCallBack callback)
 {
     this->_threadInitialCallback = std::move(callback);
 }
@@ -37,7 +37,7 @@ void mg::TcpServer::start()
     if (this->_isStarted)
         return;
     this->_isStarted = true;
-    _threadPool->start(_callBack);
+    _threadPool->start(_threadInitialCallback);
     _loop->run(std::bind(&Acceptor::listen, this->_acceptor.get()));
 }
 

@@ -25,7 +25,7 @@ namespace mg
          * @brief 设置回调函数
          * @param callback
          */
-        void setThreadInitialCallback(std::function<void(EventLoop *)> callback);
+        void setThreadInitialCallback(ThreadInitialCallBack callback);
 
         /**
          * @brief 设置线程的数量
@@ -86,10 +86,9 @@ namespace mg
         EventLoop *_loop;                                                                // 用户定义的mainloop
         std::unique_ptr<Acceptor> _acceptor;                                             // 用于接受新连接的类实例
         int _connectionID;                                                               // 用于区分相同TCP连接时不同的名字
-        std::function<void(EventLoop *)> _threadInitialCallback;                         // loop线程初始化的回调函数
+        ThreadInitialCallBack _threadInitialCallback;                                    // loop线程初始化的回调函数
         std::shared_ptr<EventLoopThreadPool> _threadPool;                                // 线程池
         InternetAddress _address;                                                        // 绑定的地址
-        ThreadInitialCallBack _callBack;                                                 // 现成初始化完的回调函数
         std::unordered_map<std::string, std::shared_ptr<TcpConnection>> _connectionMemo; // 管理所有连接
 
         /*-------以下是保存用户自定义的函数--------*/
