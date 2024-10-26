@@ -1,4 +1,5 @@
 import socket
+import json
 
 s = socket.socket()
 
@@ -16,12 +17,18 @@ try:
             print("无效输入！\n")
         else:
             try:
-                byte_len = len(message)
-                total_data = byte_len.to_bytes(4, byteorder="big") + message.encode("utf-8")
+                json_str = {}
+                json_str["val"] = message
+                json_str["type"] = 1
+                message = json.dumps(json_str)
+                type = 3    #数据类型
+
+                byte_len = len(message) + 4
+                total_data = byte_len.to_bytes(4, byteorder="big") + type.to_bytes(4, byteorder="little") + message.encode("utf-8")
                 s.sendall(total_data)
                 print("发送数据包总长度：" + str(len(total_data)) + " bytes")
                 print(f"数据长度: {byte_len}")
-                print("内容: " + "".join(chr(byte) for byte in total_data[4:]) + "\n")
+                print("内容: " + "".join(chr(byte) for byte in total_data[8:]) + "\n")
 
                 # 接收响应
                 data = s.recv(1024)

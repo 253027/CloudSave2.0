@@ -4,7 +4,19 @@
 
 void BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::string &data)
 {
-    json jsData = json::parse(data);
+    LOG_DEBUG("data: {}", data);
+    json js = json::parse(data);
+
+    METHODTYPE type = js["type"];
+    switch (type)
+    {
+    case METHODTYPE::LOGIN:
+        login(connection, js);
+        break;
+    default:
+        break;
+    }
+
     mg::TcpPacketParser::getMe().send(connection, data);
     return;
 }

@@ -1,6 +1,4 @@
 #include "session-server.h"
-#include "business-task.h"
-#include "protocal-type.h"
 
 void SessionServer::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
 {
@@ -36,7 +34,6 @@ void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     std::string data;
     if (!mg::TcpPacketParser::getMe().reveive(a, data))
         return;
-    using DataType = Protocal::PackageType;
 
     int type = 0;
     std::string userdata;

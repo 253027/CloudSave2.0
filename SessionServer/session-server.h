@@ -1,6 +1,9 @@
 #ifndef __SESSION_SERVER_H__
 #define __SESSION_SERVER_H__
 
+#include "business-task.h"
+#include "protocal-type.h"
+
 #include "../ServerSDK/pch.h"
 #include "../ServerSDK/tcp-server.h"
 #include "../ServerSDK/singleton.h"
@@ -21,6 +24,7 @@ public:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
 private:
+    using DataType = Protocal::PackageType;
     std::shared_ptr<mg::EventLoop> _loop;
     std::shared_ptr<mg::TcpServer> _server;
 };

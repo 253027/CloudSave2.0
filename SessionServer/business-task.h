@@ -4,6 +4,7 @@
 #include "../ServerSDK/tcp-connection.h"
 #include "../ServerSDK/singleton.h"
 #include "../ServerSDK/json_fwd.hpp"
+#include "../ServerSDK/log.h"
 
 #include <unordered_map>
 #include <memory>
@@ -11,13 +12,18 @@
 
 class BusinessTask : public Singleton<BusinessTask>
 {
-    using json = nlohmann::json;
-    using TCPCONNECTION = const mg::TcpConnectionPointer;
-
 public:
     void parse(const mg::TcpConnectionPointer &connection, const std::string &data);
 
 private:
+    using json = nlohmann::json;
+    using TCPCONNECTION = const mg::TcpConnectionPointer;
+
+    enum METHODTYPE
+    {
+        LOGIN = 1, // 登录
+    };
+
     /**
      * @brief 登录模块
      */
