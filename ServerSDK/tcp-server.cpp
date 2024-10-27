@@ -6,7 +6,7 @@ mg::TcpServer::TcpServer(EventLoop *loop, const InternetAddress &listenAddress, 
       _acceptor(new Acceptor(domain, type, loop, listenAddress, true)),
       _connectionID(0),
       _threadInitialCallback(), _threadPool(new EventLoopThreadPool(loop, name)),
-      _address()
+      _address(listenAddress)
 
 {
     this->_acceptor->setNewConnectionCallBack(std::bind(&TcpServer::acceptorCallback, this, std::placeholders::_1, std::placeholders::_2));
