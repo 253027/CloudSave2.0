@@ -56,6 +56,18 @@ namespace mg
         void connectionEstablished();
         void connectionDestoryed();
 
+        /**
+         * @brief 设置用户自定义连接状态
+         * @param state 状态值
+         */
+        void setUserConnectionState(int state);
+
+        /**
+         * @brief 得到用户自定义连接状态
+         * @return 自定义连接状态
+         */
+        int getUserConnectionState();
+
         friend class TcpPacketParser;
 
     private:
@@ -117,6 +129,7 @@ namespace mg
         HighWaterMarkCallback _highWaterCallback;     // 写缓冲区数据过多执行的回调
         Buffer _sendBuffer;                           // 写缓冲区
         Buffer _readBuffer;                           // 读缓冲区
+        std::atomic_int _userStat;                    // 用户自定义的Tcp连接状态
     };
 };
 

@@ -5,7 +5,7 @@
 mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int sockfd,
                                  const InternetAddress &localAddress, const InternetAddress &peerAddress)
     : _loop(loop), _name(name), _socket(new Socket(sockfd)), _channel(new Channel(loop, sockfd)),
-      _state(CONNECTING), _localAddress(localAddress), _peerAddress(peerAddress)
+      _state(CONNECTING), _localAddress(localAddress), _peerAddress(peerAddress), _userStat(0)
 {
     this->_channel->setReadCallback(std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
     this->_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
@@ -95,6 +95,16 @@ void mg::TcpConnection::connectionDestoryed()
             this->_connectionCallback(shared_from_this());
     }
     this->_channel->remove();
+}
+
+void mg::TcpConnection::setUserConnectionState(int state)
+{
+    this->_userStat = state;
+}
+
+int mg::TcpConnection::getUserConnectionState()
+{
+    return this->_userStat;
 }
 
 void mg::TcpConnection::setConnectionState(State state)
