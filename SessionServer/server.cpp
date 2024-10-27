@@ -8,6 +8,7 @@ void sighandle(int sig)
         return;
     SessionServer::getMe().quit();
     sleep(1);
+    LOG_DEBUG("\r----------------------SessionServer exited-----------------------------------");
     exit(0);
 }
 
@@ -18,10 +19,7 @@ int main()
     INITLOG(logConfig);
     signal(SIGINT, sighandle);
     LOG_DEBUG("\r----------------------SessionServer started-----------------------------------");
-
     SessionServer::getMe().initial();
     SessionServer::getMe().start();
-
-    LOG_DEBUG("\r----------------------SessionServer exited-----------------------------------");
     return 0;
 }

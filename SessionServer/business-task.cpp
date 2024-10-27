@@ -13,6 +13,9 @@ void BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::
     case METHODTYPE::LOGIN:
         login(connection, js);
         break;
+    case METHODTYPE::REGIST:
+        regist(connection, js);
+        break;
     default:
         break;
     }
@@ -22,6 +25,22 @@ void BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::
 }
 
 void BusinessTask::login(TCPCONNECTION &con, const json &jsData)
+{
+    int state = con->getUserConnectionState();
+    if (state != CONNECTIONSTATE::UNVERIFY)
+        return;
+
+    std::string name = jsData["name"];
+    std::string password = jsData["password"];
+    if (name.empty() || password.empty())
+        return;
+
+    // TODO: 查数据库操作
+
+    con->setUserConnectionState(CONNECTIONSTATE::VERIFY);
+}
+
+void BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
 {
     ;
 }

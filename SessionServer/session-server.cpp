@@ -8,6 +8,7 @@ void SessionServer::initial()
 
 void SessionServer::start()
 {
+    LOG_DEBUG("bind at {}", _server->getIpPort());
     _server->setConnectionCallback(std::bind(&SessionServer::onConnectionStateChanged, this, std::placeholders::_1));
     _server->setMessageCallback(std::bind(&SessionServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _server->setThreadNums(2);

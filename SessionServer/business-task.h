@@ -21,13 +21,25 @@ private:
 
     enum METHODTYPE
     {
-        LOGIN = 1, // 登录
+        LOGIN = 1,  // 登录
+        REGIST = 2, // 注册
+    };
+
+    enum CONNECTIONSTATE
+    {
+        UNVERIFY = 0, // 未验证
+        VERIFY = 1,   // 已验证
     };
 
     /**
      * @brief 登录模块
      */
     void login(TCPCONNECTION &con, const json &jsData);
+
+    /**
+     * @brief 注册模块
+     */
+    void regist(TCPCONNECTION &con, const json &jsData);
 };
 
 #endif //__BUSINESS_TYPE_H__
