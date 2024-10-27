@@ -1,13 +1,5 @@
 #include "session-server.h"
 
-void SessionServer::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
-{
-    if (connection->connected())
-        LOG_DEBUG("{} established", connection->name());
-    else
-        LOG_DEBUG("{} disconnected", connection->name());
-}
-
 void SessionServer::initial()
 {
     _loop.reset(new mg::EventLoop("main-loop"));
@@ -47,4 +39,12 @@ void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     default:
         break;
     }
+}
+
+void SessionServer::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
+{
+    if (connection->connected())
+        LOG_DEBUG("{} established", connection->name());
+    else
+        LOG_DEBUG("{} disconnected", connection->name());
 }

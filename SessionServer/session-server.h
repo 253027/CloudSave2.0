@@ -13,17 +13,17 @@
 class SessionServer : public Singleton<SessionServer>
 {
 public:
-    void onConnectionStateChanged(const mg::TcpConnectionPointer &connection);
-
     void initial();
 
     void start();
 
     void quit();
 
+private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
-private:
+    void onConnectionStateChanged(const mg::TcpConnectionPointer &connection);
+
     using DataType = Protocal::PackageType;
     std::shared_ptr<mg::EventLoop> _loop;
     std::shared_ptr<mg::TcpServer> _server;
