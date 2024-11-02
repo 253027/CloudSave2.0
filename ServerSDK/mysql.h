@@ -10,7 +10,6 @@
 #define __MG_MYSQL_H__
 
 #include <string>
-#include "singleton.h"
 #include <mysql/mysql.h>
 
 namespace mg
@@ -34,7 +33,7 @@ namespace mg
      * example:
      *          struct test
      *          {
-     *             char buf[33];
+     *              char buf[33];
      *              int a;
      *          }__attribute__((packed));
      *
@@ -69,23 +68,81 @@ namespace mg
         };
     };
 
-    class Mysql : public Singleton<Mysql>
+    class Mysql
     {
     public:
         Mysql();
 
         ~Mysql();
 
-    public:
         /**
-         * @brief 将要存入的数据结构转换成插入语句
-         * @param name 插入的表名
-         * @param column 数据结构描述列
-         * @return 生成sql语句
+         * @brief 连接至mysql数据库
+         * @param username 用户名
+         * @param password 密码
+         * @param databasename 数据名
+         * @param port 端口
+         * @return true 连接成功 false 连接失败
          */
-        std::string parseInsert(const std::string &name, mysql::DataField *column, char *data);
+        bool connect(const std::string &username, const std::string &password,
+                     const std::string &databasename, const std::string &ip, uint16_t port);
 
-        MYSQL *handle;
+        /**
+         * @brief 插入操作
+         * @param tablename 表名
+         * @param column 插入表类型
+         * @param data 插入数据
+         * @return true 插入成功 false 插入失败
+         */
+        bool insert(const std::string &tablename, mysql::DataField *column, char *data);
+        /**
+         * @param sql 要执行的sql语句
+         */
+        bool insert(const std::string &sql);
+
+        /**
+         * @brief 删除操作
+         * @param sql 要执行的sql语句
+         * @return true 删除成功 false 删除失败
+         */
+        bool remove(const std::string &sql);
+
+        /**
+         * @brief 更新操作
+         * @param sql 要执行的sql语句
+         * @return true 删除成功 false 删除失败
+         */
+        bool update(const std::string &sql);
+
+        /**
+         * @brief 查询操作
+         * @param sql 要执行的sql语句
+         * @return true 删除成功 false 删除失败
+         * @details
+         *          sql = "select id, filename from table_name;"
+         *          mysql.query(sql);
+         *          while(mysql.next())
+         *              cout << sql.getDataByColname("id") << " " << sql.getDataByColname("filename");
+         *
+         */
+        bool query(const std::string &sql);
+        bool next();
+        std::string getData(const std::string &fieldname);
+
+    private:
+        using DATATYPE = mysql::DATATYPE;
+        using CALCTYPE = mysql::CALCTYPE;
+        using DataField = mysql::DataField;
+
+        std::string parseInsert(const std::string &tablename, mysql::DataField *column, char *data);
+
+        bool parseUpdate(const std::string &sql);
+
+        void freeResult();
+
+        MYSQL *_handle;
+        MYSQL_RES *_res;
+        MYSQL_ROW _row;
+        MYSQL_FIELD *_field;
     };
 };
 

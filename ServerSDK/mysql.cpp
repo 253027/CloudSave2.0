@@ -1,26 +1,90 @@
 #include "mysql.h"
 #include <sstream>
 #include <string.h>
+#include "macros.h"
+#include "log.h"
 
-mg::Mysql::Mysql()
+mg::Mysql::Mysql() : _handle(mysql_init(nullptr)), _res(nullptr),
+                     _row(nullptr), _field(nullptr)
 {
-    ;
+    mysql_set_character_set(_handle, "utf8");
+    if (_handle == nullptr)
+        LOG_ERROR("mysql nullptr");
 }
 
 mg::Mysql::~Mysql()
 {
-    ;
+    freeResult();
+    if (_handle)
+        mysql_close(_handle);
+    _handle = nullptr;
+}
+
+bool mg::Mysql::connect(const std::string &username, const std::string &password, const std::string &databasename, const std::string &ip, uint16_t port)
+{
+    MYSQL *res = mysql_real_connect(_handle, ip.c_str(), username.c_str(), password.c_str(), databasename.c_str(), port, nullptr, 0);
+    if (res == nullptr)
+        LOG_ERROR("{}", mysql_error(_handle));
+    return res != nullptr;
+}
+
+bool mg::Mysql::insert(const std::string &tablename, mysql::DataField *column, char *data)
+{
+    return parseUpdate(parseInsert(tablename, column, data));
+}
+
+bool mg::Mysql::insert(const std::string &sql)
+{
+    return parseUpdate(sql);
+}
+
+bool mg::Mysql::remove(const std::string &sql)
+{
+    return parseUpdate(sql);
+}
+
+bool mg::Mysql::update(const std::string &sql)
+{
+    return parseUpdate(sql);
+}
+
+bool mg::Mysql::query(const std::string &sql)
+{
+    freeResult();
+    if (mysql_real_query(_handle, sql.c_str(), sql.size()))
+        return false;
+    _res = mysql_store_result(_handle);
+    _field = mysql_fetch_fields(_res);
+    return true;
+}
+
+bool mg::Mysql::next()
+{
+    if (_res == nullptr)
+        return false;
+    _row = mysql_fetch_row(_res);
+    return _row != nullptr;
+}
+
+std::string mg::Mysql::getData(const std::string &fieldname)
+{
+    int colNums = mysql_num_fields(_res);
+    for (int i = 0; i < colNums; i++)
+    {
+        if (::strcmp(fieldname.c_str(), _field[i].name))
+            continue;
+        return (_row[i] == nullptr) ? "" : _row[i];
+    }
+    return "";
 }
 
 std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *column, char *data)
 {
-    using DATATYPE = mysql::DATATYPE;
-    using CALCTYPE = mysql::CALCTYPE;
     int offset = 0;
     std::ostringstream sql;
     sql << "insert into `" << name << "` (";
     std::string field, value;
-    for (mysql::DataField *p = column; p->name; p++)
+    for (DataField *p = column; p->name; p++)
     {
         if (!::strlen(p->name))
             continue;
@@ -34,7 +98,7 @@ std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *co
             if (p->size != CALCTYPE::DB_AUTO)
                 len = std::min(len, p->size);
             std::string buf(len * 2 + 3, '\'');
-            len = mysql_escape_string(buf.data() + 1, data + offset, len);
+            len = mysql_real_escape_string(_handle, buf.data() + 1, data + offset, len);
             buf.resize(len + 2);
             buf.back() = '\'';
             value += buf;
@@ -53,4 +117,19 @@ std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *co
     value = value.substr(0, value.size() - 2);
     sql << field << ") values (" << value << ")";
     return sql.str();
+}
+
+bool mg::Mysql::parseUpdate(const std::string &sql)
+{
+    return mysql_real_query(_handle, sql.c_str(), sql.size()) == 0;
+}
+
+void mg::Mysql::freeResult()
+{
+    if (_res == nullptr)
+        return;
+    mysql_free_result(_res);
+    _res = nullptr;
+    _field = nullptr;
+    _row = nullptr;
 }
