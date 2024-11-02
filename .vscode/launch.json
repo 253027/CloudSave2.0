@@ -5,18 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Se Attach",
+            "name": "Session Attach",
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/SessionServer/server",
             "processId": "${command:pickProcess}",
-            "pipeTransport": {
-                "debuggerPath": "/usr/bin/gdb",
-                "pipeProgram": "/usr/bin/ssh",
-                "pipeArgs": [],
-                "pipeCwd": ""
-            },
             "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [
                 {
                     "description": "为 gdb 启用整齐打印",
@@ -31,7 +26,7 @@
             ]
         },
         {
-            "name": "Se Start",
+            "name": "Session Start",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/SessionServer/server",
