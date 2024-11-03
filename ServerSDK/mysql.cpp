@@ -5,7 +5,7 @@
 #include "log.h"
 
 mg::Mysql::Mysql() : _handle(mysql_init(nullptr)), _res(nullptr),
-                     _row(nullptr), _field(nullptr)
+                     _row(nullptr), _field(nullptr), _alvieTime(0)
 {
     mysql_set_character_set(_handle, "utf8");
     if (_handle == nullptr)
@@ -76,6 +76,31 @@ std::string mg::Mysql::getData(const std::string &fieldname)
         return (_row[i] == nullptr) ? "" : _row[i];
     }
     return "";
+}
+
+bool mg::Mysql::transaction()
+{
+    return mysql_autocommit(_handle, false);
+}
+
+bool mg::Mysql::commit()
+{
+    return mysql_commit(_handle);
+}
+
+bool mg::Mysql::rollback()
+{
+    return mysql_rollback(_handle);
+}
+
+void mg::Mysql::refresh()
+{
+    _alvieTime = mg::TimeStamp::now();
+}
+
+mg::TimeStamp mg::Mysql::getVacantTime()
+{
+    return mg::TimeStamp::now() - _alvieTime;
 }
 
 std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *column, char *data)

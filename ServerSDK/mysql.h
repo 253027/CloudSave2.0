@@ -9,6 +9,8 @@
 #ifndef __MG_MYSQL_H__
 #define __MG_MYSQL_H__
 
+#include "time-stamp.h"
+
 #include <string>
 #include <mysql/mysql.h>
 
@@ -128,6 +130,30 @@ namespace mg
         bool next();
         std::string getData(const std::string &fieldname);
 
+        /**
+         * @brief 事务
+         */
+        bool transaction();
+        /**
+         * @brief 提交事务
+         */
+        bool commit();
+
+        /**
+         * @brief huigun
+         */
+        bool rollback();
+
+        /**
+         * @brief 刷新空闲起始时间
+         */
+        void refresh();
+
+        /**
+         * @brief 获取空闲时间
+         */
+        TimeStamp getVacantTime();
+
     private:
         using DATATYPE = mysql::DATATYPE;
         using CALCTYPE = mysql::CALCTYPE;
@@ -143,6 +169,7 @@ namespace mg
         MYSQL_RES *_res;
         MYSQL_ROW _row;
         MYSQL_FIELD *_field;
+        mg::TimeStamp _alvieTime;
     };
 };
 
