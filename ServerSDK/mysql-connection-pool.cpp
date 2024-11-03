@@ -90,6 +90,7 @@ std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::get()
 
 void mg::MysqlConnectionPool::remove()
 {
+    LOG_TRACE("mysql remove called");
     std::lock_guard<std::mutex> guard(_mutex);
     while (_queue.size() > _maxsize)
     {
@@ -97,12 +98,14 @@ void mg::MysqlConnectionPool::remove()
         if (front->getVacantTime().getSeconds() < _idletimeout)
             break;
         _queue.pop();
+        LOG_TRACE("mysql remove {}", (void *)front);
         SAFE_DELETE(front);
     }
 }
 
 void mg::MysqlConnectionPool::add()
 {
+    LOG_TRACE("mysql add called");
     std::lock_guard<std::mutex> guard(_mutex);
     if (_queue.size() >= _minsize)
         return;
@@ -122,6 +125,7 @@ void mg::MysqlConnectionPool::addInitial()
             continue;
         }
         sql->refresh();
+        LOG_TRACE("mysql add {}", (void *)sql);
         _queue.push(sql);
     }
 }
