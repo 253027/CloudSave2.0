@@ -16,7 +16,7 @@ namespace mg
     public:
         using ThreadInitialFunction = std::function<void(EventLoop *)>;
 
-        EventLoopThread(ThreadInitialFunction function, std::string name = std::string());
+        EventLoopThread(std::string name = std::string(), ThreadInitialFunction function = ThreadInitialFunction());
 
         ~EventLoopThread();
 

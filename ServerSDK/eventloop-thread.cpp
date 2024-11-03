@@ -2,7 +2,7 @@
 
 #include "event-loop.h"
 
-mg::EventLoopThread::EventLoopThread(ThreadInitialFunction function, std::string name)
+mg::EventLoopThread::EventLoopThread(std::string name, ThreadInitialFunction function)
     : _name(name), _loop(nullptr), _quit(false),
       _thread(std::bind(&EventLoopThread::run, this), name),
       _mutex(), _condition(), _callback(function)

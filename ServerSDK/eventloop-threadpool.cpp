@@ -32,7 +32,7 @@ void mg::EventLoopThreadPool::start(ThreadInitialCallback callBack)
     {
         char buf[128] = {0};
         snprintf(buf, sizeof(buf) - 1, "%s-%d", this->_name.c_str(), i);
-        EventLoopThread *temp = new EventLoopThread(callBack, buf);
+        EventLoopThread *temp = new EventLoopThread(buf, callBack);
         this->_threads.push_back(std::unique_ptr<EventLoopThread>(temp));
         this->_loops.push_back(temp->startLoop());
     }
