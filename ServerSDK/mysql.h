@@ -118,7 +118,7 @@ namespace mg
         /**
          * @brief 查询操作
          * @param sql 要执行的sql语句
-         * @return true 删除成功 false 删除失败
+         * @return true 查询成功 false 查询失败
          * @details
          *          sql = "select id, filename from table_name;"
          *          mysql.query(sql);
