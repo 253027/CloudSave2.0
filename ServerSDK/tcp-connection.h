@@ -125,7 +125,7 @@ namespace mg
         TcpConnectionCallback _connectionCallback;    // 连接建立或者断开时的回调
         MessageDataCallback _messageCallback;         // 有读写消息时的回调
         WriteCompleteCallback _writeCompleteCallback; // 消息发送完毕时的回调
-        ConnectionClosedCallback _closeCallback;      // 连接关闭是的回调
+        ConnectionClosedCallback _closeCallback;      // 连接关闭时的回调
         HighWaterMarkCallback _highWaterCallback;     // 写缓冲区数据过多执行的回调
         Buffer _sendBuffer;                           // 写缓冲区
         Buffer _readBuffer;                           // 读缓冲区

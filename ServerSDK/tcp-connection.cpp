@@ -138,12 +138,14 @@ void mg::TcpConnection::handleClose()
     this->setConnectionState(DISCONNECTED);
     this->_channel->disableAllEvents();
     TcpConnectionPointer temp(shared_from_this());
-    if (!this->_connectionCallback)
-        LOG_ERROR("[{}] _connectionCallback failed", this->_name);
-    this->_connectionCallback(temp);
-    if (!this->_closeCallback)
-        LOG_ERROR("[{}] _closeCallback failed", this->_name);
-    this->_closeCallback(temp);
+    if (this->_connectionCallback)
+        this->_connectionCallback(temp);
+    else
+        LOG_WARN("[{}] _connectionCallback not initial", this->_name);
+    if (this->_closeCallback)
+        this->_closeCallback(temp);
+    else
+        LOG_WARN("[{}] _closeCallback not initial", this->_name);
 }
 
 void mg::TcpConnection::handleError()
