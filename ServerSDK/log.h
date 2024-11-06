@@ -58,7 +58,7 @@ namespace mg
             //[%#] 行号
             //[%!] 函数
             //[%v] 实际文本
-            loggerPtr->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] [%s %!:%#] %v");
+            loggerPtr->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] [%s:%#] %v");
             // 设置日志级别
             loggerPtr->set_level(spdlog::level::from_str(configuraion.level));
             // 设置刷新日志的日志级别，当出现level或更高级别日志时，立刻刷新日志到  disk
