@@ -55,7 +55,7 @@ bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::
     return true;
 }
 
-void mg::MysqlConnectionPool::start()
+void mg::MysqlConnectionPool::start(int keeplive)
 {
     if (!_thread || _loop == nullptr)
         assert(0);
@@ -65,6 +65,8 @@ void mg::MysqlConnectionPool::start()
     }
     _loop->runEvery(_timeout, std::bind(&MysqlConnectionPool::remove, this));
     _loop->runEvery(_timeout, std::bind(&MysqlConnectionPool::add, this));
+    if (keeplive)
+        _loop->runEvery(keeplive, std::bind(&MysqlConnectionPool::keepAlive, this));
 }
 
 std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::get()
@@ -128,4 +130,20 @@ void mg::MysqlConnectionPool::addInitial()
         LOG_TRACE("mysql add {}", (void *)sql);
         _queue.push(sql);
     }
+}
+
+void mg::MysqlConnectionPool::keepAlive()
+{
+    std::string sql = "select now()";
+    std::lock_guard<std::mutex> guard(_mutex);
+    std::queue<Mysql *> temp;
+    while (!_queue.empty())
+    {
+        auto front = _queue.front();
+        _queue.pop();
+        temp.push(front);
+        front->query(sql);
+        LOG_TRACE("mysql keepalive {}", (void *)front);
+    }
+    temp.swap(_queue);
 }

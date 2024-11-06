@@ -53,7 +53,7 @@ bool mg::Mysql::query(const std::string &sql)
     freeResult();
     if (mysql_real_query(_handle, sql.c_str(), sql.size()))
     {
-        LOG_ERROR("\nQuery: {}\nErrors: {}", sql, mysql_error(_handle));
+        LOG_ERROR("\nQuery: {}\nErrno:{}\nErrors: {}", sql, mysql_errno(_handle), mysql_error(_handle));
         return false;
     }
     _res = mysql_store_result(_handle);

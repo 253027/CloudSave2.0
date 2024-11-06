@@ -32,7 +32,10 @@ namespace mg
          */
         bool initial(const std::string &configPath, const std::string &name = "");
 
-        void start();
+        /**
+         * @param keeplive 是否定时发送心跳包（单位秒）
+         */
+        void start(int keeplive = 0);
 
         /**
          * @brief 获取一个数据库实例
@@ -54,6 +57,11 @@ namespace mg
          * @brief 初始化连接
          */
         void addInitial();
+
+        /**
+         * @brief 定时发送心跳包
+         */
+        void keepAlive();
 
         std::string _host;
         std::string _username;
