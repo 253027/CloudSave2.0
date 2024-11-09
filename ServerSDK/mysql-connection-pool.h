@@ -38,6 +38,11 @@ namespace mg
         void start(int keeplive = 0);
 
         /**
+         * @brief 停止线程池
+         */
+        void quit();
+
+        /**
          * @brief 获取一个数据库实例
          */
         std::shared_ptr<Mysql> get();

@@ -19,7 +19,7 @@ mg::MysqlConnectionPool::MysqlConnectionPool() : _host(), _username(), _password
 
 mg::MysqlConnectionPool::~MysqlConnectionPool()
 {
-    _loop = nullptr;
+    _loop = nullptr; // loop的声明周期不由MysqlConnectionPool管理
 }
 
 bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::string &name)
@@ -67,6 +67,11 @@ void mg::MysqlConnectionPool::start(int keeplive)
     _loop->runEvery(_timeout, std::bind(&MysqlConnectionPool::add, this));
     if (keeplive)
         _loop->runEvery(keeplive, std::bind(&MysqlConnectionPool::keepAlive, this));
+}
+
+void mg::MysqlConnectionPool::quit()
+{
+    _loop->quit();
 }
 
 std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::get()
