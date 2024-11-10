@@ -41,32 +41,34 @@ bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::
     }
     file.close();
 
-    _host = js["ip"];
-    _port = js["port"];
-    _password = js["password"];
-    _username = js["username"];
-    _databasename = js["databasename"];
-    _maxsize = js["maxsize"];
-    _minsize = js["minsize"];
-    _timeout = js.contains("timeout") ? ((uint16_t)js["timeout"]) : 0;
-    _idletimeout = js.contains("idletimeout") ? ((uint16_t)js["idletimeout"]) : 0;
+    _host = js.value("ip", "localhost");
+    _port = js.value("port", 0);
+    _password = js.value("password", "");
+    _username = js.value("username", "");
+    _databasename = js.value("databasename", "");
+    _maxsize = js.value("maxsize", 1);
+    _minsize = js.value("minsize", 1);
+    _timeout = js.value("timeout", 0);
+    _idletimeout = js.value("idletimeout", 0);
     _thread.reset(new mg::EventLoopThread(name));
     _loop = _thread->startLoop();
     return true;
 }
 
-void mg::MysqlConnectionPool::start(int keeplive)
+bool mg::MysqlConnectionPool::start(int keeplive)
 {
     if (!_thread || _loop == nullptr)
         assert(0);
     {
         std::lock_guard<std::mutex> guard(_mutex);
-        addInitial();
+        if (!addInitial())
+            return false;
     }
     _loop->runEvery(_timeout, std::bind(&MysqlConnectionPool::remove, this));
     _loop->runEvery(_timeout, std::bind(&MysqlConnectionPool::add, this));
     if (keeplive)
         _loop->runEvery(keeplive, std::bind(&MysqlConnectionPool::keepAlive, this));
+    return true;
 }
 
 void mg::MysqlConnectionPool::quit()
@@ -120,7 +122,7 @@ void mg::MysqlConnectionPool::add()
     _condition.notify_one();
 }
 
-void mg::MysqlConnectionPool::addInitial()
+bool mg::MysqlConnectionPool::addInitial()
 {
     int len = std::min(_minsize, static_cast<uint16_t>(_minsize - _queue.size()));
     for (int i = 0; i < len; i++)
@@ -129,12 +131,13 @@ void mg::MysqlConnectionPool::addInitial()
         if (!sql->connect(_username, _password, _databasename, _host, _port))
         {
             LOG_ERROR("mysql {} connect error", i + 1);
-            continue;
+            return false;
         }
         sql->refresh();
         LOG_TRACE("mysql add {}", (void *)sql);
         _queue.push(sql);
     }
+    return true;
 }
 
 void mg::MysqlConnectionPool::keepAlive()

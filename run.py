@@ -2,11 +2,20 @@
 import subprocess
 from typing import List
 
-procress = ["./SessionServer/server"]
+process = ["./SessionServer/server"]
 
-def run(list: List[str]) -> bool:
-    for name in procress:
+def run(proclist: List[str]) -> bool:
+    for name in proclist:
         result = subprocess.Popen([name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            stdout, stderr = result.communicate(timeout=0.5)
+            if stderr:
+                print("Error:", stderr.decode())
+                return False
+            if stdout:
+                print("Output:", stdout.decode())
+        except subprocess.TimeoutExpired:
+            pass
 
 if __name__ == "__main__":
-    run(procress)
+    run(process)

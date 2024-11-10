@@ -35,7 +35,7 @@ namespace mg
         /**
          * @param keeplive 是否定时发送心跳包（单位秒）
          */
-        void start(int keeplive = 0);
+        bool start(int keeplive = 0);
 
         /**
          * @brief 停止线程池
@@ -60,8 +60,9 @@ namespace mg
 
         /**
          * @brief 初始化连接
+         * @return true 初始化成功 false 初始化失败
          */
-        void addInitial();
+        bool addInitial();
 
         /**
          * @brief 定时发送心跳包

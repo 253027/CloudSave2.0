@@ -26,7 +26,8 @@ int main()
 
     if (!mg::MysqlConnectionPool::getMe().initial("./SessionServer/database.json", "mysql"))
         assert(0 && "mysql initial failed");
-    mg::MysqlConnectionPool::getMe().start(180);
+    if (!mg::MysqlConnectionPool::getMe().start(180))
+        assert(0 && "mysql start failed");
 
     SessionServer::getMe().initial();
     SessionServer::getMe().start();
