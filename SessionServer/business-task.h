@@ -19,13 +19,13 @@ private:
     using json = nlohmann::json;
     using TCPCONNECTION = const mg::TcpConnectionPointer;
 
-    enum METHODTYPE
+    enum class MethodType : uint8_t
     {
         LOGIN = 1,  // 登录
         REGIST = 2, // 注册
     };
 
-    enum CONNECTIONSTATE
+    enum class ConnectionState : uint8_t
     {
         UNVERIFY = 0, // 未验证
         VERIFY = 1,   // 已验证

@@ -9,6 +9,7 @@
 #include "../ServerSDK/singleton.h"
 #include "../ServerSDK/tcp-packet-parser.h"
 #include "../ServerSDK/log.h"
+#include "../ServerSDK/mysql-connection-pool.h"
 
 class SessionServer : public Singleton<SessionServer>
 {
