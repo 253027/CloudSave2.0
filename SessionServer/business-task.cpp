@@ -9,10 +9,9 @@
 
 void BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::string &data)
 {
-    LOG_DEBUG("data: {}", data);
     json js = json::parse(data);
 
-    MethodType type = TO_ENUM(MethodType, js["type"]);
+    MethodType type = TO_ENUM(MethodType, js.value("type", 0));
     switch (type)
     {
     case MethodType::LOGIN:
@@ -20,8 +19,6 @@ void BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::
         break;
     case MethodType::REGIST:
         regist(connection, js);
-        break;
-    default:
         break;
     }
 
@@ -34,13 +31,8 @@ void BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     if (state != ConnectionState::UNVERIFY)
         return;
 
-    std::string name = "name";
-    std::string password = "password";
-    if (!jsData.contains(name) || !jsData.contains(password))
-        return;
-
-    name = jsData[name];
-    password = jsData[password];
+    std::string name = jsData.value("name", "");
+    std::string password = jsData.value("password", "");
     if (name.empty() || password.empty())
         return;
 
@@ -54,8 +46,7 @@ void BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     std::ostringstream os;
     os << "select username, passwd, salt from user_info where ";
     os << "username = \'" << name << "\'";
-    sql->query(os.str());
-    if (!sql->next())
+    if (!sql->query(os.str()) || !sql->next())
         return;
 
     std::string salt = sql->getData("salt");
@@ -70,6 +61,10 @@ void BusinessTask::login(TCPCONNECTION &con, const json &jsData)
         return;
 
     con->setUserConnectionState(TO_UNDERLYING(ConnectionState::VERIFY));
+    json retData;
+    retData["type"] = TO_UNDERLYING(MethodType::LOGIN);
+    retData["status"] = "success";
+    mg::TcpPacketParser::getMe().send(con, retData.dump());
 }
 
 void BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
@@ -78,19 +73,19 @@ void BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
         return;
 
     std::string salt = "$y$j9T$byV0Zo35gBDQJtKsEx.XR/";
-    std::string password = jsData["password"];
-    std::string name = jsData["name"];
+    std::string name = jsData.value("name", "");
+    std::string password = jsData.value("password", "");
 
     struct crypt_data cryptData;
     memset(&cryptData, 0, sizeof(cryptData));
     char *crypt = ::crypt_r(password.c_str(), salt.c_str(), &cryptData);
 
-    mg::DataField field[] =
+    static mg::DataField field[] =
         {
             {"username", mg::DataType::DB_STRING, 33},
             {"salt", mg::DataType::DB_STRING, 129},
             {"passwd", mg::DataType::DB_STRING, 1024},
-            {nullptr, mg::DataType::DB_INVALID, 0} //
+            {nullptr, mg::DataType::DB_INVALID, 0} // end of definition
         };
 
     struct Filed
