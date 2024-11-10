@@ -28,7 +28,7 @@ bool mg::Mysql::connect(const std::string &username, const std::string &password
     return res != nullptr;
 }
 
-bool mg::Mysql::insert(const std::string &tablename, mysql::DataField *column, char *data)
+bool mg::Mysql::insert(const std::string &tablename, DataField *column, char *data)
 {
     return parseUpdate(parseInsert(tablename, column, data));
 }
@@ -106,7 +106,7 @@ mg::TimeStamp mg::Mysql::getVacantTime()
     return mg::TimeStamp::now() - _alvieTime;
 }
 
-std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *column, char *data)
+std::string mg::Mysql::parseInsert(const std::string &name, DataField *column, char *data)
 {
     int offset = 0;
     std::ostringstream sql;
@@ -120,10 +120,10 @@ std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *co
         int len = 0;
         switch (p->type)
         {
-        case DATATYPE::DB_STRING:
+        case DataType::DB_STRING:
         {
             len = ::strlen(data + offset);
-            if (p->size != CALCTYPE::DB_AUTO)
+            if (p->size)
                 len = std::min(len, p->size);
             std::string buf(len * 2 + 3, '\'');
             len = mysql_real_escape_string(_handle, buf.data() + 1, data + offset, len);
@@ -132,7 +132,7 @@ std::string mg::Mysql::parseInsert(const std::string &name, mysql::DataField *co
             value += buf;
             break;
         }
-        case DATATYPE::DB_INT32:
+        case DataType::DB_INT32:
         {
             value += std::to_string(*((int *)(data + offset)));
             break;

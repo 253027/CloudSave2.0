@@ -39,35 +39,30 @@ namespace mg
      *              int a;
      *          }__attribute__((packed));
      *
-     *          mg::mysql::DataField field[] =
+     *          mg::DataField field[] =
      *          {
-     *              {"name",   mg::mysql::DATATYPE::DB_STRING, 33},
-     *              {"score",  mg::mysql::DATATYPE::DB_INT32, sizeof(int)},
-     *              { nullptr, mg::mysql::DATATYPE::DB_INVALID, 0},
+     *              {"name",   mg::DataType::DB_STRING, 33},
+     *              {"score",  mg::DataType::DB_INT32, sizeof(int)},
+     *              { nullptr, mg::DataType::DB_INVALID, 0},
      *          };
+     *
+     *          std::underlying_type_t<DataType> color_value = static_cast<std::underlying_type_t<DataType>>(Color::DB_STRING)
+     *
      */
-    namespace mysql
+    enum class DataType
     {
-        enum DATATYPE
-        {
-            DB_STRING = 1, // C风格字符串数据
-            DB_CHAR,       // 单字节数据
-            DB_INT32,      // 32位整型数据
-            DB_BIN,        // 二进制数据
-            DB_INVALID     // 无效位
-        };
+        DB_STRING = 1, // C风格字符串数据
+        DB_CHAR,       // 单字节数据
+        DB_INT32,      // 32位整型数据
+        DB_BIN,        // 二进制数据
+        DB_INVALID     // 无效位
+    };
 
-        enum CALCTYPE
-        {
-            DB_AUTO = 0,
-        };
-
-        struct DataField
-        {
-            char *name;    // 数据名
-            DATATYPE type; // 数据类型
-            int size;      // 数据大小(上限)
-        };
+    struct DataField
+    {
+        char *name;    // 数据名
+        DataType type; // 数据类型
+        int size;      // 数据大小(上限)
     };
 
     class Mysql
@@ -95,7 +90,7 @@ namespace mg
          * @param data 插入数据
          * @return true 插入成功 false 插入失败
          */
-        bool insert(const std::string &tablename, mysql::DataField *column, char *data);
+        bool insert(const std::string &tablename, DataField *column, char *data);
         /**
          * @param sql 要执行的sql语句
          */
@@ -155,11 +150,7 @@ namespace mg
         TimeStamp getVacantTime();
 
     private:
-        using DATATYPE = mysql::DATATYPE;
-        using CALCTYPE = mysql::CALCTYPE;
-        using DataField = mysql::DataField;
-
-        std::string parseInsert(const std::string &tablename, mysql::DataField *column, char *data);
+        std::string parseInsert(const std::string &tablename, DataField *column, char *data);
 
         bool parseUpdate(const std::string &sql);
 
