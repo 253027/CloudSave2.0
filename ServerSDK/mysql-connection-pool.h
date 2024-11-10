@@ -45,7 +45,7 @@ namespace mg
         /**
          * @brief 获取一个数据库实例
          */
-        std::shared_ptr<Mysql> get();
+        std::shared_ptr<Mysql> getHandle();
 
     private:
         /**

@@ -74,7 +74,7 @@ void mg::MysqlConnectionPool::quit()
     _loop->quit();
 }
 
-std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::get()
+std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::getHandle()
 {
     // 不能在定时器线程中执行此函数会导致死锁
     assert(!_loop->isInOwnerThread());
