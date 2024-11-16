@@ -30,6 +30,7 @@ mg::InternetAddress::InternetAddress(const std::string &ip, uint16_t port, bool 
         ::memset(&_address6, 0, sizeof(_address6));
         _address6.sin6_port = ::htons(port);
         ::inet_pton(AF_INET6, ip.c_str(), &_address6.sin6_addr);
+        _address6.sin6_family = AF_INET6;
         _ipv6 = true;
     }
     else
@@ -37,6 +38,7 @@ mg::InternetAddress::InternetAddress(const std::string &ip, uint16_t port, bool 
         ::memset(&_address4, 0, sizeof(_address4));
         _address4.sin_addr.s_addr = ::inet_addr(ip.c_str());
         _address4.sin_port = ::htons(port);
+        _address4.sin_family = AF_INET;
     }
 }
 
