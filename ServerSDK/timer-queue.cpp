@@ -46,7 +46,7 @@ void mg::TimerQueue::addTimerInOwnerLoop(Timer *timer)
 {
     if (!_loop->isInOwnerThread())
     {
-        LOG_ERROR("未在所属线程添加定时器");
+        LOG_ERROR("Timer not added in the owner thread");
         return;
     }
     if (this->insert(timer))
@@ -109,7 +109,7 @@ bool mg::TimerQueue::insert(Timer *timer)
     TimeStamp when = timer->expiration();
     if (!_list.size() || (_list.size() && when < _list.begin()->first))
         res = true;
-    _list.insert(Entry(when, timer)).second;
+    _list.insert(Entry(when, timer));
     _activeTimers.insert(std::make_pair(timer, timer->getTimerId()));
     return res;
 }
