@@ -139,3 +139,9 @@ void mg::Socket::shutDownWrite()
     if (::shutdown(this->socket_fd, SHUT_WR) < 0)
         LOG_ERROR("[{}] {}", this->socket_fd, ::strerror(errno));
 }
+
+void mg::Socket::reset()
+{
+    ::close(this->socket_fd);
+    this->socket_fd = 0;
+}

@@ -31,6 +31,8 @@ namespace mg
 
         sockaddr_in6 &getSockAddress_6() { return _address6; };
 
+        inline bool isIpv6() const { return this->_ipv6; };
+
     private:
         union
         {

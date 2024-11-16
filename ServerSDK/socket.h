@@ -94,6 +94,11 @@ namespace mg
          */
         void shutDownWrite();
 
+        /**
+         * @brief 重置socket
+         */
+        void reset();
+
     private:
         int socket_fd;
 
