@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 
 #include "noncopyable.h"
+#include "inet-address.h"
 
 namespace mg
 {
@@ -26,8 +27,6 @@ namespace mg
 
 namespace mg
 {
-    class InternetAddress;
-
     class Socket : noncopyable
     {
     public:
@@ -98,6 +97,16 @@ namespace mg
          * @brief 重置socket
          */
         void reset();
+
+        /**
+         * @brief 根据套接口得到本地地址
+         */
+        static InternetAddress getLocalAddress(int sockfd, bool isIpv6 = false);
+
+        /**
+         * @brief 根据套接口得到远端地址
+         */
+        static InternetAddress getPeerAddress(int sockfd, bool isIpv6 = false);
 
     private:
         int socket_fd;
