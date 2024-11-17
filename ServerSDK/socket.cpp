@@ -155,7 +155,6 @@ mg::InternetAddress mg::Socket::getLocalAddress(int sockfd, bool isIpv6)
         socklen_t len = sizeof(address6);
         if (::getsockname(sockfd, (struct sockaddr *)&address6, &len) < 0)
             LOG_ERROR("socket[{}] get local_6 failed");
-        address._ipv6 = true;
     }
     else
     {
@@ -164,7 +163,6 @@ mg::InternetAddress mg::Socket::getLocalAddress(int sockfd, bool isIpv6)
         socklen_t len = sizeof(address4);
         if (::getsockname(sockfd, (struct sockaddr *)&address4, &len) < 0)
             LOG_ERROR("socket[{}] get local_4 failed");
-        address._ipv6 = false;
     }
     return std::move(address);
 }
@@ -179,7 +177,6 @@ mg::InternetAddress mg::Socket::getPeerAddress(int sockfd, bool isIpv6)
         socklen_t len = sizeof(address6);
         if (::getpeername(sockfd, (struct sockaddr *)&address6, &len) < 0)
             LOG_ERROR("socket[{}] get peer_6 failed");
-        address._ipv6 = true;
     }
     else
     {
@@ -188,7 +185,6 @@ mg::InternetAddress mg::Socket::getPeerAddress(int sockfd, bool isIpv6)
         socklen_t len = sizeof(address4);
         if (::getpeername(sockfd, (struct sockaddr *)&address4, &len) < 0)
             LOG_ERROR("socket[{}] get peer_4 failed");
-        address._ipv6 = false;
     }
     return std::move(address);
 }
