@@ -44,7 +44,7 @@ mg::TcpClient::~TcpClient()
 
 void mg::TcpClient::connect()
 {
-    LOG_ERROR("connect to {}", _connector->getAddress().toIpPort());
+    LOG_DEBUG("connect to {}", _connector->getAddress().toIpPort());
     _connected = true;
     _connector->start();
 }
