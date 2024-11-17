@@ -33,7 +33,7 @@ else
 endif
 
 .PHONY: all
-all: $(PCH) $(SDK_OBJ) SessionServer
+all: $(PCH) $(SDK_OBJ) SessionServer GatewayServer
 
 # 生成预编译头文件
 $(PCH): $(PCH_SRC)
@@ -46,6 +46,10 @@ $(SDK_OUT_DIR)/%.o: $(SDK_DIR)/%.cpp $(PCH)
 .PHONY: SessionServer
 SessionServer: $(SDK_OBJ)
 	$(MAKE) -C SessionServer
+
+.PHONY: GatewayServer
+GatewayServer: $(SDK_OBJ)
+	$(MAKE) -C GatewayServer
 
 .PHONY: clean
 clean:
