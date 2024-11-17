@@ -10,7 +10,9 @@ namespace mg
 {
     class Buffer;
     class TcpConnection;
+    class Connector;
     using TcpConnectionPointer = std::shared_ptr<TcpConnection>;
+    using ConnectorPointer = std::shared_ptr<Connector>;
     using TcpConnectionCallback = std::function<void(const TcpConnectionPointer &)>;
     using MessageDataCallback = std::function<void(const TcpConnectionPointer &, Buffer *, TimeStamp)>;
     using WriteCompleteCallback = std::function<void(const TcpConnectionPointer &)>;

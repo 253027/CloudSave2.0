@@ -50,6 +50,15 @@ bool mg::TcpConnection::connected()
     return this->_state == CONNECTED;
 }
 
+void mg::TcpConnection::shutdown()
+{
+    if (_state == CONNECTED)
+    {
+        this->setConnectionState(DISCONNECTED);
+        _loop->run(std::bind(&TcpConnection::shutDownInOwnerLoop, this));
+    }
+}
+
 void mg::TcpConnection::send(const std::string &data)
 {
     if (_state != CONNECTED)

@@ -42,6 +42,8 @@ namespace mg
 
         bool connected();
 
+        void shutdown();
+
         /**
          * @brief 发送数据
          * @param data 待发送的数据
