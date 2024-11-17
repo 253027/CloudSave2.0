@@ -34,6 +34,7 @@ void mg::Connector::restart()
     this->_connect = true;
     this->setState(DisConnected);
     this->startInLoop();
+    this->_retryMileSeconds = _initialRetryDelayMileSeconds;
 }
 
 void mg::Connector::startInLoop()
