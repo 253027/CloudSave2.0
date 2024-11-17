@@ -37,6 +37,11 @@ void mg::Connector::restart()
     this->_retryMileSeconds = _initialRetryDelayMileSeconds;
 }
 
+const mg::InternetAddress &mg::Connector::getAddress() const
+{
+    return _address;
+}
+
 void mg::Connector::startInLoop()
 {
     assert(this->_loop->isInOwnerThread());
@@ -138,7 +143,7 @@ void mg::Connector::handleWrite()
     LOG_TRACE("handle write {}", state);
     if (_state == Connecting)
     {
-        int sockfd = removeAndResetChannel();
+        int sockfd = removeAndResetChannel(); // 这里这样做的目的是将连接成功的socket从当前channel中移除，加入TcpConnection中的channel进行维护
         int error = 0;
         socklen_t len = sizeof(error);
         ::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
@@ -178,7 +183,7 @@ void mg::Connector::retry()
     this->setState(DisConnected);
     if (this->_connect)
     {
-        LOG_INFO("retry connnect to {}", _address.toIpPort());
+        LOG_INFO("retry connnect to {}, next retrytime: {} seconds", _address.toIpPort(), _retryMileSeconds / 1'000.0);
         _loop->runAfter(_retryMileSeconds / 1'000.0, std::bind(&Connector::startInLoop, shared_from_this()));
         _retryMileSeconds = std::min(_retryMileSeconds * 2, Connector::_maxRetryDelayMileSeconds);
     }

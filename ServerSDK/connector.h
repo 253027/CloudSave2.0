@@ -26,6 +26,8 @@ namespace mg
 
         void restart();
 
+        const InternetAddress &getAddress() const;
+
     private:
         enum State
         {

@@ -27,20 +27,22 @@ namespace mg
 
         uint16_t port() const;
 
-        sockaddr_in &getSockAddress_4() { return _address4; };
+        sockaddr_in &getSockAddress_4() { return _address._address4; };
 
-        sockaddr_in6 &getSockAddress_6() { return _address6; };
+        sockaddr_in6 &getSockAddress_6() { return _address._address6; };
 
         inline bool isIpv6() const { return this->_ipv6; };
 
     private:
-        union
+        union Address
         {
             sockaddr_in _address4;
             sockaddr_in6 _address6;
         };
 
         bool _ipv6 = false;
+
+        Address _address;
     };
 };
 
