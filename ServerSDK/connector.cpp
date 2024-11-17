@@ -140,7 +140,7 @@ void mg::Connector::resetChannel()
 void mg::Connector::handleWrite()
 {
     int state = _state;
-    LOG_TRACE("handle write {}", state);
+    LOG_TRACE("handle write state: {}", state);
     if (_state == Connecting)
     {
         int sockfd = removeAndResetChannel(); // 这里这样做的目的是将连接成功的socket从当前channel中移除，加入TcpConnection中的channel进行维护
@@ -166,7 +166,7 @@ void mg::Connector::handleWrite()
 void mg::Connector::handleError()
 {
     int state = _state;
-    LOG_ERROR("handel error {}", state);
+    LOG_ERROR("handel error state: {}", state);
     if (_state == Connecting)
     {
         int error = 0;

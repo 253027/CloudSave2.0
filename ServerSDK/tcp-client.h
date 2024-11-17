@@ -44,18 +44,18 @@ namespace mg
         void disableRetry();
 
         /**
-         * @brief 设置新连接建立时的回调，传递过程：用户自定义函数->TcpServer->TcpConnection
+         * @brief 设置新连接建立时的回调，传递过程：用户自定义函数->TcpClient->TcpConnection
          */
         void setConnectionCallback(TcpConnectionCallback callback);
 
         /**
-         * @brief 设置数据到来时处理函数，传递过程：用户自定义函数->TcpServer->TcpConnection
+         * @brief 设置数据到来时处理函数，传递过程：用户自定义函数->TcpClient->TcpConnection
          *        该函数也是用户自定义的业务入口函数
          */
         void setMessageCallback(MessageDataCallback callback);
 
         /**
-         * @brief 设置数据发送完成的回调函数，传递过程：用户自定义函数->TcpServer->TcpConnection
+         * @brief 设置数据发送完成的回调函数，传递过程：用户自定义函数->TcpClient->TcpConnection
          */
         void setWriteCompleteCallback(WriteCompleteCallback callback);
 
