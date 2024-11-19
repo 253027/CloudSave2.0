@@ -4,12 +4,14 @@
 
 void sighandle(int sig)
 {
-    if (sig != SIGINT)
-        return;
     SessionServer::getMe().quit();
     mg::MysqlConnectionPool::getMe().quit();
-    ::sleep(1);
+
+    SessionServer::destroyInstance();
+    mg::MysqlConnectionPool::destroyInstance();
     LOG_DEBUG("\r----------------------SessionServer exited-----------------------------------");
+    SHUTDOWNLOG();
+    // sleep(1);
     ::exit(0);
 }
 
@@ -18,6 +20,7 @@ int main()
     if (::daemon(1, 1) == -1)
         return 0;
     signal(SIGINT, sighandle);
+    signal(SIGTERM, sighandle);
 
     // 初始化日志库
     mg::LogConfig logConfig("debug", "./log", "SessionServer.log");

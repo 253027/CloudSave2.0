@@ -32,7 +32,7 @@ protected:
 public:
     static void destroyInstance()
     {
-        if (!instance)
+        if (instance == nullptr)
             return;
         delete instance;
         instance = nullptr;
