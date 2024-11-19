@@ -16,6 +16,7 @@
 #define LOG_WARN(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::warn, __VA_ARGS__)
 #define LOG_ERROR(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::err, __VA_ARGS__)
 #define LOG_CRITICAL(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::critical, __VA_ARGS__)
+#define SHUTDOWNLOG() spdlog::shutdown()
 
 namespace mg
 {
