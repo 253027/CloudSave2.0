@@ -1,5 +1,19 @@
 #include "session-server.h"
 
+SessionServer::SessionServer()
+{
+#ifdef _DEBUG
+    LOG_DEBUG("SessionServer() called");
+#endif
+}
+
+SessionServer::~SessionServer()
+{
+#ifdef _DEBUG
+    LOG_DEBUG("~SessionServer() called");
+#endif
+}
+
 void SessionServer::initial()
 {
     _loop.reset(new mg::EventLoop("main-loop"));

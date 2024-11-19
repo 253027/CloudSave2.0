@@ -14,6 +14,10 @@
 class SessionServer : public Singleton<SessionServer>
 {
 public:
+    SessionServer();
+
+    ~SessionServer();
+
     void initial();
 
     void start();

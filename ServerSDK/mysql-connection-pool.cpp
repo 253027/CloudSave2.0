@@ -20,6 +20,9 @@ mg::MysqlConnectionPool::MysqlConnectionPool() : _host(), _username(), _password
 mg::MysqlConnectionPool::~MysqlConnectionPool()
 {
     _loop = nullptr; // loop的声明周期不由MysqlConnectionPool管理
+#ifdef _DEBUG
+    LOG_DEBUG("~MysqlConnectionPool() called");
+#endif
 }
 
 bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::string &name)

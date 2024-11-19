@@ -14,7 +14,7 @@ def stop(procress: List[str]) -> bool:
                 if name in line:
                     print("Find procress: ", line)
                     pid = int(line.split()[0])
-                    os.kill(pid, signal.SIGINT)
+                    os.kill(pid, signal.SIGTERM)
         except Exception as e:
             print("Error: ", e)
             return False
