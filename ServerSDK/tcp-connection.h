@@ -71,6 +71,7 @@ namespace mg
         int getUserConnectionState();
 
         friend class TcpPacketParser;
+        friend class HttpPacketParser;
 
     private:
         enum State

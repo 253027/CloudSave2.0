@@ -2,6 +2,7 @@
 #include "../ServerSDK/json.hpp"
 #include "../ServerSDK/tcp-server.h"
 #include "../ServerSDK/event-loop.h"
+#include "../ServerSDK/http-packet-parser.h"
 
 #include <fstream>
 
@@ -54,7 +55,9 @@ void GateWayServer::quit()
 
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
-    ;
+    mg::HttpData data;
+    if (!mg::HttpPacketParser::getMe().reveive(a, data))
+        return;
 }
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
