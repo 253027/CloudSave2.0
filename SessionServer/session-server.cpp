@@ -5,6 +5,7 @@ SessionServer::SessionServer()
 #ifdef _DEBUG
     LOG_DEBUG("SessionServer() called");
 #endif
+    mg::TcpPacketParser::getMe();
 }
 
 SessionServer::~SessionServer()
@@ -12,6 +13,7 @@ SessionServer::~SessionServer()
 #ifdef _DEBUG
     LOG_DEBUG("~SessionServer() called");
 #endif
+    mg::TcpPacketParser::destroyInstance();
 }
 
 void SessionServer::initial()

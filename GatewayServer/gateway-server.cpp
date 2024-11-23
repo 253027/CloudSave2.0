@@ -10,7 +10,12 @@ using json = nlohmann::json;
 
 GateWayServer::GateWayServer()
 {
-    ;
+    mg::HttpPacketParser::getMe();
+}
+
+GateWayServer::~GateWayServer()
+{
+    mg::HttpPacketParser::destroyInstance();
 }
 
 bool GateWayServer::initial()
