@@ -20,6 +20,8 @@ class GateWayServer : public Singleton<GateWayServer>
 public:
     GateWayServer();
 
+    ~GateWayServer();
+
     bool initial();
 
     void start();
