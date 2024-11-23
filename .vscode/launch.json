@@ -49,7 +49,27 @@
                 }
             ],
             "preLaunchTask": "SessionServer"
-        }
-
+        },
+        {
+            "name": "GateWay Attach",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/GatewayServer/server",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
     ]
 }
