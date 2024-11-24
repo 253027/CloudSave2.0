@@ -3,6 +3,7 @@
 #include "../ServerSDK/tcp-server.h"
 #include "../ServerSDK/event-loop.h"
 #include "../ServerSDK/http-packet-parser.h"
+#include "../ServerSDK/tcp-packet-parser.h"
 
 #include <fstream>
 
@@ -39,10 +40,10 @@ bool GateWayServer::initial()
     }
 
     _loop.reset(new mg::EventLoop("gateway-loop"));
-    _server.reset(new mg::TcpServer(_loop.get(), mg::InternetAddress(js.value("port", 10800)), "GatewayServer"));
+    _server.reset(new mg::TcpServer(_loop.get(), mg::InternetAddress(js["GatewayServer"].value("port", 10800)), "GatewayServer"));
     _server->setMessageCallback(std::bind(&GateWayServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _server->setConnectionCallback(std::bind(&GateWayServer::connectionStateChange, this, std::placeholders::_1));
-    _server->setThreadNums(js.value("threadnums", 1));
+    _server->setThreadNums(js["GatewayServer"].value("threadnums", 1));
     return true;
 }
 
@@ -58,11 +59,30 @@ void GateWayServer::quit()
     _loop->quit();
 }
 
+void GateWayServer::onInternalServerResponse(const std::string &name, std::string &data)
+{
+    auto it = _connection.find(name);
+    if (it == _connection.end())
+        return;
+    mg::TcpConnectionPointer p = it->second.lock();
+    if (!p)
+    {
+        _connection.erase(it);
+        return;
+    }
+    // Todo: http报文生成
+    mg::TcpPacketParser::getMe().send(p, data);
+}
+
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     mg::HttpData data;
     if (!mg::HttpPacketParser::getMe().reveive(a, data))
         return;
+
+    mg::HttpHead head;
+    mg::HttpBody body;
+    std::tie(head, body) = std::move(data);
 }
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
