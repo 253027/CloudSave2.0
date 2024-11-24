@@ -12,6 +12,7 @@ namespace mg
 {
     class TcpClient;
     class EventLoopThread;
+    class TcpConnection;
 }
 
 class SessionClient : public Singleton<SessionClient>
@@ -23,12 +24,16 @@ public:
 
     bool initial();
 
+    bool sendToServer(const std::string &data);
+
 private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
     void onConnectionStateChanged(const mg::TcpConnectionPointer &connection);
 
+    int _index;
     std::mutex _mutex;
+    std::vector<std::weak_ptr<mg::TcpConnection>> _connections;
     std::vector<std::unique_ptr<mg::TcpClient>> _clients;
     std::vector<std::unique_ptr<mg::EventLoopThread>> _threads;
 };

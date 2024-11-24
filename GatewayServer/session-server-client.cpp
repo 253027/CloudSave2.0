@@ -11,8 +11,9 @@
 
 using json = nlohmann::json;
 
-SessionClient::SessionClient()
+SessionClient::SessionClient() : _index(0)
 {
+    ;
 }
 
 SessionClient::~SessionClient()
@@ -63,18 +64,53 @@ bool SessionClient::initial()
     return true;
 }
 
+bool SessionClient::sendToServer(const std::string &data)
+{
+    mg::TcpConnectionPointer p;
+    {
+        if (_connections.empty())
+            return false;
+        std::lock_guard<std::mutex> guard(_mutex);
+        p = _connections[_index].lock();
+        _index = (_index + 1) % _connections.size();
+    }
+    if (!p)
+        return false;
+    mg::TcpPacketParser::getMe().send(p, data);
+    return true;
+}
+
 void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     std::string data;
     if (!mg::TcpPacketParser::getMe().reveive(a, data))
         return;
-    GateWayServer::getMe().onInternalServerResponse(a->name(), data);
+    LOG_DEBUG("{} data: {}", a->name(), data);
 }
 
 void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
 {
     if (connection->connected())
+    {
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _connections.push_back(connection);
+        }
         LOG_INFO("{} connected to {}", connection->name(), connection->peerAddress().toIpPort());
+    }
     else
+    {
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            for (int i = 0, j = _connections.size() - 1; i < j; i++)
+            {
+                if (_connections[i].lock() != connection)
+                    continue;
+                std::swap(_connections[i], _connections[j]);
+                break;
+            }
+            _connections.pop_back();
+        }
         LOG_INFO("{} disconnected from {}", connection->name(), connection->peerAddress().toIpPort());
+    }
 }
