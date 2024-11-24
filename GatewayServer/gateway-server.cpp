@@ -83,6 +83,15 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     mg::HttpHead head;
     mg::HttpBody body;
     std::tie(head, body) = std::move(data);
+
+    int type = mg::HttpPacketParser::getMe().parseType(head["content-type"]);
+    switch (type)
+    {
+    case 7: // json数据
+    {
+        break;
+    }
+    }
 }
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
