@@ -19,6 +19,8 @@ class SessionClient : public Singleton<SessionClient>
 public:
     SessionClient();
 
+    ~SessionClient();
+
     bool initial();
 
 private:

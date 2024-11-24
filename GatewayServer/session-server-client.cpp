@@ -15,6 +15,11 @@ SessionClient::SessionClient()
 {
 }
 
+SessionClient::~SessionClient()
+{
+    ;
+}
+
 bool SessionClient::initial()
 {
     json js;
