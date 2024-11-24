@@ -23,7 +23,7 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpD
     HttpBody &body = std::get<1>(data);
     head["method"] = std::string(method, method_len);
     for (int i = 0; i < num_headers; i++)
-        head[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = std::string(headers[i].value, headers[i].value_len);
+        head[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
 
     int body_size = 0;
     auto it = head.find("content-length");
@@ -31,6 +31,16 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpD
         body_size = std::stoi(it->second);
     body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
     return true;
+}
+
+int mg::HttpPacketParser::parseType(const std::string &data)
+{
+    auto it = data.find("/");
+    if (it == std::string::npos)
+        return 0;
+    std::string type_1 = data.substr(0, it);
+    std::string type_2 = data.substr(it + 1);
+    return HttpContentType[type_1][type_2];
 }
 
 std::string mg::tolower(const std::string &str)

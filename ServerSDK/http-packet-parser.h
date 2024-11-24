@@ -8,11 +8,11 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 
 namespace mg
 {
-    using HttpHead = std::map<std::string, std::string>;
+    using HttpHead = std::unordered_map<std::string, std::string>;
     using HttpBody = std::string;
     using HttpData = std::tuple<HttpHead, HttpBody>;
 
@@ -28,7 +28,34 @@ namespace mg
          */
         bool reveive(const mg::TcpConnectionPointer con, mg::HttpData &data);
 
+        int parseType(const std::string &data);
+
     private:
+    public:
+        std::unordered_map<std::string, std::unordered_map<std::string, int>> HttpContentType =
+            {
+                {
+                    "text",
+                    {
+                        {"plain", 1},      // 纯文本
+                        {"html", 2},       // HTML文档
+                        {"css", 3},        // CSS 样式表
+                        {"javascript", 4}, // JavaScript 脚本
+                        {"csv", 5},        // 逗号分隔值文件（CSV）
+                        {"xml", 6},        // XML文档
+                    },
+                },
+                {
+                    "application",
+                    {
+                        {"json", 7},                  // JSON数据
+                        {"xml", 8},                   // xml数据
+                        {"x-www-form-urlencoded", 9}, // URL 编码的表单数据
+                        {"octet-stream", 10},         // 未知的二进制数据，常用于文件下载
+                    },
+                },
+                // ToDo:
+            };
     };
 
     std::string tolower(const std::string &str);
