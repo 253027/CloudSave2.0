@@ -8,6 +8,7 @@
 #include "../ServerSDK/log.h"
 
 #include <memory>
+#include <unordered_map>
 
 namespace mg
 {
@@ -28,6 +29,8 @@ public:
 
     void quit();
 
+    void onInternalServerResponse(const std::string &name, std::string &data);
+
 private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
@@ -35,6 +38,7 @@ private:
 
     std::unique_ptr<mg::TcpServer> _server;
     std::unique_ptr<mg::EventLoop> _loop;
+    std::unordered_map<std::string, std::weak_ptr<mg::TcpConnection>> _connection;
 };
 
 #endif //__GATEWAY_SERVER_H__
