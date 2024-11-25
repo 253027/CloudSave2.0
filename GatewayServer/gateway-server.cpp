@@ -4,6 +4,8 @@
 #include "../ServerSDK/event-loop.h"
 #include "../ServerSDK/http-packet-parser.h"
 #include "../ServerSDK/tcp-packet-parser.h"
+#include "json-data-parser.h"
+#include "session-server-client.h"
 
 #include <fstream>
 
@@ -89,6 +91,7 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     {
     case 7: // json数据
     {
+        JsonDataParser::getMe().parse(a->name(), body);
         break;
     }
     }
