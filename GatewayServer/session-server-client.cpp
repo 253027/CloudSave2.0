@@ -68,9 +68,9 @@ bool SessionClient::sendToServer(const std::string &data)
 {
     mg::TcpConnectionPointer p;
     {
+        std::lock_guard<std::mutex> guard(_mutex);
         if (_connections.empty())
             return false;
-        std::lock_guard<std::mutex> guard(_mutex);
         p = _connections[_index].lock();
         _index = (_index + 1) % _connections.size();
     }

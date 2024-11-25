@@ -22,7 +22,7 @@ namespace mg
         HttpPacketParser();
 
         /**
-         * @brief 按HTTP报文接受数据（前4字节为头部信息）
+         * @brief 按HTTP报文接受数据
          * @param con TCP连接
          * @param data 待接收数据的存放容器
          */
