@@ -6,6 +6,7 @@
 #include "../ServerSDK/tcp-packet-parser.h"
 #include "json-data-parser.h"
 #include "session-server-client.h"
+#include "../ServerSDK/log.h"
 
 #include <fstream>
 
@@ -61,7 +62,7 @@ void GateWayServer::quit()
     _loop->quit();
 }
 
-void GateWayServer::onInternalServerResponse(const std::string &name, std::string &data)
+void GateWayServer::onInternalServerResponse(const std::string &name, const std::string &data)
 {
     auto it = _connection.find(name);
     if (it == _connection.end())
@@ -69,11 +70,18 @@ void GateWayServer::onInternalServerResponse(const std::string &name, std::strin
     mg::TcpConnectionPointer p = it->second.lock();
     if (!p)
     {
-        _connection.erase(it);
+        std::lock_guard<std::mutex> guard(_mutex);
+        _connection.erase(name);
         return;
     }
-    // Todo: http报文生成
-    mg::TcpPacketParser::getMe().send(p, data);
+
+    mg::HttpData httpData;
+    mg::HttpHead &head = std::get<0>(httpData);
+    mg::HttpBody &body = std::get<1>(httpData);
+    head["HTTP/1.1"] = "200 OK";
+    head["Content-Type"] = "application/json";
+    body = std::move(data);
+    mg::HttpPacketParser::getMe().send(p, httpData);
 }
 
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
@@ -99,5 +107,20 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
 {
-    ;
+    if (a->connected())
+    {
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _connection[a->name()] = a;
+        }
+        LOG_INFO("{} connected", a->peerAddress().toIpPort());
+    }
+    else
+    {
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _connection.erase(a->name());
+        }
+        LOG_INFO("{} disconnected", a->peerAddress().toIpPort());
+    }
 }

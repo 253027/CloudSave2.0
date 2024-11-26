@@ -1,5 +1,6 @@
 #include "http-packet-parser.h"
 #include "tcp-connection.h"
+#include <sstream>
 
 mg::HttpPacketParser::HttpPacketParser()
 {
@@ -30,6 +31,32 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpD
     if (it != head.end())
         body_size = std::stoi(it->second);
     body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
+    return true;
+}
+
+bool mg::HttpPacketParser::send(const mg::TcpConnectionPointer con, mg::HttpData &data)
+{
+    std::stringstream response;
+
+    HttpHead head;
+    HttpBody body;
+    std::tie(head, body) = std::move(data);
+
+    if (!head.count("HTTP/1.1"))
+        return false;
+
+    response << "HTTP/1.1 " << head["HTTP/1.1"] << "\r\n";
+    for (auto &val : head)
+    {
+        if (val.first == "HTTP/1.1")
+            continue;
+        response << val.first << ": " << val.second << "\r\n";
+    }
+    response << "Content-Length: " << std::to_string(body.size()) << "\r\n";
+    response << "\r\n"
+             << body;
+
+    con->send(response.str());
     return true;
 }
 
