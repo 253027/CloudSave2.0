@@ -6,6 +6,7 @@
 #include "../ServerSDK/tcp-client.h"
 #include "../ServerSDK/eventloop-thread.h"
 #include "../ServerSDK/tcp-packet-parser.h"
+#include "../ServerSDK/log.h"
 
 #include <fstream>
 
@@ -85,7 +86,27 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     std::string data;
     if (!mg::TcpPacketParser::getMe().reveive(a, data))
         return;
-    LOG_DEBUG("{} data: {}", a->name(), data);
+    json js;
+    try
+    {
+        js = json::parse(data);
+    }
+    catch (const json::parse_error &e)
+    {
+        LOG_ERROR("{}", e.what());
+        return;
+    }
+
+    if (!js.contains("connection-name") || !js["connection-name"].is_string())
+    {
+        LOG_ERROR("{} invalid connection-name type", a->name());
+        return;
+    }
+    std::string name = js["connection-name"];
+    js.erase("connection-name");
+
+    GateWayServer::getMe().onInternalServerResponse(name, js.dump());
+    LOG_DEBUG("{} data:\n{}", a->name(), data);
 }
 
 void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)

@@ -28,6 +28,8 @@ namespace mg
          */
         bool reveive(const mg::TcpConnectionPointer con, mg::HttpData &data);
 
+        bool send(const mg::TcpConnectionPointer con, mg::HttpData &data);
+
         int parseType(const std::string &data);
 
     private:
