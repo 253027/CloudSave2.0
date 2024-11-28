@@ -19,6 +19,7 @@ mg::TcpConnection::~TcpConnection()
 #ifdef _DEBUG
     LOG_TRACE("{} called ~TcpConnection()", this->_name);
 #endif
+    assert(_state == DISCONNECTED);
 }
 
 void mg::TcpConnection::setConnectionCallback(TcpConnectionCallback callback)
@@ -101,6 +102,7 @@ void mg::TcpConnection::connectionDestoryed()
 #ifdef _DEBUG
     LOG_TRACE("{} destroyed", this->_name);
 #endif
+    assert(_loop->isInOwnerThread());
     if (this->_state == CONNECTED)
     {
         this->setConnectionState(DISCONNECTED);
