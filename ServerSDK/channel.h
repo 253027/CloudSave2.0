@@ -163,6 +163,8 @@ namespace mg
         std::weak_ptr<void> _tie;
 
         bool _tied;
+
+        bool _handleEvent;
     };
 };
 

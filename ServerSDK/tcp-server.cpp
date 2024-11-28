@@ -71,10 +71,10 @@ void mg::TcpServer::acceptorCallback(int fd, const InternetAddress &peerAddress)
     EventLoop *loop = this->_threadPool->getNextLoop();
     if (!loop)
     {
-        LOG_ERROR("TcpServer[{}] EventLoop nullptr", this->_name);
+        LOG_ERROR("{} EventLoop nullptr", this->_name);
         return;
     }
-    LOG_INFO("TcpServer[{}] new connection: [{}]", this->_name, peerAddress.toIpPort());
+    LOG_INFO("{} new connection:[{}] socketFd:{}", this->_name, peerAddress.toIpPort(), fd);
 
     char buf[1024] = {0};
     ::snprintf(buf, sizeof(buf), "-%s-%d", peerAddress.toIpPort().c_str(), ++this->_connectionID);
@@ -85,7 +85,7 @@ void mg::TcpServer::acceptorCallback(int fd, const InternetAddress &peerAddress)
     ::memset(&local, 0, sizeof(local));
     socklen_t addresslen = sizeof(local);
     if (::getsockname(fd, (sockaddr *)&local, &addresslen) < 0)
-        LOG_ERROR("TcpServer[{}] get local address failed", this->_name);
+        LOG_ERROR("{} get local address failed", this->_name);
 
     InternetAddress localAddress(local);
     TcpConnectionPointer connection = std::make_shared<TcpConnection>(loop, connectionName, fd, localAddress, peerAddress);
