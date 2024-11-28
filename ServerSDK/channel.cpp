@@ -158,7 +158,7 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     if ((this->_activeEvents & EPOLLHUP) && !(this->_activeEvents & EPOLLIN))
     {
 #ifdef _DEBUG
-        LOG_TRACE("[{}] closed event", this->_fd);
+        LOG_TRACE("[{}] closed event 0x{:x}", this->_fd, this->_activeEvents);
 #endif
         if (_closeCallback)
             _closeCallback();
@@ -167,7 +167,7 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     if (this->_activeEvents & EPOLLERR)
     {
 #ifdef _DEBUG
-        LOG_TRACE("[{}] error event", this->_fd);
+        LOG_TRACE("[{}] error event 0x{:x}", this->_fd, this->_activeEvents);
 #endif
         if (_errorCallback)
             _errorCallback();
@@ -177,7 +177,7 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     if (this->_activeEvents & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
 #ifdef _DEBUG
-        LOG_TRACE("[{}] read event", this->_fd);
+        LOG_TRACE("[{}] read event 0x{:x}", this->_fd, this->_activeEvents);
 #endif
         if (_readCallback)
             _readCallback(time);
@@ -187,7 +187,7 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     if (this->_activeEvents & EPOLLOUT)
     {
 #ifdef _DEBUG
-        LOG_TRACE("[{}] write event", this->_fd);
+        LOG_TRACE("[{}] write event 0x{:x}", this->_fd, this->_activeEvents);
 #endif
         if (_writeCallback)
             _writeCallback();
