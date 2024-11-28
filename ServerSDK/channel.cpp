@@ -12,14 +12,19 @@ namespace mg
 
 mg::Channel::Channel(EventLoop *loop, int fd) : _loop(loop), _fd(fd),
                                                 _events(0), _activeEvents(0),
-                                                _index(newChannel), _tied(false)
+                                                _index(newChannel), _tied(false),
+                                                _handleEvent(false)
 {
     ;
 }
 
 mg::Channel::~Channel()
 {
-    ;
+    assert(!_handleEvent);
+    if (_loop->isInOwnerThread())
+    {
+        assert(!_loop->hasChannel(this));
+    }
 }
 
 void mg::Channel::handleEvent(TimeStamp receiveTime)
@@ -148,17 +153,22 @@ void mg::Channel::update()
 
 void mg::Channel::handleEventWithGuard(TimeStamp time)
 {
+    _handleEvent = true;
     // 对方关闭连接会触发EPOLLHUP
     if ((this->_activeEvents & EPOLLHUP) && !(this->_activeEvents & EPOLLIN))
     {
+#ifdef _DEBUG
         LOG_TRACE("[{}] closed event", this->_fd);
+#endif
         if (_closeCallback)
             _closeCallback();
     }
 
     if (this->_activeEvents & EPOLLERR)
     {
+#ifdef _DEBUG
         LOG_TRACE("[{}] error event", this->_fd);
+#endif
         if (_errorCallback)
             _errorCallback();
     }
@@ -166,7 +176,9 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     // EPOLLIN表示普通数据和优先数据可读，EPOLLPRI表示高优先数据可读，EPOLLRDHUP表示TCP连接对方关闭或者对方关闭写端
     if (this->_activeEvents & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
+#ifdef _DEBUG
         LOG_TRACE("[{}] read event", this->_fd);
+#endif
         if (_readCallback)
             _readCallback(time);
     }
@@ -174,8 +186,12 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     // 写事件发生，处理可写事件
     if (this->_activeEvents & EPOLLOUT)
     {
+#ifdef _DEBUG
         LOG_TRACE("[{}] write event", this->_fd);
+#endif
         if (_writeCallback)
             _writeCallback();
     }
+
+    _handleEvent = false;
 }

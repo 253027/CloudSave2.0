@@ -16,7 +16,9 @@ mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int s
 
 mg::TcpConnection::~TcpConnection()
 {
-    LOG_TRACE("[{}] called ~TcpConnection()", this->_name);
+#ifdef _DEBUG
+    LOG_TRACE("{} called ~TcpConnection()", this->_name);
+#endif
 }
 
 void mg::TcpConnection::setConnectionCallback(TcpConnectionCallback callback)
@@ -96,6 +98,9 @@ void mg::TcpConnection::connectionEstablished()
 
 void mg::TcpConnection::connectionDestoryed()
 {
+#ifdef _DEBUG
+    LOG_TRACE("{} destroyed", this->_name);
+#endif
     if (this->_state == CONNECTED)
     {
         this->setConnectionState(DISCONNECTED);
@@ -130,14 +135,14 @@ void mg::TcpConnection::handleRead(TimeStamp time)
         if (this->_messageCallback)
             this->_messageCallback(shared_from_this(), &this->_readBuffer, time);
         else
-            LOG_ERROR("[{}] _messageCallback not initialized", this->_name);
+            LOG_ERROR("{} _messageCallback not initialized", this->_name);
     }
     else if (len == 0)
         this->handleClose();
     else
     {
         errno = saveErrno;
-        LOG_ERROR("[{}] {}", this->_name, ::strerror(errno));
+        LOG_ERROR("{} {}", this->_name, ::strerror(errno));
         this->handleError();
     }
 }
@@ -150,11 +155,11 @@ void mg::TcpConnection::handleClose()
     if (this->_connectionCallback)
         this->_connectionCallback(temp);
     else
-        LOG_WARN("[{}] _connectionCallback not initial", this->_name);
+        LOG_WARN("{} _connectionCallback not initial", this->_name);
     if (this->_closeCallback)
         this->_closeCallback(temp);
     else
-        LOG_WARN("[{}] _closeCallback not initial", this->_name);
+        LOG_WARN("{} _closeCallback not initial", this->_name);
 }
 
 void mg::TcpConnection::handleError()
@@ -165,7 +170,7 @@ void mg::TcpConnection::handleError()
         saveError = errno;
     else
         saveError = option;
-    LOG_ERROR("[{}] {}", this->_name, ::strerror(saveError));
+    LOG_ERROR("{} {}", this->_name, ::strerror(saveError));
 }
 
 void mg::TcpConnection::handleWrite()
@@ -187,10 +192,10 @@ void mg::TcpConnection::handleWrite()
             }
         }
         else
-            LOG_ERROR("[{}] {}", this->_name, ::strerror(saveError));
+            LOG_ERROR("{} {}", this->_name, ::strerror(saveError));
     }
     else
-        LOG_ERROR("[{}] don't need to send", this->_name);
+        LOG_ERROR("{} don't need to send", this->_name);
 }
 
 void mg::TcpConnection::shutDownInOwnerLoop()
@@ -223,7 +228,10 @@ void mg::TcpConnection::sendInOwnerLoop(const void *data, int len)
         {
             hasWrite = 0;
             if ((errno != EWOULDBLOCK) && (errno == EPIPE || errno == ECONNRESET))
+            {
                 hasError = true;
+                LOG_ERROR("{} Error: {}", this->_name, ::strerror(errno));
+            }
         }
     }
 
