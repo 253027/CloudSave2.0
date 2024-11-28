@@ -10,7 +10,7 @@ Epoll::Epoll(EventLoop *loop) : Poller(loop)
     if (this->_epoll_fd < 0)
         LOG_ERROR("Epoll create failed");
     else
-        LOG_INFO("New epoll fd[{}]", this->_epoll_fd);
+        LOG_INFO("New epoll fd: {}", this->_epoll_fd);
     _events.resize(_events_initial_size);
 }
 
@@ -21,17 +21,21 @@ Epoll::~Epoll()
 
 TimeStamp Epoll::poll(std::vector<Channel *> &channelList, int timeout)
 {
-    LOG_TRACE("epoll[{}] has {} channels", this->_epoll_fd, this->_channels.size());
+#ifdef _DEBUG
+    LOG_TRACE("{} has {} channels", this->_epoll_fd, this->_channels.size());
+#endif
     int nums = ::epoll_wait(this->_epoll_fd, _events.data(), static_cast<int>(_events.size()), timeout);
     if (nums >= 0)
     {
-        LOG_TRACE("epoll[{}] receive {} evetns", this->_epoll_fd, nums);
+#ifdef _DEBUG
+        LOG_TRACE("{} receive {} evetns", this->_epoll_fd, nums);
+#endif
         if (nums == _events.size())
             _events.resize(nums << 1);
         this->fillActiveChannels(nums, channelList);
     }
     else if (nums < 0 && errno != EINTR)
-        LOG_ERROR("epoll[{}] receive error {}", this->_epoll_fd, errno);
+        LOG_ERROR("{} receive error {}", this->_epoll_fd, errno);
     return TimeStamp::now();
 }
 
@@ -47,7 +51,7 @@ void mg::Epoll::updateChannel(Channel *channel)
             this->_channels[fd] = channel;
         channel->setIndex(addedChannel);
         this->update(EPOLL_CTL_ADD, channel);
-        LOG_DEBUG("epoll[{}] EPOLL_CTL_ADD channel[{}]", this->_epoll_fd, channel->fd());
+        LOG_DEBUG("{} EPOLL_CTL_ADD channel[{}]", this->_epoll_fd, channel->fd());
     }
     else
     {
@@ -55,12 +59,12 @@ void mg::Epoll::updateChannel(Channel *channel)
         {
             this->update(EPOLL_CTL_DEL, channel);
             channel->setIndex(deletedChannel);
-            LOG_DEBUG("epoll[{}] EPOLL_CTL_DEL channel[{}]", this->_epoll_fd, channel->fd());
+            LOG_DEBUG("{} EPOLL_CTL_DEL channel[{}]", this->_epoll_fd, channel->fd());
         }
         else
         {
             this->update(EPOLL_CTL_MOD, channel);
-            LOG_DEBUG("epoll[{}] EPOLL_CTL_MOD channel[{}]", this->_epoll_fd, channel->fd());
+            LOG_DEBUG("{} EPOLL_CTL_MOD channel[{}]", this->_epoll_fd, channel->fd());
         }
     }
 }
@@ -69,7 +73,7 @@ void mg::Epoll::removeChannel(Channel *channel)
 {
     if (!channel)
         return;
-    LOG_DEBUG("epoll[{}] remove channel[{}]", this->_epoll_fd, channel->fd());
+    LOG_DEBUG("{} remove channel[{}]", this->_epoll_fd, channel->fd());
     this->_channels.erase(channel->fd());
     if (channel->index() == addedChannel)
         this->update(EPOLL_CTL_DEL, channel);
@@ -100,13 +104,13 @@ void mg::Epoll::update(int operation, Channel *channel)
         switch (operation)
         {
         case EPOLL_CTL_ADD:
-            LOG_ERROR("epoll[{}] add error", this->_epoll_fd);
+            LOG_ERROR("{} add error", this->_epoll_fd);
             break;
         case EPOLL_CTL_DEL:
-            LOG_ERROR("epoll[{}] delete error", this->_epoll_fd);
+            LOG_ERROR("{} delete error", this->_epoll_fd);
             break;
         case EPOLL_CTL_MOD:
-            LOG_ERROR("epoll[{}] modify error", this->_epoll_fd);
+            LOG_ERROR("{} modify error", this->_epoll_fd);
             break;
         default:
             break;
