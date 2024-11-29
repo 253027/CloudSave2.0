@@ -26,7 +26,7 @@ namespace mg
         std::string level;
         std::string path;
         std::string logFileName;
-        int64_t size = 1024 * 512;
+        int64_t size = 1024 * 1024 * 20; // 20M
         int32_t fileNums = 10;
         /**
          * @brief 日志配置文件
