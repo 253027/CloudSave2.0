@@ -134,6 +134,8 @@ int mg::Connector::removeAndResetChannel()
 
 void mg::Connector::resetChannel()
 {
+    if (this->_loop->hasChannel(this->_channel.get()))
+        this->_channel->remove();
     this->_channel.reset();
 }
 
