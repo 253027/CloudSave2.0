@@ -51,7 +51,7 @@ void mg::Epoll::updateChannel(Channel *channel)
             this->_channels[fd] = channel;
         channel->setIndex(addedChannel);
         this->update(EPOLL_CTL_ADD, channel);
-        LOG_DEBUG("{} EPOLL_CTL_ADD channel[{}]", this->_epoll_fd, channel->fd());
+        LOG_TRACE("{} EPOLL_CTL_ADD channel[{}]", this->_epoll_fd, channel->fd());
     }
     else
     {
@@ -59,12 +59,12 @@ void mg::Epoll::updateChannel(Channel *channel)
         {
             this->update(EPOLL_CTL_DEL, channel);
             channel->setIndex(deletedChannel);
-            LOG_DEBUG("{} EPOLL_CTL_DEL channel[{}]", this->_epoll_fd, channel->fd());
+            LOG_TRACE("{} EPOLL_CTL_DEL channel[{}]", this->_epoll_fd, channel->fd());
         }
         else
         {
             this->update(EPOLL_CTL_MOD, channel);
-            LOG_DEBUG("{} EPOLL_CTL_MOD channel[{}]", this->_epoll_fd, channel->fd());
+            LOG_TRACE("{} EPOLL_CTL_MOD channel[{}]", this->_epoll_fd, channel->fd());
         }
     }
 }
@@ -73,7 +73,7 @@ void mg::Epoll::removeChannel(Channel *channel)
 {
     if (!channel)
         return;
-    LOG_DEBUG("{} remove channel[{}]", this->_epoll_fd, channel->fd());
+    LOG_TRACE("{} remove channel[{}]", this->_epoll_fd, channel->fd());
     this->_channels.erase(channel->fd());
     if (channel->index() == addedChannel)
         this->update(EPOLL_CTL_DEL, channel);

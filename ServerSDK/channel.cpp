@@ -120,7 +120,7 @@ bool mg::Channel::isReading() const
 
 void mg::Channel::disableAllEvents()
 {
-    LOG_DEBUG("[{}] disableAllEvents", this->_fd);
+    LOG_TRACE("[{}] disableAllEvents", this->_fd);
     this->_events = 0;
     this->update();
 }
