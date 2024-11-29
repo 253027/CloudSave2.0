@@ -37,6 +37,8 @@ private:
 
     void connectionStateChange(const mg::TcpConnectionPointer &a);
 
+    void invalidResponse(const mg::TcpConnectionPointer &a);
+
     std::unique_ptr<mg::TcpServer> _server;
     std::unique_ptr<mg::EventLoop> _loop;
     std::mutex _mutex;

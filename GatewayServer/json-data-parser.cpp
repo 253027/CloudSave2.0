@@ -7,19 +7,12 @@
 
 using json = nlohmann::json;
 
-std::string packet(int type, const std::string &data)
-{
-    std::string temp(4, '0');
-    ::memcpy(temp.data(), &type, sizeof(type));
-    return temp + data;
-}
-
 JsonDataParser::JsonDataParser()
 {
     ;
 }
 
-void JsonDataParser::parse(const std::string &name, std::string &data)
+bool JsonDataParser::parse(const std::string &name, std::string &data)
 {
     json js;
     try
@@ -29,24 +22,42 @@ void JsonDataParser::parse(const std::string &name, std::string &data)
     catch (const json::parse_error &e)
     {
         LOG_ERROR("{}", e.what());
-        return;
+        return false;
     }
 
     if (!js.contains("type") || !js["type"].is_string())
     {
         LOG_ERROR("{} invalid argument type", name);
-        return;
+        return false;
     }
 
     const std::string &type = js["type"];
-    js.erase("type"), js["connection-name"] = name;
-    bool ret = true;
+    js.erase("type");
+    js["connection-name"] = name;
+    bool valid = true;
 
-    if (type == "login")
-        ret = SessionClient::getMe().sendToServer(packet(3, js.dump()));
-    else if (type == "regist")
-        ;
+    switch (this->_method[type])
+    {
+    case Method::LOGIN:
+        valid = SessionClient::getMe().sendToServer(packet(3, js.dump()));
+        break;
+    case Method::REGIST:
+        break;
+    default:
+        valid = false;
+        break;
+    }
 
-    if (!ret)
+#ifdef _DEBUG
+    if (!valid)
         LOG_ERROR("{} send data failed, type: {}", name, type);
+#endif
+    return valid;
+}
+
+std::string JsonDataParser::packet(int type, const std::string &data)
+{
+    std::string temp(4, '0');
+    ::memcpy(temp.data(), &type, sizeof(type));
+    return temp + data;
 }
