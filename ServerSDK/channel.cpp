@@ -6,7 +6,7 @@
 
 namespace mg
 {
-    const int readEvent = EPOLLIN | EPOLLPRI | EPOLLET;
+    const int readEvent = EPOLLIN | EPOLLPRI;
     const int writeEvent = EPOLLOUT;
 }
 
