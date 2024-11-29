@@ -1,11 +1,11 @@
 #include "gateway-server.h"
+#include "json-data-parser.h"
+#include "session-server-client.h"
 #include "../ServerSDK/json.hpp"
 #include "../ServerSDK/tcp-server.h"
 #include "../ServerSDK/event-loop.h"
 #include "../ServerSDK/http-packet-parser.h"
 #include "../ServerSDK/tcp-packet-parser.h"
-#include "json-data-parser.h"
-#include "session-server-client.h"
 #include "../ServerSDK/log.h"
 
 #include <fstream>
@@ -80,7 +80,9 @@ void GateWayServer::onInternalServerResponse(const std::string &name, const std:
     mg::HttpBody &body = std::get<1>(httpData);
     head["HTTP/1.1"] = "200 OK";
     head["Content-Type"] = "application/json";
-    body = std::move(data);
+    head["Server"] = "Apache/2.4.41 (Ubuntu)";
+    // body = "<html>Hello World</html>";
+    body = data;
     mg::HttpPacketParser::getMe().send(p, httpData);
 }
 
@@ -93,16 +95,23 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     mg::HttpHead head;
     mg::HttpBody body;
     std::tie(head, body) = std::move(data);
+    bool valid = true;
 
     int type = mg::HttpPacketParser::getMe().parseType(head["content-type"]);
     switch (type)
     {
     case 7: // json数据
     {
-        JsonDataParser::getMe().parse(a->name(), body);
+        valid = JsonDataParser::getMe().parse(a->name(), body);
         break;
     }
+    default:
+        valid = false;
+        break;
     }
+
+    if (!valid)
+        this->invalidResponse(a);
 }
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
@@ -123,4 +132,15 @@ void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
         }
         LOG_INFO("{} disconnected", a->peerAddress().toIpPort());
     }
+}
+
+void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
+{
+    mg::HttpData httpData;
+    mg::HttpHead &head = std::get<0>(httpData);
+    mg::HttpBody &body = std::get<1>(httpData);
+    head["HTTP/1.1"] = "400 Bad Request";
+    head["Content-Type"] = "text/html";
+    body = "<html>Invalid Request</html>";
+    mg::HttpPacketParser::getMe().send(a, httpData);
 }

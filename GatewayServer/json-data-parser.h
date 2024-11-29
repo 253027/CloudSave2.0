@@ -4,13 +4,30 @@
 #include "../ServerSDK/singleton.h"
 
 #include <string>
+#include <unordered_map>
 
 class JsonDataParser : public Singleton<JsonDataParser>
 {
 public:
     JsonDataParser();
 
-    void parse(const std::string &name, std::string &data);
+    bool parse(const std::string &name, std::string &data);
+
+    std::string packet(int type, const std::string &data);
+
+private:
+    enum Method
+    {
+        LOGIN = 1,
+        REGIST = 2,
+    };
+
+    std::unordered_map<std::string, int> _method =
+        {
+            {"login", Method::LOGIN},
+            {"regist", Method::REGIST},
+            //
+        };
 };
 
 #endif //__JSON_DATA_PARSER_H__

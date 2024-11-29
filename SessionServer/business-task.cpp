@@ -11,6 +11,12 @@ void BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::
 {
     json js = json::parse(data);
 
+    if (!js.contains("type") || !js["type"].is_number())
+    {
+        mg::TcpPacketParser::getMe().send(connection, data);
+        return;
+    }
+
     MethodType type = TO_ENUM(MethodType, js.value("type", 0));
     switch (type)
     {
