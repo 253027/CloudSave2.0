@@ -4,24 +4,25 @@
 #include "../src/mysql.h"
 #include "../src/mysql-connection-pool.h"
 #include "../src/macros.h"
+#include "../protocal/protocal-session.h"
 
 #include <crypt.h>
+using namespace Protocal;
 
-bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, const std::string &data)
+bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::SessionCommand &data)
 {
-    json js = json::parse(data);
-
-    if (!js.contains("type") || !js["type"].is_string())
+    json js = json::parse(data.unserialize());
+    if (!js.contains("connection-name"))
         return false;
+
     bool valid = true;
 
-    MethodType type = TO_ENUM(MethodType, js.value("type", 0));
-    switch (type)
+    switch (TO_ENUM(SessionType, data.type))
     {
-    case MethodType::LOGIN:
+    case SessionType::LOGIN:
         valid = login(connection, js);
         break;
-    case MethodType::REGIST:
+    case SessionType::REGIST:
         valid = regist(connection, js);
         break;
     }
@@ -52,11 +53,19 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
         return false;
     }
 
+    json ret;
+    ret["connection-name"] = jsData["connection-name"];
+
     std::ostringstream os;
     os << "select username, passwd, salt from user_info where ";
     os << "username = \'" << name << "\'";
     if (!sql->query(os.str()) || !sql->next())
+    {
+        ret["status"] = "falied";
+        ret["detail"] = "user not exit";
+        mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
         return false;
+    }
 
     std::string salt = sql->getData("salt");
     struct crypt_data cryptData;
@@ -67,13 +76,18 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
 
     std::string cryptPassword(::strrchr(crypt, '$') + 1);
     if (cryptPassword != sql->getData("passwd"))
+    {
+        ret["status"] = "falied";
+        ret["detail"] = "password error";
+        mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
         return false;
+    }
 
     con->setUserConnectionState(TO_UNDERLYING(ConnectionState::VERIFY));
-    json retData;
-    retData["type"] = TO_UNDERLYING(MethodType::LOGIN);
-    retData["status"] = "success";
-    mg::TcpPacketParser::getMe().send(con, retData.dump());
+
+    // retData["type"] = TO_UNDERLYING(MethodType::LOGIN);
+    // retData["status"] = "success";
+    // mg::TcpPacketParser::getMe().send(con, retData.dump());
     return true;
 }
 

@@ -7,6 +7,9 @@
 #include "../src/eventloop-thread.h"
 #include "../src/tcp-packet-parser.h"
 #include "../src/log.h"
+#include "../protocal/protocal-session.h"
+
+using namespace Protocal;
 
 #include <fstream>
 
@@ -86,6 +89,8 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     std::string data;
     if (!mg::TcpPacketParser::getMe().reveive(a, data))
         return;
+    data = SessionCommand(data).unserialize();
+
     json js;
     try
     {
