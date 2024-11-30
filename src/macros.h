@@ -11,7 +11,7 @@
         }                   \
     } while (0)
 
-#define TO_UNDERLYING(x) static_cast<std::underlying_type_t<decltype(x)>>(x)
+#define TO_UNDERLYING(x) static_cast<typename std::underlying_type<decltype(x)>::type>(x)
 
 #define TO_ENUM(enumType, x) static_cast<enumType>(x)
 

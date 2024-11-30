@@ -1,4 +1,7 @@
 #include "session-server.h"
+#include "business-task.h"
+
+using namespace Protocal;
 
 SessionServer::SessionServer()
 {
@@ -44,13 +47,12 @@ void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     if (!mg::TcpPacketParser::getMe().reveive(a, data))
         return;
 
-    int type = 0;
-    std::string userdata;
-    std::tie(type, userdata) = Protocal::parse(data);
+    Protocal::SessionCommand userdata(data);
 
-    switch (type)
+    switch (TO_ENUM(SessionType, userdata.type))
     {
-    case DataType::JSON_STRING:
+    case SessionType::LOGIN:
+    case SessionType::REGIST:
         BusinessTask::getMe().parse(a, userdata);
         break;
     default:

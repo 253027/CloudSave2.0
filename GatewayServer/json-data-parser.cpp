@@ -1,9 +1,11 @@
 #include "json-data-parser.h"
+#include "session-server-client.h"
 #include "../src/json.hpp"
 #include "../src/log.h"
-#include "session-server-client.h"
+#include "../protocal/protocal-session.h"
 
 #include <string.h>
+using namespace Protocal;
 
 using json = nlohmann::json;
 
@@ -31,15 +33,13 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
         return false;
     }
 
-    const std::string &type = js["type"];
     js["connection-name"] = name;
     bool valid = true;
 
-    switch (this->_method[type])
+    switch (this->_method[js["type"]])
     {
     case Method::LOGIN:
-        js["type"] = 2;
-        valid = SessionClient::getMe().sendToServer(packet(3, js.dump()));
+        valid = SessionClient::getMe().sendToServer(SessionCommand(SessionType::LOGIN).serialize(js.dump()));
         break;
     case Method::REGIST:
         break;
@@ -47,17 +47,6 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
         valid = false;
         break;
     }
-
-#ifdef _DEBUG
-    if (!valid)
-        LOG_ERROR("{} send data failed, type: {}", name, type);
-#endif
+    
     return valid;
-}
-
-std::string JsonDataParser::packet(int type, const std::string &data)
-{
-    std::string temp(4, '0');
-    ::memcpy(temp.data(), &type, sizeof(type));
-    return temp + data;
 }

@@ -5,6 +5,7 @@
 #include "../src/singleton.h"
 #include "../src/json_fwd.hpp"
 #include "../src/log.h"
+#include "../protocal/protocal-session.h"
 
 #include <unordered_map>
 #include <memory>
@@ -13,17 +14,11 @@
 class BusinessTask : public Singleton<BusinessTask>
 {
 public:
-    bool parse(const mg::TcpConnectionPointer &connection, const std::string &data);
+    bool parse(const mg::TcpConnectionPointer &connection, Protocal::SessionCommand &data);
 
 private:
     using json = nlohmann::json;
     using TCPCONNECTION = const mg::TcpConnectionPointer;
-
-    enum class MethodType : uint8_t
-    {
-        LOGIN = 1,  // 登录
-        REGIST = 2, // 注册
-    };
 
     enum class ConnectionState : uint8_t
     {

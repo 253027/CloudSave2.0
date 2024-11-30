@@ -13,8 +13,6 @@ public:
 
     bool parse(const std::string &name, std::string &data);
 
-    std::string packet(int type, const std::string &data);
-
 private:
     enum Method
     {
