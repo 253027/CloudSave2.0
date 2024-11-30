@@ -1,11 +1,11 @@
 #ifndef __GATEWAY_SERVER_H__
 #define __GATEWAY_SERVER_H__
 
-#include "../ServerSDK/singleton.h"
-#include "../ServerSDK/function-callbacks.h"
-#include "../ServerSDK/time-stamp.h"
+#include "../src/singleton.h"
+#include "../src/function-callbacks.h"
+#include "../src/time-stamp.h"
 
-#include "../ServerSDK/log.h"
+#include "../src/log.h"
 
 #include <memory>
 #include <unordered_map>

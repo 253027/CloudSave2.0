@@ -1,7 +1,7 @@
 #ifndef __JSON_DATA_PARSER_H__
 #define __JSON_DATA_PARSER_H__
 
-#include "../ServerSDK/singleton.h"
+#include "../src/singleton.h"
 
 #include <string>
 #include <unordered_map>

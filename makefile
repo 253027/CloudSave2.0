@@ -1,19 +1,19 @@
 # 根目录，项目中所有代码的根路径
 ROOT_DIR := .
-SDK_DIR := $(ROOT_DIR)/ServerSDK
+SDK_DIR := $(ROOT_DIR)/src
 
 # 设置对象文件的输出目录
 OBJ_OUT_DIR := build
-SDK_OUT_DIR := $(OBJ_OUT_DIR)/ServerSDK
+SDK_OUT_DIR := $(OBJ_OUT_DIR)/src
 
 # 创建输出目录
 $(shell mkdir -p $(OBJ_OUT_DIR))
 $(shell mkdir -p $(SDK_OUT_DIR))
 
-# 搜索 ServerSDK 源文件并为每个文件构造完整的路径
+# 搜索 src 源文件并为每个文件构造完整的路径
 SDK_SRC := $(wildcard $(SDK_DIR)/*.cpp)
 
-# 构造对象文件路径（保留子目录结构） ./ServerSDK/*.cpp --> build/ServerSDK/*.o
+# 构造对象文件路径（保留子目录结构） ./src/*.cpp --> build/src/*.o
 SDK_OBJ := $(patsubst $(SDK_DIR)/%.cpp, $(SDK_OUT_DIR)/%.o, $(SDK_SRC))
 
 # 预编译头文件路径

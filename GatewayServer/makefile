@@ -11,8 +11,8 @@ $(shell mkdir -p $(OBJ_DIR))
 # 构造对象文件路径（保留子目录结构）
 OBJ := $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRC))
 
-# 使用 ServerSDK 的对象文件
-SDK_OBJ := $(wildcard $(ROOT_DIR)/build/ServerSDK/*.o)
+# 使用 src 的对象文件
+SDK_OBJ := $(wildcard $(ROOT_DIR)/build/src/*.o)
 
 # 编译器和编译选项
 CC := g++

@@ -1,10 +1,10 @@
 #ifndef __BUSINESS_TYPE_H__
 #define __BUSINESS_TYPE_H__
 
-#include "../ServerSDK/tcp-connection.h"
-#include "../ServerSDK/singleton.h"
-#include "../ServerSDK/json_fwd.hpp"
-#include "../ServerSDK/log.h"
+#include "../src/tcp-connection.h"
+#include "../src/singleton.h"
+#include "../src/json_fwd.hpp"
+#include "../src/log.h"
 
 #include <unordered_map>
 #include <memory>
@@ -13,7 +13,7 @@
 class BusinessTask : public Singleton<BusinessTask>
 {
 public:
-    void parse(const mg::TcpConnectionPointer &connection, const std::string &data);
+    bool parse(const mg::TcpConnectionPointer &connection, const std::string &data);
 
 private:
     using json = nlohmann::json;
@@ -34,12 +34,12 @@ private:
     /**
      * @brief 登录模块
      */
-    void login(TCPCONNECTION &con, const json &jsData);
+    bool login(TCPCONNECTION &con, const json &jsData);
 
     /**
      * @brief 注册模块
      */
-    void regist(TCPCONNECTION &con, const json &jsData);
+    bool regist(TCPCONNECTION &con, const json &jsData);
 };
 
 #endif //__BUSINESS_TYPE_H__
