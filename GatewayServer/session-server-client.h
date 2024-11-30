@@ -1,8 +1,8 @@
 #ifndef __SESSION_SERVER_CLIENT_H__
 #define __SESSION_SERVER_CLIENT_H__
 
-#include "../ServerSDK/singleton.h"
-#include "../ServerSDK/function-callbacks.h"
+#include "../src/singleton.h"
+#include "../src/function-callbacks.h"
 
 #include <memory>
 #include <mutex>

@@ -1,12 +1,12 @@
 #include "session-server-client.h"
 #include "gateway-server.h"
-#include "../ServerSDK/json.hpp"
-#include "../ServerSDK/log.h"
-#include "../ServerSDK/tcp-connection.h"
-#include "../ServerSDK/tcp-client.h"
-#include "../ServerSDK/eventloop-thread.h"
-#include "../ServerSDK/tcp-packet-parser.h"
-#include "../ServerSDK/log.h"
+#include "../src/json.hpp"
+#include "../src/log.h"
+#include "../src/tcp-connection.h"
+#include "../src/tcp-client.h"
+#include "../src/eventloop-thread.h"
+#include "../src/tcp-packet-parser.h"
+#include "../src/log.h"
 
 #include <fstream>
 

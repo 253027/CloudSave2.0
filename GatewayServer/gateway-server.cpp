@@ -1,12 +1,12 @@
 #include "gateway-server.h"
 #include "json-data-parser.h"
 #include "session-server-client.h"
-#include "../ServerSDK/json.hpp"
-#include "../ServerSDK/tcp-server.h"
-#include "../ServerSDK/event-loop.h"
-#include "../ServerSDK/http-packet-parser.h"
-#include "../ServerSDK/tcp-packet-parser.h"
-#include "../ServerSDK/log.h"
+#include "../src/json.hpp"
+#include "../src/tcp-server.h"
+#include "../src/event-loop.h"
+#include "../src/http-packet-parser.h"
+#include "../src/tcp-packet-parser.h"
+#include "../src/log.h"
 
 #include <fstream>
 

@@ -4,12 +4,12 @@
 #include "business-task.h"
 #include "protocal-type.h"
 
-#include "../ServerSDK/pch.h"
-#include "../ServerSDK/tcp-server.h"
-#include "../ServerSDK/singleton.h"
-#include "../ServerSDK/tcp-packet-parser.h"
-#include "../ServerSDK/log.h"
-#include "../ServerSDK/mysql-connection-pool.h"
+#include "../src/pch.h"
+#include "../src/tcp-server.h"
+#include "../src/singleton.h"
+#include "../src/tcp-packet-parser.h"
+#include "../src/log.h"
+#include "../src/mysql-connection-pool.h"
 
 class SessionServer : public Singleton<SessionServer>
 {

@@ -1,6 +1,6 @@
 #include "json-data-parser.h"
-#include "../ServerSDK/json.hpp"
-#include "../ServerSDK/log.h"
+#include "../src/json.hpp"
+#include "../src/log.h"
 #include "session-server-client.h"
 
 #include <string.h>
@@ -32,13 +32,13 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
     }
 
     const std::string &type = js["type"];
-    js.erase("type");
     js["connection-name"] = name;
     bool valid = true;
 
     switch (this->_method[type])
     {
     case Method::LOGIN:
+        js["type"] = 2;
         valid = SessionClient::getMe().sendToServer(packet(3, js.dump()));
         break;
     case Method::REGIST:
