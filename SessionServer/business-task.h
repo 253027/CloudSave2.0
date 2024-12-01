@@ -20,12 +20,6 @@ private:
     using json = nlohmann::json;
     using TCPCONNECTION = const mg::TcpConnectionPointer;
 
-    enum class ConnectionState : uint8_t
-    {
-        UNVERIFY = 0, // 未验证
-        VERIFY = 1,   // 已验证
-    };
-
     /**
      * @brief 登录模块
      */

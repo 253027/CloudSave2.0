@@ -32,10 +32,6 @@ bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::S
 
 bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
 {
-    ConnectionState state = TO_ENUM(ConnectionState, con->getUserConnectionState());
-    if (state != ConnectionState::UNVERIFY)
-        return false;
-
     if (!jsData.contains("name") || !jsData["name"].is_string())
         return false;
     if (!jsData.contains("password") || !jsData["password"].is_string())
@@ -61,7 +57,7 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     os << "username = \'" << name << "\'";
     if (!sql->query(os.str()) || !sql->next())
     {
-        ret["status"] = "falied";
+        ret["status"] = "failed";
         ret["detail"] = "user not exit";
         mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
         return false;
@@ -77,25 +73,19 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     std::string cryptPassword(::strrchr(crypt, '$') + 1);
     if (cryptPassword != sql->getData("passwd"))
     {
-        ret["status"] = "falied";
+        ret["status"] = "failed";
         ret["detail"] = "password error";
         mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
         return false;
     }
 
-    con->setUserConnectionState(TO_UNDERLYING(ConnectionState::VERIFY));
-
-    // retData["type"] = TO_UNDERLYING(MethodType::LOGIN);
-    // retData["status"] = "success";
-    // mg::TcpPacketParser::getMe().send(con, retData.dump());
+    ret["status"] = "success";
+    mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }
 
 bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
 {
-    if (TO_ENUM(ConnectionState, con->getUserConnectionState()) != ConnectionState::UNVERIFY)
-        return false;
-
     std::string salt = "$y$j9T$byV0Zo35gBDQJtKsEx.XR/";
     std::string name = jsData.value("name", "");
     std::string password = jsData.value("password", "");
