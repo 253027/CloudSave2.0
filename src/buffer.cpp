@@ -2,6 +2,8 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include "log.h"
+
 mg::Buffer::Buffer(int initialSize)
     : _buffer(_headSize + initialSize),
       _readIndex(_headSize), _writeIndex(_headSize)
@@ -65,7 +67,7 @@ std::string mg::Buffer::retrieveAllAsString()
 
 std::string mg::Buffer::retrieveAsString(int len)
 {
-    len = std::min(len, this->readableBytes());
+    assert(len <= this->readableBytes());
     std::string res(this->readPeek(), len);
     retrieve(len);
     return res;
@@ -75,7 +77,7 @@ void mg::Buffer::append(const char *data, int len)
 {
     this->ensureWriteSpace(len);
     std::copy(data, data + len, this->writePeek());
-    this->_writeIndex + len;
+    this->_writeIndex += len;
 }
 
 void mg::Buffer::append(const std::string &data)
@@ -103,7 +105,7 @@ int mg::Buffer::receive(int fd, int &saveError)
     vec[1].iov_base = extraBuffer;
     vec[1].iov_len = sizeof(extraBuffer);
 
-    const int vecSize = (writeSize < sizeof(Buffer)) ? 2 : 1;
+    const int vecSize = (writeSize < sizeof(extraBuffer)) ? 2 : 1;
     const int len = ::readv(fd, vec, vecSize);
     if (len < 0)
         saveError = errno;
@@ -132,6 +134,7 @@ void mg::Buffer::ensureWriteSpace(int len)
     if (this->writeableBytes() >= len)
         return;
     this->allocate(len);
+    assert(this->writeableBytes() >= len);
 }
 
 void mg::Buffer::allocate(int len)
@@ -146,6 +149,7 @@ void mg::Buffer::allocate(int len)
     {
         int size = this->readableBytes();
         std::copy(this->readPeek(), this->writePeek(), this->begin() + this->_headSize);
+        LOG_DEBUG("迁移数据 {}", std::string(this->readPeek(), size));
         this->_readIndex = this->_headSize;
         this->_writeIndex = size + this->_readIndex;
     }
