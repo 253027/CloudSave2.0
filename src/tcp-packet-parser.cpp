@@ -4,9 +4,9 @@
 
 bool mg::TcpPacketParser::send(const mg::TcpConnectionPointer con, const std::string &data)
 {
-    int len = ::htonl(data.size());
-    std::string buf((char *)&len, headSize);
-    buf += data;
+    mg::Buffer buf;
+    buf.appendInt32(data.size());
+    buf.append(data);
     con->send(buf);
     return true;
 }

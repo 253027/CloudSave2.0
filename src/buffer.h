@@ -82,6 +82,12 @@ namespace mg
         int64_t readInt64();
 
         /**
+         * @brief 将sizeof(len)大小数据附加到缓冲区中
+         */
+        void appendInt64(int64_t len);
+        void appendInt32(int32_t len);
+
+        /**
          * @brief 从缓冲区读int64_t大小字节的数据, peekInt32()只读取不取出数据,
          *        readInt32()读取并取出
          */
