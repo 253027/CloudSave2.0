@@ -1,8 +1,10 @@
 #include "buffer.h"
-#include <sys/uio.h>
-#include <unistd.h>
 
-#include "log.h"
+#include <string.h>
+#include <sys/uio.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <memory>
 
 mg::Buffer::Buffer(int initialSize)
     : _buffer(_headSize + initialSize),
@@ -14,6 +16,40 @@ mg::Buffer::Buffer(int initialSize)
 int mg::Buffer::writeableBytes()
 {
     return this->_buffer.size() - this->_writeIndex;
+}
+
+int64_t mg::Buffer::peekInt64()
+{
+#ifndef _DEBUG
+    assert(readableBytes() >= sizeof(int64_t));
+#endif
+    int64_t ret = 0;
+    ::memcpy(&ret, readPeek(), sizeof(ret));
+    return ::ntohl(ret);
+}
+
+int64_t mg::Buffer::readInt64()
+{
+    int ret = peekInt64();
+    this->retrieve(sizeof(int64_t));
+    return ret;
+}
+
+int32_t mg::Buffer::peekInt32()
+{
+#ifndef _DEBUG
+    assert(readableBytes() >= sizeof(int32_t));
+#endif
+    int32_t ret = 0;
+    ::memcpy(&ret, readPeek(), sizeof(ret));
+    return ::ntohl(ret);
+}
+
+int32_t mg::Buffer::readInt32()
+{
+    int ret = peekInt64();
+    this->retrieve(sizeof(int32_t));
+    return ret;
 }
 
 int mg::Buffer::readableBytes()
@@ -149,7 +185,6 @@ void mg::Buffer::allocate(int len)
     {
         int size = this->readableBytes();
         std::copy(this->readPeek(), this->writePeek(), this->begin() + this->_headSize);
-        LOG_DEBUG("迁移数据 {}", std::string(this->readPeek(), size));
         this->_readIndex = this->_headSize;
         this->_writeIndex = size + this->_readIndex;
     }

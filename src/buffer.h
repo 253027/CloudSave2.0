@@ -74,6 +74,20 @@ namespace mg
          */
         int writeableBytes();
 
+        /**
+         * @brief 从缓冲区读int64_t大小字节的数据, peekInt64()只读取不取出数据,
+         *        readInt64()读取并取出
+         */
+        int64_t peekInt64();
+        int64_t readInt64();
+
+        /**
+         * @brief 从缓冲区读int64_t大小字节的数据, peekInt32()只读取不取出数据,
+         *        readInt32()读取并取出
+         */
+        int32_t peekInt32();
+        int32_t readInt32();
+
         static const int _headSize = 4;       // 每个数据包的包头长度
         static const int _initialSize = 1024; // 缓冲区长度
 
