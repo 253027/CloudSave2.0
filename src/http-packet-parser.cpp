@@ -67,6 +67,8 @@ int mg::HttpPacketParser::parseType(const std::string &data)
         return 0;
     std::string type_1 = data.substr(0, it);
     std::string type_2 = data.substr(it + 1);
+    if(!HttpContentType.count(type_1) || !HttpContentType[type_1].count(type_2))
+        return 0;
     return HttpContentType[type_1][type_2];
 }
 
