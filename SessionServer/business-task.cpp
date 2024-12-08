@@ -1,6 +1,6 @@
 #include "business-task.h"
 #include "../src/tcp-packet-parser.h"
-#include "../src/json.hpp"
+#include "../src/json-extract.h"
 #include "../src/mysql.h"
 #include "../src/mysql-connection-pool.h"
 #include "../src/macros.h"
@@ -25,6 +25,9 @@ bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::S
     case SessionType::REGIST:
         valid = regist(connection, js);
         break;
+    case SessionType::UPLOAD:
+        valid = upload(connection, js);
+        break;
     }
 
     return valid;
@@ -32,13 +35,12 @@ bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::S
 
 bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
 {
-    if (!jsData.contains("name") || !jsData["name"].is_string())
+    std::string name, password;
+    if (!mg::JsonExtract::extract(jsData, "name", name, mg::JsonExtract::STRING))
         return false;
-    if (!jsData.contains("password") || !jsData["password"].is_string())
+    if (!mg::JsonExtract::extract(jsData, "password", password, mg::JsonExtract::STRING))
         return false;
 
-    std::string name = jsData["name"];
-    std::string password = jsData["password"];
     if (name.empty() || password.empty())
         return false;
 
@@ -80,6 +82,7 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     }
 
     ret["status"] = "success";
+    con->setUserConnectionState(TO_UNDERLYING(ConState::VERIFY));
     mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }
@@ -121,5 +124,17 @@ bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
         return false;
     }
     sql->insert("user_info", field, (char *)&data);
+    return true;
+}
+
+bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
+{
+    if (TO_ENUM(ConState, con->getUserConnectionState()) != ConState::VERIFY)
+        return false;
+
+    std::string filename;
+    if (!mg::JsonExtract::extract(jsData, "filename", filename, mg::JsonExtract::STRING))
+        return false;
+
     return true;
 }

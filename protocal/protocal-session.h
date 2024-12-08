@@ -11,6 +11,7 @@ namespace Protocal
     {
         LOGIN = 1,  // 登录
         REGIST = 2, // 注册
+        UPLOAD = 3, // 上传
     };
 
     struct SessionCommand : public Command

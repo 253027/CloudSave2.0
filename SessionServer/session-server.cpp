@@ -53,6 +53,7 @@ void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     {
     case SessionType::LOGIN:
     case SessionType::REGIST:
+    case SessionType::UPLOAD:
         BusinessTask::getMe().parse(a, userdata);
         break;
     default:

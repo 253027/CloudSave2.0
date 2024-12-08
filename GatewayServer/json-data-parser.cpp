@@ -1,6 +1,6 @@
 #include "json-data-parser.h"
 #include "session-server-client.h"
-#include "../src/json.hpp"
+#include "../src/json-extract.h"
 #include "../src/log.h"
 #include "../protocal/protocal-session.h"
 
@@ -27,7 +27,8 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
         return false;
     }
 
-    if (!js.contains("type") || !js["type"].is_string())
+    std::string type;
+    if (!mg::JsonExtract::extract(js, "type", type, mg::JsonExtract::STRING))
     {
         LOG_ERROR("{} invalid argument type", name);
         return false;
@@ -36,7 +37,7 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
     js["connection-name"] = name;
     bool valid = true;
 
-    switch (this->_method[js["type"]])
+    switch (this->_method[type])
     {
     case Method::LOGIN:
         valid = SessionClient::getMe().sendToServer(SessionCommand(SessionType::LOGIN).serialize(js.dump()));
@@ -47,6 +48,6 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
         valid = false;
         break;
     }
-    
+
     return valid;
 }
