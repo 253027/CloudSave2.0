@@ -3,11 +3,13 @@
 
 #include <unordered_map>
 #include <string>
+#include <fstream>
+#include <memory>
 
 class FileInfo
 {
 public:
-    FileInfo();
+    FileInfo(const std::string &name, const std::string &hash, uint32_t size);
 
     ~FileInfo();
 

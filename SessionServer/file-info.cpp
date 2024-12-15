@@ -2,15 +2,13 @@
 
 #include <unistd.h>
 
-FileInfo::FileInfo()
+FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size)
+    : _name(name), _fileHash(hash), _size(size)
 {
-    this->_fd = ::open("/dev/null", O_RDWR | O_CLOEXEC);
-    
-
+    ;
 }
 
 FileInfo::~FileInfo()
 {
-    TEMP_FAILURE_RETRY(::close(this->_fd));
+    ;
 }
-
