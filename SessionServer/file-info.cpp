@@ -4,24 +4,18 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-static const uint16_t initialChunkSize = 8192; // 8M bytes
+static const uint32_t initialChunkSize = 8192 * 1024; // 8M bytes
 
 FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode)
-    : _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size)
+    : _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size), _fd(-1)
 {
-    switch (mode)
-    {
-    case FILEMODE::READ:
-    {
-        this->_fd = ::open(name.c_str(), O_RDONLY);
-        break;
-    }
-    case FILEMODE::WRITE:
-    {
-        this->_fd = ::open(name.c_str(), O_WRONLY | O_CREAT);
-        break;
-    }
-    }
+    int flags = (mode == FILEMODE::READ) ? O_RDONLY : (O_WRONLY | O_CREAT);
+    mode_t permissions = (mode == FILEMODE::WRITE) ? 0644 : 0;
+
+    this->_fd = ::open(name.c_str(), flags, permissions);
+    if (this->_fd == -1)
+        LOG_ERROR("Failed to open file {}: {}", name, std::strerror(errno));
+
     this->_nums = (this->_size + _chunkPerSize - 1) / _chunkPerSize;
 }
 

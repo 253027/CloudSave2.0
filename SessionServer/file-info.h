@@ -42,7 +42,7 @@ private:
     std::string _name;                                   // 文件名（用户文件名）
     std::string _fileHash;                               // 文件hash值
     uint16_t _nums;                                      // 文件分块数
-    uint16_t _chunkPerSize;                              // 分块文件大小
+    uint32_t _chunkPerSize;                              // 分块文件大小
     uint32_t _size;                                      // 文件总大小
     std::unordered_map<int16_t, std::string> _chunkHash; // 分块文件的Hash值
     std::unordered_map<int16_t, uint32_t> _chunkSize;    // 分块文件目前的大小
