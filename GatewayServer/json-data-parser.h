@@ -18,12 +18,14 @@ private:
     {
         LOGIN = 1,
         REGIST = 2,
+        UPLOAD = 3,
     };
 
     std::unordered_map<std::string, int> _method =
         {
             {"login", Method::LOGIN},
             {"regist", Method::REGIST},
+            {"upload", Method::UPLOAD},
             //
         };
 };

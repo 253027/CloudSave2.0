@@ -44,6 +44,9 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
         break;
     case Method::REGIST:
         break;
+    case Method::UPLOAD:
+        valid = SessionClient::getMe().sendToServer(SessionCommand(SessionType::UPLOAD).serialize(js.dump()));
+        break;
     default:
         valid = false;
         break;
