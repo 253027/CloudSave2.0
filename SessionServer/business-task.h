@@ -40,6 +40,8 @@ private:
      * @brief 文件上传
      */
     bool upload(TCPCONNECTION &con, const json &jsData);
+    bool waitFileInfo(const std::string &filename, const json &jsData);
+    bool uploading(const std::string &filename, const json &jsData);
 };
 
 #endif //__BUSINESS_TYPE_H__

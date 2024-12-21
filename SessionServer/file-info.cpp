@@ -40,7 +40,7 @@ int32_t FileInfo::write(int16_t chunkIndex, const std::string &data)
     }
     int ret = ::pwrite(this->_fd, data.data(), data.size(), this->_chunkPerSize * std::max(0, chunkIndex - 1));
     LOG_DEBUG("{} index: {} wirte: {}", this->_name, chunkIndex, ret);
-    return ret;
+    return _chunkSize[chunkIndex] = ret;
 }
 
 bool FileInfo::exist(std::string &name)
@@ -73,4 +73,12 @@ void FileInfo::setFileStatus(FILESTATUS status)
 FileInfo::FILESTATUS FileInfo::getFileStatus() const
 {
     return TO_ENUM(FILESTATUS, this->_status);
+}
+
+bool FileInfo::isCompleted()
+{
+    uint32_t size = 0;
+    for (auto &x : _chunkSize)
+        size += x.second;
+    return size == this->_size;
 }

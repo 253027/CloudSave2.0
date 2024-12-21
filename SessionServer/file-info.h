@@ -69,6 +69,11 @@ public:
      */
     FILESTATUS getFileStatus() const;
 
+    /**
+     * @brief 文件数据大小是否完整
+     */
+    bool isCompleted();
+
 private:
     int _fd;                                             // 写入文件的文件描述符
     uint8_t _status;                                     // 文件状态

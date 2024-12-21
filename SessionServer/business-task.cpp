@@ -145,28 +145,53 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
     switch (fileInfo->getFileStatus())
     {
     case FileInfo::FILESTATUS::WAITING_INFO:
-    {
-        if (!mg::JsonExtract::extract(jsData, "hash", hash, mg::JsonExtract::STRING))
-            return false;
-        if (!mg::JsonExtract::extract(jsData, "size", size, mg::JsonExtract::INT))
-            return false;
-        fileInfo->setFileHash(hash);
-        fileInfo->setFileSize(size);
-        fileInfo->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
-        break;
-    }
+        return waitFileInfo(filename, jsData);
 
     case FileInfo::FILESTATUS::UPLOADING:
     {
-        int chunkIndex = 0;
-        if (!mg::JsonExtract::extract(jsData, "chunkIndex", chunkIndex, mg::JsonExtract::INT))
+        if (!uploading(filename, jsData))
             return false;
-        std::string data;
-        if (!mg::JsonExtract::extract(jsData, "data", data, mg::JsonExtract::BINARY))
-            return false;
-        fileInfo->write(chunkIndex, data);
+        if (fileInfo->isCompleted())
+        {
+            json js;
+            fileInfo->setFileStatus(FileInfo::FILESTATUS::COMPLETED);
+            js["connection-name"] = jsData["connection-name"];
+            js["filename"] = filename;
+            js["status"] = "success";
+            mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(js.dump()));
+        }
         break;
     }
+
+    case FileInfo::FILESTATUS::COMPLETED:
+        return true;
     }
     return true;
+}
+
+bool BusinessTask::waitFileInfo(const std::string &filename, const json &jsData)
+{
+    auto &fileInfo = fileMemo[filename];
+    int size = 0;
+    std::string hash;
+    if (!mg::JsonExtract::extract(jsData, "hash", hash, mg::JsonExtract::STRING))
+        return false;
+    if (!mg::JsonExtract::extract(jsData, "size", size, mg::JsonExtract::INT))
+        return false;
+    fileInfo->setFileHash(hash);
+    fileInfo->setFileSize(size);
+    fileInfo->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
+    return true;
+}
+
+bool BusinessTask::uploading(const std::string &filename, const json &jsData)
+{
+    auto &fileInfo = fileMemo[filename];
+    int chunkIndex = 0;
+    if (!mg::JsonExtract::extract(jsData, "chunkIndex", chunkIndex, mg::JsonExtract::INT))
+        return false;
+    std::string data;
+    if (!mg::JsonExtract::extract(jsData, "data", data, mg::JsonExtract::BINARY))
+        return false;
+    return fileInfo->write(chunkIndex, data) == data.size();
 }
