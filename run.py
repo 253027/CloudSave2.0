@@ -16,6 +16,7 @@ def run(proclist: List[str]) -> bool:
                 print("Output:", stdout.decode())
         except subprocess.TimeoutExpired:
             pass
+    return True
 
 if __name__ == "__main__":
     run(process)
