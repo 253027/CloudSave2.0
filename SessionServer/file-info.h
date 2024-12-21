@@ -20,10 +20,12 @@ public:
     // 文件对象的状态，决定了数据到来时的处理方法
     enum class FILESTATUS : uint16_t
     {
-        WAITING_INFO = 1, // 等待文件信息
-        UPLOADING = 2,    // 上传中
-        COMPLETED = 3,    // 上传完成
+        WAITING_INFO = 0, // 等待文件信息
+        UPLOADING = 1,    // 上传中
+        COMPLETED = 2,    // 上传完成
     };
+
+    FileInfo(const std::string &name, FILEMODE mode);
 
     FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode);
 
@@ -37,6 +39,16 @@ public:
      * @param 设置文件分块大小
      */
     void setChunkSize(uint16_t size);
+
+    /**
+     * @brief 设置文件hash值
+     */
+    void setFileHash(const std::string &hash);
+
+    /**
+     * @brief 设置文件大小
+     */
+    void setFileSize(uint32_t size);
 
     /**
      * @brief 写入文件

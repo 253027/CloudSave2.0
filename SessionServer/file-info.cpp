@@ -7,6 +7,12 @@
 std::unordered_map<std::string, std::unique_ptr<FileInfo>> fileMemo; // 管理所有文件对象的集合
 static const uint32_t initialChunkSize = 8192 * 1024;                // 8M bytes
 
+FileInfo::FileInfo(const std::string &name, FILEMODE mode)
+    : FileInfo(name, "", 0, mode)
+{
+    ;
+}
+
 FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode)
     : _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size), _fd(-1)
 {
@@ -46,6 +52,16 @@ void FileInfo::setChunkSize(uint16_t size)
 {
     this->_chunkPerSize = size;
     this->_nums = (this->_size + size - 1) / size;
+}
+
+void FileInfo::setFileHash(const std::string &hash)
+{
+    this->_fileHash = hash;
+}
+
+void FileInfo::setFileSize(uint32_t size)
+{
+    this->_size = size;
 }
 
 void FileInfo::setFileStatus(FILESTATUS status)

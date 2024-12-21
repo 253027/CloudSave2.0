@@ -1,4 +1,5 @@
 #include "business-task.h"
+#include "file-info.h"
 #include "../src/tcp-packet-parser.h"
 #include "../src/json-extract.h"
 #include "../src/mysql.h"
@@ -132,9 +133,40 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
     if (TO_ENUM(ConState, con->getUserConnectionState()) != ConState::VERIFY)
         return false;
 
-    std::string filename;
+    int size = 0;
+    std::string filename, hash;
     if (!mg::JsonExtract::extract(jsData, "filename", filename, mg::JsonExtract::STRING))
         return false;
 
+    if (!fileMemo.count(filename))
+        fileMemo[filename] = std::make_unique<FileInfo>(filename, FileInfo::FILEMODE::WRITE);
+    auto &fileInfo = fileMemo[filename];
+
+    switch (fileInfo->getFileStatus())
+    {
+    case FileInfo::FILESTATUS::WAITING_INFO:
+    {
+        if (!mg::JsonExtract::extract(jsData, "hash", hash, mg::JsonExtract::STRING))
+            return false;
+        if (!mg::JsonExtract::extract(jsData, "size", size, mg::JsonExtract::INT))
+            return false;
+        fileInfo->setFileHash(hash);
+        fileInfo->setFileSize(size);
+        fileInfo->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
+        break;
+    }
+
+    case FileInfo::FILESTATUS::UPLOADING:
+    {
+        int chunkIndex = 0;
+        if (!mg::JsonExtract::extract(jsData, "chunkIndex", chunkIndex, mg::JsonExtract::INT))
+            return false;
+        std::string data;
+        if (!mg::JsonExtract::extract(jsData, "data", data, mg::JsonExtract::BINARY))
+            return false;
+        fileInfo->write(chunkIndex, data);
+        break;
+    }
+    }
     return true;
 }
