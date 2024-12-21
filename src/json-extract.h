@@ -3,6 +3,7 @@
 
 #include "json.hpp"
 #include <string>
+#include <vector>
 
 namespace mg
 {
@@ -35,16 +36,39 @@ namespace mg
         {
             if (!it->is_number_integer())
                 return false;
-            output = it->get<int>();
+            output = it->get<T>();
             break;
         }
         case JsonType::STRING:
         {
             if (!it->is_string())
                 return false;
-            output = it->get<std::string>();
+            output = it->get<T>();
             break;
         }
+        case JsonType::BINARY:
+        {
+            if (!it->is_binary())
+                return false;
+            output = it->get<T>();
+            break;
+        }
+        case JsonType::OBJECT:
+        {
+            if (!it->is_object())
+                return false;
+            output = it->get<T>();
+            break;
+        }
+        case JsonType::ARRAY:
+        {
+            if (!it->is_array())
+                return false;
+            output = it->get<T>();
+            break;
+        }
+        default:
+            return false;
         }
         return true;
     }
