@@ -8,10 +8,17 @@
 #include "singleton.h"
 
 // 日志相关操作的宏封装
-#define INITLOG(configuraion) mg::Logger::getInstance()->init(configuraion)
+#define INITLOG(configuration) mg::Logger::getInstance()->init(configuration)
 #define BASELOG(logger, level, ...) (logger)->log(spdlog::source_loc{__FILE__, __LINE__, __func__}, level, __VA_ARGS__)
+
+#ifdef _DEBUG
 #define LOG_TRACE(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::trace, __VA_ARGS__)
 #define LOG_DEBUG(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::debug, __VA_ARGS__)
+#else
+#define LOG_TRACE(...) (void)0
+#define LOG_DEBUG(...) (void)0
+#endif
+
 #define LOG_INFO(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::info, __VA_ARGS__)
 #define LOG_WARN(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::warn, __VA_ARGS__)
 #define LOG_ERROR(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::err, __VA_ARGS__)
