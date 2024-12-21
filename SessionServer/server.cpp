@@ -15,10 +15,14 @@ void sighandle(int sig)
     ::exit(0);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    if (::daemon(1, 1) == -1)
-        return 0;
+    if (argc > 1 && !strcasecmp("-daemon", argv[1]))
+    {
+        if (::daemon(1, 1) == -1)
+            return 0;
+        std::cout << "SessionServer started in daemon mode" << std::endl;
+    }
     signal(SIGINT, sighandle);
     signal(SIGTERM, sighandle);
 
