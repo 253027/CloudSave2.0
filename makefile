@@ -1,17 +1,18 @@
 .PHONY: all
+DEBUG ?= 1
 all: src GatewayServer SessionServer
 
 .PHONY: src
 src:
-	$(MAKE) -C src
+	$(MAKE) -C src DEBUG=$(DEBUG)
 
 .PHONY: SessionServer
 SessionServer: src
-	$(MAKE) -C SessionServer
+	$(MAKE) -C SessionServer DEBUG=$(DEBUG)
 
 .PHONY: GatewayServer
 GatewayServer: src
-	$(MAKE) -C GatewayServer
+	$(MAKE) -C GatewayServer DEBUG=$(DEBUG)
 
 .PHONY: clean
 clean:
