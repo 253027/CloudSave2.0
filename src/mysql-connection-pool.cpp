@@ -23,6 +23,12 @@ mg::MysqlConnectionPool::~MysqlConnectionPool()
 #ifdef _DEBUG
     LOG_DEBUG("~MysqlConnectionPool() called");
 #endif
+    while (!_queue.empty())
+    {
+        auto front = _queue.front();
+        _queue.pop();
+        SAFE_DELETE(front);
+    }
 }
 
 bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::string &name)
