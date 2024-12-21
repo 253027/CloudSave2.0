@@ -1,6 +1,8 @@
 #ifndef __FILE_INFO_H__
 #define __FILE_INFO_H__
 
+#include "../src/macros.h"
+
 #include <unordered_map>
 #include <string>
 #include <fstream>
@@ -13,6 +15,14 @@ public:
     {
         READ = 1,  // 读
         WRITE = 2, // 写
+    };
+
+    // 文件对象的状态，决定了数据到来时的处理方法
+    enum class FILESTATUS : uint16_t
+    {
+        WAITING_INFO = 1, // 等待文件信息
+        UPLOADING = 2,    // 上传中
+        COMPLETED = 3,    // 上传完成
     };
 
     FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode);
@@ -37,8 +47,19 @@ public:
      */
     int32_t write(int16_t chunkIndex, const std::string &data);
 
+    /**
+     * @brief 设置文件状态
+     */
+    void setFileStatus(FILESTATUS status);
+
+    /**
+     * @brief 获取文件状态
+     */
+    FILESTATUS getFileStatus() const;
+
 private:
     int _fd;                                             // 写入文件的文件描述符
+    uint8_t _status;                                     // 文件状态
     std::string _name;                                   // 文件名（用户文件名）
     std::string _fileHash;                               // 文件hash值
     uint16_t _nums;                                      // 文件分块数
@@ -48,4 +69,5 @@ private:
     std::unordered_map<int16_t, uint32_t> _chunkSize;    // 分块文件目前的大小
 };
 
+extern std::unordered_map<std::string, std::unique_ptr<FileInfo>> fileMemo;
 #endif //__FILE_INFO_H__
