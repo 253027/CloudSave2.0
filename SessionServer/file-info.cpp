@@ -62,6 +62,7 @@ void FileInfo::setFileHash(const std::string &hash)
 void FileInfo::setFileSize(uint32_t size)
 {
     this->_size = size;
+    this->_nums = (this->_size + _chunkPerSize - 1) / _chunkPerSize;
 }
 
 void FileInfo::setFileStatus(FILESTATUS status)
