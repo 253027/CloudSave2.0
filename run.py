@@ -6,7 +6,7 @@ process = ["./SessionServer/server", "./GatewayServer/server"]
 
 def run(proclist: List[str]) -> bool:
     for name in proclist:
-        result = subprocess.Popen([name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.Popen([name, "-daemon"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             stdout, stderr = result.communicate(timeout=0.5)
             if stderr:
