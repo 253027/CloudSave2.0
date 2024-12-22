@@ -16,7 +16,7 @@ using namespace Protocal;
 
 using json = nlohmann::json;
 
-SessionClient::SessionClient() : _index(0)
+SessionClient::SessionClient() : _index(0), _rwlock()
 {
     ;
 }
@@ -73,7 +73,7 @@ bool SessionClient::sendToServer(const std::string &data)
 {
     mg::TcpConnectionPointer p;
     {
-        std::lock_guard<std::mutex> guard(_mutex);
+        mg::SharedLock lock(_rwlock);
         if (_connections.empty())
             return false;
         p = _connections[_index].lock();
@@ -109,7 +109,6 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
         LOG_ERROR("invalid connection-name");
         return;
     }
-    this->setConnectionState(js);
     js.erase("connection-name");
 
     GateWayServer::getMe().onInternalServerResponse(name, js.dump());
@@ -121,7 +120,7 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
     if (connection->connected())
     {
         {
-            std::lock_guard<std::mutex> guard(_mutex);
+            mg::UniqueLock lock(_rwlock);
             _connections.push_back(connection);
         }
         LOG_INFO("{} connected to {}", connection->name(), connection->peerAddress().toIpPort());
@@ -129,7 +128,7 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
     else
     {
         {
-            std::lock_guard<std::mutex> guard(_mutex);
+            mg::UniqueLock lock(_rwlock);
             for (int i = 0, j = _connections.size() - 1; i < j; i++)
             {
                 if (_connections[i].lock() != connection)
@@ -141,9 +140,4 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
         }
         LOG_INFO("{} disconnected from {}", connection->name(), connection->peerAddress().toIpPort());
     }
-}
-
-void SessionClient::setConnectionState(json &js)
-{
-    js.erase("con-state");
 }
