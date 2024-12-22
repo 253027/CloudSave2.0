@@ -82,8 +82,8 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
         return false;
     }
 
+    ret["con-state"] = "verify";
     ret["status"] = "success";
-    con->setUserConnectionState(TO_UNDERLYING(ConState::VERIFY));
     mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }

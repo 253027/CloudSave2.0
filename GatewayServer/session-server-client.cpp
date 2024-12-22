@@ -7,6 +7,7 @@
 #include "../src/eventloop-thread.h"
 #include "../src/tcp-packet-parser.h"
 #include "../src/log.h"
+#include "../src/json-extract.h"
 #include "../protocal/protocal-session.h"
 
 using namespace Protocal;
@@ -102,12 +103,13 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
         return;
     }
 
-    if (!js.contains("connection-name") || !js["connection-name"].is_string())
+    std::string name;
+    if (!mg::JsonExtract::extract(js, "connection-name", name, mg::JsonExtract::STRING))
     {
-        LOG_ERROR("{} invalid connection-name type", a->name());
+        LOG_ERROR("invalid connection-name");
         return;
     }
-    std::string name = js["connection-name"];
+    this->setConnectionState(js);
     js.erase("connection-name");
 
     GateWayServer::getMe().onInternalServerResponse(name, js.dump());
@@ -139,4 +141,9 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
         }
         LOG_INFO("{} disconnected from {}", connection->name(), connection->peerAddress().toIpPort());
     }
+}
+
+void SessionClient::setConnectionState(json &js)
+{
+    js.erase("con-state");
 }

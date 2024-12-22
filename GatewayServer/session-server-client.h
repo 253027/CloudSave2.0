@@ -3,6 +3,7 @@
 
 #include "../src/singleton.h"
 #include "../src/function-callbacks.h"
+#include "../src/json_fwd.hpp"
 
 #include <memory>
 #include <mutex>
@@ -30,6 +31,8 @@ private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
     void onConnectionStateChanged(const mg::TcpConnectionPointer &connection);
+
+    void setConnectionState(nlohmann::json &js);
 
     int _index;
     std::mutex _mutex;
