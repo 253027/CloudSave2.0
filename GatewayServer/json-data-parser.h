@@ -2,6 +2,7 @@
 #define __JSON_DATA_PARSER_H__
 
 #include "../src/singleton.h"
+#include "../src/function-callbacks.h"
 
 #include <string>
 #include <unordered_map>
@@ -11,7 +12,7 @@ class JsonDataParser : public Singleton<JsonDataParser>
 public:
     JsonDataParser();
 
-    bool parse(const std::string &name, std::string &data);
+    bool parse(const mg::TcpConnectionPointer &a, std::string &data);
 
 private:
     enum Method

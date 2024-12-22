@@ -82,7 +82,7 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
         return false;
     }
 
-    ret["con-state"] = "verify";
+    ret["con-state"] = TO_UNDERLYING(ConState::VERIFY);
     ret["status"] = "success";
     mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
     return true;

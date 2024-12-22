@@ -105,7 +105,7 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     {
     case 7: // json数据
     {
-        valid = JsonDataParser::getMe().parse(a->name(), body);
+        valid = JsonDataParser::getMe().parse(a, body);
         break;
     }
     default:

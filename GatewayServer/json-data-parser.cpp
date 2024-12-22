@@ -2,6 +2,7 @@
 #include "session-server-client.h"
 #include "../src/json-extract.h"
 #include "../src/log.h"
+#include "../src/tcp-connection.h"
 #include "../protocal/protocal-session.h"
 
 #include <string.h>
@@ -14,7 +15,7 @@ JsonDataParser::JsonDataParser()
     ;
 }
 
-bool JsonDataParser::parse(const std::string &name, std::string &data)
+bool JsonDataParser::parse(const mg::TcpConnectionPointer &a, std::string &data)
 {
     json js;
     try
@@ -30,11 +31,12 @@ bool JsonDataParser::parse(const std::string &name, std::string &data)
     std::string type;
     if (!mg::JsonExtract::extract(js, "type", type, mg::JsonExtract::STRING))
     {
-        LOG_ERROR("{} invalid argument type", name);
+        LOG_ERROR("{} invalid argument type", a->name());
         return false;
     }
 
-    js["connection-name"] = name;
+    js["connection-name"] = a->name();
+    js["con-state"] = a->getUserConnectionState();
     bool valid = true;
 
     switch (this->_method[type])
