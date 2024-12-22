@@ -45,7 +45,7 @@ public:
         return instance;
     }
 
-    static T &getMe()
+    static T &get()
     {
         return *getInstance();
     }

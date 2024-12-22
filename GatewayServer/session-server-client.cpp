@@ -108,14 +108,14 @@ bool SessionClient::sendToServer(const std::string &data)
     }
     if (!p)
         return false;
-    mg::TcpPacketParser::getMe().send(p, data);
+    mg::TcpPacketParser::get().send(p, data);
     return true;
 }
 
 void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     std::string data;
-    if (!mg::TcpPacketParser::getMe().reveive(a, data))
+    if (!mg::TcpPacketParser::get().reveive(a, data))
         return;
     data = SessionCommand(data).unserialize();
 
@@ -138,6 +138,6 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     }
     js.erase("connection-name");
 
-    GateWayServer::getMe().onInternalServerResponse(name, js);
+    GateWayServer::get().onInternalServerResponse(name, js);
     LOG_DEBUG("{} data:\n{}", a->name(), data);
 }

@@ -8,7 +8,7 @@ SessionServer::SessionServer()
 #ifdef _DEBUG
     LOG_DEBUG("SessionServer() called");
 #endif
-    mg::TcpPacketParser::getMe();
+    mg::TcpPacketParser::get();
 }
 
 SessionServer::~SessionServer()
@@ -44,7 +44,7 @@ void SessionServer::quit()
 void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     std::string data;
-    if (!mg::TcpPacketParser::getMe().reveive(a, data))
+    if (!mg::TcpPacketParser::get().reveive(a, data))
         return;
 
     Protocal::SessionCommand userdata(data);
@@ -54,7 +54,7 @@ void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     case SessionType::LOGIN:
     case SessionType::REGIST:
     case SessionType::UPLOAD:
-        BusinessTask::getMe().parse(a, userdata);
+        BusinessTask::get().parse(a, userdata);
         break;
     default:
         break;

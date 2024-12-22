@@ -8,7 +8,7 @@ void sighandle(int sig)
 {
     if (sig != SIGINT)
         return;
-    GateWayServer::getMe().quit();
+    GateWayServer::get().quit();
     GateWayServer::destroyInstance();
     SessionClient::destroyInstance();
     ::sleep(1);
@@ -30,12 +30,12 @@ int main(int argc, char *argv[])
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------GatewayServer started-----------------------------------");
 
-    if (!SessionClient::getMe().initial())
+    if (!SessionClient::get().initial())
         assert(0 && "SessionClient initial failed");
 
-    if (!GateWayServer::getMe().initial())
+    if (!GateWayServer::get().initial())
         assert(0 && "GatewayServer initial failed");
-    GateWayServer::getMe().start();
+    GateWayServer::get().start();
 
     return 0;
 }

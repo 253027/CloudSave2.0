@@ -4,8 +4,8 @@
 
 void sighandle(int sig)
 {
-    SessionServer::getMe().quit();
-    mg::MysqlConnectionPool::getMe().quit();
+    SessionServer::get().quit();
+    mg::MysqlConnectionPool::get().quit();
 
     SessionServer::destroyInstance();
     mg::MysqlConnectionPool::destroyInstance();
@@ -31,12 +31,12 @@ int main(int argc, char *argv[])
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------SessionServer started-----------------------------------");
 
-    if (!mg::MysqlConnectionPool::getMe().initial("./SessionServer/database.json", "mysql"))
+    if (!mg::MysqlConnectionPool::get().initial("./SessionServer/database.json", "mysql"))
         assert(0 && "mysql initial failed");
-    if (!mg::MysqlConnectionPool::getMe().start(180))
+    if (!mg::MysqlConnectionPool::get().start(180))
         assert(0 && "mysql start failed");
 
-    SessionServer::getMe().initial();
-    SessionServer::getMe().start();
+    SessionServer::get().initial();
+    SessionServer::get().start();
     return 0;
 }

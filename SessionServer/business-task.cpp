@@ -45,7 +45,7 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     if (name.empty() || password.empty())
         return false;
 
-    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::getMe().getHandle();
+    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::get().getHandle();
     if (!sql)
     {
         LOG_ERROR("get mysql handle failed");
@@ -62,7 +62,7 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     {
         ret["status"] = "failed";
         ret["detail"] = "user not exit";
-        mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
+        mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
         return false;
     }
 
@@ -78,13 +78,13 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     {
         ret["status"] = "failed";
         ret["detail"] = "password error";
-        mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
+        mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
         return false;
     }
 
     ret["con-state"] = TO_UNDERLYING(ConState::VERIFY);
     ret["status"] = "success";
-    mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
+    mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }
 
@@ -118,7 +118,7 @@ bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
     ::strncpy(data.password, ::strrchr(crypt, '$') + 1, sizeof(data.password) - 1);
     ::strncpy(data.username, name.c_str(), sizeof(data.username) - 1);
 
-    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::getMe().getHandle();
+    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::get().getHandle();
     if (!sql)
     {
         LOG_ERROR("get mysql handle failed");
@@ -165,7 +165,7 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
             js["connection-name"] = jsData["connection-name"];
             js["filename"] = filename;
             js["status"] = "success";
-            mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(js.dump()));
+            mg::TcpPacketParser::get().send(con, SessionCommand().serialize(js.dump()));
         }
         break;
     }
@@ -177,7 +177,7 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
     json ret;
     ret["connection-name"] = jsData["connection-name"];
     ret["status"] = "success";
-    mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
+    mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }
 

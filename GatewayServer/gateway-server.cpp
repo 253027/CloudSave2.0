@@ -14,7 +14,7 @@ using json = nlohmann::json;
 
 GateWayServer::GateWayServer()
 {
-    mg::HttpPacketParser::getMe();
+    mg::HttpPacketParser::get();
 }
 
 GateWayServer::~GateWayServer()
@@ -76,7 +76,7 @@ void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::
             _connection.erase(name);
             return;
         }
-        if(js.value("con-state", 0))
+        if (js.value("con-state", 0))
             p->setUserConnectionState(js["con-state"]);
         js.erase("con-state");
     }
@@ -89,13 +89,13 @@ void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::
     head["Server"] = "Apache/2.4.41 (Ubuntu)";
     // body = "<html>Hello World</html>";
     body = js.dump();
-    mg::HttpPacketParser::getMe().send(p, httpData);
+    mg::HttpPacketParser::get().send(p, httpData);
 }
 
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     mg::HttpData data;
-    if (!mg::HttpPacketParser::getMe().reveive(a, data))
+    if (!mg::HttpPacketParser::get().reveive(a, data))
         return;
 
     mg::HttpHead head;
@@ -103,12 +103,12 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     std::tie(head, body) = std::move(data);
     bool valid = true;
 
-    int type = mg::HttpPacketParser::getMe().parseType(head["content-type"]);
+    int type = mg::HttpPacketParser::get().parseType(head["content-type"]);
     switch (type)
     {
     case 7: // json数据
     {
-        valid = JsonDataParser::getMe().parse(a, body);
+        valid = JsonDataParser::get().parse(a, body);
         break;
     }
     default:
@@ -148,5 +148,5 @@ void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
     head["HTTP/1.1"] = "400 Bad Request";
     head["Content-Type"] = "text/html";
     body = "<html>Invalid Request</html>";
-    mg::HttpPacketParser::getMe().send(a, httpData);
+    mg::HttpPacketParser::get().send(a, httpData);
 }

@@ -42,12 +42,12 @@ bool JsonDataParser::parse(const mg::TcpConnectionPointer &a, std::string &data)
     switch (this->_method[type])
     {
     case Method::LOGIN:
-        valid = SessionClient::getMe().sendToServer(SessionCommand(SessionType::LOGIN).serialize(js.dump()));
+        valid = SessionClient::get().sendToServer(SessionCommand(SessionType::LOGIN).serialize(js.dump()));
         break;
     case Method::REGIST:
         break;
     case Method::UPLOAD:
-        valid = SessionClient::getMe().sendToServer(SessionCommand(SessionType::UPLOAD).serialize(js.dump()));
+        valid = SessionClient::get().sendToServer(SessionCommand(SessionType::UPLOAD).serialize(js.dump()));
         break;
     default:
         valid = false;
