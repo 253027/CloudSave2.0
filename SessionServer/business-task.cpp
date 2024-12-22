@@ -130,7 +130,10 @@ bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
 
 bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
 {
-    if (TO_ENUM(ConState, con->getUserConnectionState()) != ConState::VERIFY)
+    uint16_t state = 0;
+    if (!mg::JsonExtract::extract(jsData, "con-state", state, mg::JsonExtract::INT))
+        return false;
+    if (state != TO_UNDERLYING(ConState::VERIFY))
         return false;
 
     int size = 0;
@@ -145,7 +148,11 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
     switch (fileInfo->getFileStatus())
     {
     case FileInfo::FILESTATUS::WAITING_INFO:
-        return waitFileInfo(filename, jsData);
+    {
+        if (!waitFileInfo(filename, jsData))
+            return false;
+        break;
+    }
 
     case FileInfo::FILESTATUS::UPLOADING:
     {
@@ -166,6 +173,11 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
     case FileInfo::FILESTATUS::COMPLETED:
         return true;
     }
+
+    json ret;
+    ret["connection-name"] = jsData["connection-name"];
+    ret["status"] = "success";
+    mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }
 

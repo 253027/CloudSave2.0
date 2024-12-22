@@ -69,6 +69,33 @@ bool SessionClient::initial()
     return true;
 }
 
+void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
+{
+    if (connection->connected())
+    {
+        {
+            mg::UniqueLock lock(_rwlock);
+            _connections.push_back(connection);
+        }
+        LOG_INFO("{} connected to {}", connection->name(), connection->peerAddress().toIpPort());
+    }
+    else
+    {
+        {
+            mg::UniqueLock lock(_rwlock);
+            for (int i = 0, j = _connections.size() - 1; i < j; i++)
+            {
+                if (_connections[i].lock() != connection)
+                    continue;
+                std::swap(_connections[i], _connections[j]);
+                break;
+            }
+            _connections.pop_back();
+        }
+        LOG_INFO("{} disconnected from {}", connection->name(), connection->peerAddress().toIpPort());
+    }
+}
+
 bool SessionClient::sendToServer(const std::string &data)
 {
     mg::TcpConnectionPointer p;
@@ -113,31 +140,4 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
 
     GateWayServer::getMe().onInternalServerResponse(name, js);
     LOG_DEBUG("{} data:\n{}", a->name(), data);
-}
-
-void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
-{
-    if (connection->connected())
-    {
-        {
-            mg::UniqueLock lock(_rwlock);
-            _connections.push_back(connection);
-        }
-        LOG_INFO("{} connected to {}", connection->name(), connection->peerAddress().toIpPort());
-    }
-    else
-    {
-        {
-            mg::UniqueLock lock(_rwlock);
-            for (int i = 0, j = _connections.size() - 1; i < j; i++)
-            {
-                if (_connections[i].lock() != connection)
-                    continue;
-                std::swap(_connections[i], _connections[j]);
-                break;
-            }
-            _connections.pop_back();
-        }
-        LOG_INFO("{} disconnected from {}", connection->name(), connection->peerAddress().toIpPort());
-    }
 }
