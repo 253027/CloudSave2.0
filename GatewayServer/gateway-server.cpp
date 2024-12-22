@@ -64,15 +64,18 @@ void GateWayServer::quit()
 
 void GateWayServer::onInternalServerResponse(const std::string &name, const std::string &data)
 {
-    auto it = _connection.find(name);
-    if (it == _connection.end())
-        return;
-    mg::TcpConnectionPointer p = it->second.lock();
-    if (!p)
+    mg::TcpConnectionPointer p;
     {
         std::lock_guard<std::mutex> guard(_mutex);
-        _connection.erase(name);
-        return;
+        auto it = _connection.find(name);
+        if (it == _connection.end())
+            return;
+        p = it->second.lock();
+        if (!p)
+        {
+            _connection.erase(name);
+            return;
+        }
     }
 
     mg::HttpData httpData;
