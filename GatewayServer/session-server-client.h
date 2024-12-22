@@ -4,7 +4,6 @@
 #include "../src/singleton.h"
 #include "../src/function-callbacks.h"
 #include "../src/json_fwd.hpp"
-#include "../src/rwlock.h"
 
 #include <memory>
 #include <mutex>
@@ -34,7 +33,7 @@ private:
     void onConnectionStateChanged(const mg::TcpConnectionPointer &connection);
 
     int _index;
-    mg::RWLock _rwlock;
+    std::mutex _mutex;
     std::vector<std::weak_ptr<mg::TcpConnection>> _connections;
     std::vector<std::unique_ptr<mg::TcpClient>> _clients;
     std::vector<std::unique_ptr<mg::EventLoopThread>> _threads;

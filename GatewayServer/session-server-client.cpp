@@ -16,7 +16,7 @@ using namespace Protocal;
 
 using json = nlohmann::json;
 
-SessionClient::SessionClient() : _index(0), _rwlock()
+SessionClient::SessionClient() : _index(0)
 {
     ;
 }
@@ -74,7 +74,7 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
     if (connection->connected())
     {
         {
-            mg::UniqueLock lock(_rwlock);
+            std::lock_guard<std::mutex> guard(_mutex);
             _connections.push_back(connection);
         }
         LOG_INFO("{} connected to {}", connection->name(), connection->peerAddress().toIpPort());
@@ -82,7 +82,7 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
     else
     {
         {
-            mg::UniqueLock lock(_rwlock);
+            std::lock_guard<std::mutex> guard(_mutex);
             for (int i = 0, j = _connections.size() - 1; i < j; i++)
             {
                 if (_connections[i].lock() != connection)
@@ -100,7 +100,7 @@ bool SessionClient::sendToServer(const std::string &data)
 {
     mg::TcpConnectionPointer p;
     {
-        mg::SharedLock lock(_rwlock);
+        std::lock_guard<std::mutex> guard(_mutex);
         if (_connections.empty())
             return false;
         p = _connections[_index].lock();
