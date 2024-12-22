@@ -5,27 +5,58 @@
 
 #include <pthread.h>
 
-class RWLock : public mg::noncopyable
+namespace mg
 {
-public:
-    RWLock();
+    class RWLock : public mg::noncopyable
+    {
+    public:
+        RWLock();
 
-    ~RWLock();
+        ~RWLock();
 
-    // 获取读锁
-    void lock_shared();
+        // 获取读锁
+        void lock_shared();
 
-    // 释放读锁
-    void unlock_shared();
+        // 释放读锁
+        void unlock_shared();
 
-    // 获取写锁
-    void lock();
+        // 获取写锁
+        void lock();
 
-    // 释放写锁
-    void unlock();
+        // 释放写锁
+        void unlock();
 
-private:
-    pthread_rwlock_t _lock;
-};
+    private:
+        pthread_rwlock_t _lock;
+    };
+
+    class UniqueLock : public mg::noncopyable
+    {
+    public:
+        UniqueLock(RWLock &lock);
+
+        ~UniqueLock();
+
+        UniqueLock(UniqueLock &&other);
+
+    private:
+        RWLock &_lock;
+        bool _ownLock;
+    };
+
+    class SharedLock
+    {
+    public:
+        SharedLock(RWLock &lock);
+
+        ~SharedLock();
+
+        SharedLock(SharedLock &&other);
+
+    private:
+        RWLock &_lock;
+        bool _ownLock;
+    };
+}
 
 #endif // __MG_RWLOCK_H__
