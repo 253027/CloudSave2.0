@@ -14,7 +14,7 @@ FileInfo::FileInfo(const std::string &name, FILEMODE mode)
 }
 
 FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode)
-    : _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size), _fd(-1)
+    : _fd(-1), _status(0), _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size)
 {
     int flags = (mode == FILEMODE::READ) ? O_RDONLY : (O_WRONLY | O_CREAT);
     mode_t permissions = (mode == FILEMODE::WRITE) ? 0644 : 0;
