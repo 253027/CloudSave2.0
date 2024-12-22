@@ -62,7 +62,7 @@ void GateWayServer::quit()
     _loop->quit();
 }
 
-void GateWayServer::onInternalServerResponse(const std::string &name, const std::string &data)
+void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::json &js)
 {
     mg::TcpConnectionPointer p;
     {
@@ -76,6 +76,9 @@ void GateWayServer::onInternalServerResponse(const std::string &name, const std:
             _connection.erase(name);
             return;
         }
+        if(js.value("con-state", 0))
+            p->setUserConnectionState(js["con-state"]);
+        js.erase("con-state");
     }
 
     mg::HttpData httpData;
@@ -85,7 +88,7 @@ void GateWayServer::onInternalServerResponse(const std::string &name, const std:
     head["Content-Type"] = "application/json";
     head["Server"] = "Apache/2.4.41 (Ubuntu)";
     // body = "<html>Hello World</html>";
-    body = data;
+    body = js.dump();
     mg::HttpPacketParser::getMe().send(p, httpData);
 }
 

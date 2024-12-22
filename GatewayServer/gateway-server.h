@@ -4,6 +4,7 @@
 #include "../src/singleton.h"
 #include "../src/function-callbacks.h"
 #include "../src/time-stamp.h"
+#include "../src/json_fwd.hpp"
 
 #include "../src/log.h"
 
@@ -30,7 +31,7 @@ public:
 
     void quit();
 
-    void onInternalServerResponse(const std::string &name, const std::string &data);
+    void onInternalServerResponse(const std::string &name, nlohmann::json &js);
 
 private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);

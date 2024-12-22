@@ -111,7 +111,7 @@ void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
     }
     js.erase("connection-name");
 
-    GateWayServer::getMe().onInternalServerResponse(name, js.dump());
+    GateWayServer::getMe().onInternalServerResponse(name, js);
     LOG_DEBUG("{} data:\n{}", a->name(), data);
 }
 
