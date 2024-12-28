@@ -1,5 +1,6 @@
 #include "business-task.h"
 #include "file-info.h"
+#include "session-json.h"
 #include "../src/tcp-packet-parser.h"
 #include "../src/json-extract.h"
 #include "../src/mysql.h"
@@ -149,8 +150,12 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
     {
     case FileInfo::FILESTATUS::WAITING_INFO:
     {
+        json ret = SessionJson::generate(jsData);
         if (!waitFileInfo(filename, jsData))
-            return false;
+            ret["status"] = "parameter error";
+        else
+            ret["status"] = "uploading";
+        mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
         break;
     }
 

@@ -17,9 +17,9 @@ public:
         return js;
     }
 
-    inline static json generate(json &js)
+    inline static json generate(const json &js)
     {
-        return generate(js["connection-name"]);
+        return generate(js.at("connection-name").get<std::string>());
     }
 };
 
