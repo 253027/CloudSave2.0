@@ -1,6 +1,6 @@
 .PHONY: all
 DEBUG ?= 1
-all: src GatewayServer SessionServer
+all: src GatewayServer SessionServer FileServer
 
 .PHONY: src
 src:
@@ -13,6 +13,10 @@ SessionServer: src
 .PHONY: GatewayServer
 GatewayServer: src
 	$(MAKE) -C GatewayServer DEBUG=$(DEBUG)
+
+.PHONY: GateFileServerwayServer
+FileServer: src
+	$(MAKE) -C FileServer DEBUG=$(DEBUG)
 
 .PHONY: clean
 clean:
