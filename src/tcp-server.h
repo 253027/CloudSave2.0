@@ -9,6 +9,7 @@
 #include "tcp-connection.h"
 
 #include <unordered_map>
+#include <memory>
 
 namespace mg
 {
