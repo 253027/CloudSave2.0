@@ -9,7 +9,7 @@ class CommonServer : public Singleton<CommonServer>
 public:
     virtual ~CommonServer() {};
 
-    virtual void initial();
+    virtual bool initial();
 
     virtual void start();
 

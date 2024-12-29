@@ -1,6 +1,6 @@
 #include "common-server.h"
 
-void CommonServer::initial() {}
+bool CommonServer::initial() {}
 
 void CommonServer::start() {}
 
