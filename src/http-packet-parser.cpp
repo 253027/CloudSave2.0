@@ -23,6 +23,7 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpD
     HttpHead &head = std::get<0>(data);
     HttpBody &body = std::get<1>(data);
     head["method"] = std::string(method, method_len);
+    head["method_path"] = std::string(path, path_len);
     for (int i = 0; i < num_headers; i++)
         head[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
 
@@ -67,7 +68,7 @@ int mg::HttpPacketParser::parseType(const std::string &data)
         return 0;
     std::string type_1 = data.substr(0, it);
     std::string type_2 = data.substr(it + 1);
-    if(!HttpContentType.count(type_1) || !HttpContentType[type_1].count(type_2))
+    if (!HttpContentType.count(type_1) || !HttpContentType[type_1].count(type_2))
         return 0;
     return HttpContentType[type_1][type_2];
 }
