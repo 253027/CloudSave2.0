@@ -23,7 +23,14 @@
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "logging": {
+                "moduleLoad": true,
+                "trace": false,
+                "engineLogging": false,
+                "programOutput": false,
+                "exceptions": true
+            }
         },
         {
             "name": "Session Start",
@@ -69,7 +76,14 @@
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "logging": {
+                "moduleLoad": true,
+                "trace": false,
+                "engineLogging": false,
+                "programOutput": false,
+                "exceptions": true
+            }
         },
     ]
 }
