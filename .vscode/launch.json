@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Session Attach",
+            "name": "Session-Attach",
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/SessionServer/server",
@@ -33,7 +33,7 @@
             }
         },
         {
-            "name": "Session Start",
+            "name": "Session-Start",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/SessionServer/server",
@@ -58,7 +58,7 @@
             "preLaunchTask": "SessionServer"
         },
         {
-            "name": "GateWay Attach",
+            "name": "GateWay-Attach",
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/GatewayServer/server",
