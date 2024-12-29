@@ -16,7 +16,7 @@ public:
     virtual void stop();
 
 protected:
-    virtual void onMessage();
+    virtual void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
     std::shared_ptr<mg::TcpServer> _server;
     std::shared_ptr<mg::EventLoop> _loop;
