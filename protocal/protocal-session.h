@@ -36,9 +36,9 @@ namespace Protocal
             char buffer[sizeof(Command) + sizeof(this->type)] = {0};
             ::memcpy(buffer, static_cast<void *>(this), sizeof(Command));
             ::memcpy(buffer + sizeof(Command), &type, sizeof(type));
-            std::string res = buffer;
+            std::string res(buffer, sizeof(buffer));
             res.append(data);
-            return std::move(res);
+            return res;
         }
 
         const std::string &unserialize(const std::string &data)
