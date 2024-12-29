@@ -15,21 +15,17 @@ PCH := $(SDK_OUT_DIR)/pch.h.gch
 PCH_SRC := $(SDK_DIR)/pch.h
 
 CC := g++
-DEBUG ?= 1
-ifeq ($(DEBUG), 1)
-    CFLAGS := -g -D_DEBUG -lpthread -fsanitize=address
-else
-    CFLAGS := -O2 -lpthread
-endif
+
+CXXFLAGS ?= -O2
 
 .PHONY: all
 all: $(PCH) $(SDK_OBJ)
 
 $(PCH): $(PCH_SRC)
-	$(CC) -c $(CFLAGS) $(PCH_SRC) -o $(PCH)
+	$(CC) -c $(CXXFLAGS) $(LDFLAGS) $(PCH_SRC) -o $(PCH)
 
 $(SDK_OUT_DIR)/%.o: $(SDK_DIR)/%.cpp $(PCH)
-	$(CC) -c $(CFLAGS) $< -o $@ -include $(PCH_SRC)
+	$(CC) -c $(CXXFLAGS) $< -o $@ -include $(PCH_SRC)
 
 .PHONY: clean
 	$(RM) $(SDK_OUT_DIR)

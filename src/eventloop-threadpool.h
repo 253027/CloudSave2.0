@@ -4,6 +4,7 @@
 #include "eventloop-thread.h"
 
 #include <functional>
+#include <vector>
 
 namespace mg
 {

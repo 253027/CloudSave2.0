@@ -1,22 +1,39 @@
-.PHONY: all
 DEBUG ?= 1
+
+CXXFLAGS = -std=c++11
+
+LIBS ?= -lpthread
+
+ifeq ($(DEBUG), 1)
+	CXXFLAGS += -g -D_DEBUG -fsanitize=address
+else
+	CXXFLAGS += -O2
+endif
+
+LDFLAGS += $(LIBS)
+
+export CXXFLAGS
+export LDFLAGS
+export DEBUG
+
+.PHONY: all
 all: src GatewayServer SessionServer FileServer
 
 .PHONY: src
 src:
-	$(MAKE) -C src DEBUG=$(DEBUG)
+	$(MAKE) -C src
 
 .PHONY: SessionServer
 SessionServer: src
-	$(MAKE) -C SessionServer DEBUG=$(DEBUG)
+	$(MAKE) -C SessionServer
 
 .PHONY: GatewayServer
 GatewayServer: src
-	$(MAKE) -C GatewayServer DEBUG=$(DEBUG)
+	$(MAKE) -C GatewayServer
 
-.PHONY: GateFileServerwayServer
+.PHONY: FileServer
 FileServer: src
-	$(MAKE) -C FileServer DEBUG=$(DEBUG)
+	$(MAKE) -C FileServer
 
 .PHONY: clean
 clean:

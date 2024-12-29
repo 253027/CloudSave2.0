@@ -9,6 +9,7 @@
 #include "../protocal/protocal-session.h"
 
 #include <crypt.h>
+#include <sstream>
 using namespace Protocal;
 
 bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::SessionCommand &data)
@@ -56,7 +57,7 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     json ret;
     ret["connection-name"] = jsData["connection-name"];
 
-    std::ostringstream os;
+    std::stringstream os;
     os << "select username, passwd, salt from user_info where ";
     os << "username = \'" << name << "\'";
     if (!sql->query(os.str()) || !sql->next())
@@ -143,7 +144,7 @@ bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
         return false;
 
     if (!fileMemo.count(filename))
-        fileMemo[filename] = std::make_unique<FileInfo>(filename, FileInfo::FILEMODE::WRITE);
+        fileMemo[filename] = std::unique_ptr<FileInfo>(new FileInfo(filename, FileInfo::FILEMODE::WRITE));
     auto &fileInfo = fileMemo[filename];
 
     switch (fileInfo->getFileStatus())

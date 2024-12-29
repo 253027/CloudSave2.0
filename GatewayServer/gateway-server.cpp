@@ -6,6 +6,7 @@
 #include "../src/event-loop.h"
 #include "../src/http-packet-parser.h"
 #include "../src/tcp-packet-parser.h"
+#include "../src/http-method-call.h"
 #include "../src/log.h"
 
 #include <fstream>
@@ -90,6 +91,12 @@ void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::
     // body = "<html>Hello World</html>";
     body = js.dump();
     mg::HttpPacketParser::get().send(p, httpData);
+}
+
+void GateWayServer::regist()
+{
+    // mg::HttpMethodCall::get().regist("POST", "/gateway", []()
+    //                                  { ; });
 }
 
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)

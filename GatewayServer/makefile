@@ -17,15 +17,7 @@ SDK_OBJ := $(wildcard $(ROOT_DIR)/build/src/*.o)
 # 编译器和编译选项
 CC := g++
 
-# 是否启用调试模式 (默认为 1，即调试模式)
-DEBUG ?= 1
-
-# 根据 DEBUG 变量设置编译选项
-ifeq ($(DEBUG), 1)
-    CFLAGS := -g -D_DEBUG -lpthread -fsanitize=address
-else
-    CFLAGS := -O2 -lpthread
-endif
+CXXFLAGS ?= -O2
 
 # 链接选项
 LDFLAGS := -L$(ROOT_DIR)/lib
@@ -33,12 +25,12 @@ LDLIBS := -lcrypt -lmysqlclient -lspdlog
 
 # 生成可执行文件
 server: $(OBJ) $(SDK_OBJ)
-	$(CC) $^ $(CFLAGS) -o $@ $(LDFLAGS) $(LDLIBS)
+	$(CC) $^ $(CXXFLAGS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 # 模式规则，从%.cpp生成%.o
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CXXFLAGS) $< -o $@
 
 # 清理规则，删除生成的二进制文件和对象文件
 .PHONY: clean

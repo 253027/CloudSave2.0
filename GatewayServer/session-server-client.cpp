@@ -13,6 +13,7 @@
 using namespace Protocal;
 
 #include <fstream>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -55,10 +56,11 @@ bool SessionClient::initial()
         threadname << "SessionClientThread#" << (i + 1);
         clientname << "SessionClient#" << (i + 1);
 
-        _threads.emplace_back(std::make_unique<mg::EventLoopThread>(threadname.str()));
+        _threads.emplace_back(std::unique_ptr<mg::EventLoopThread>(new mg::EventLoopThread(threadname.str())));
         mg::EventLoop *loop = _threads.back()->startLoop();
 
-        _clients.emplace_back(std::make_unique<mg::TcpClient>(mg::IPV4_DOMAIN, mg::TCP_SOCKET, loop, mg::InternetAddress(ip, port), clientname.str()));
+        _clients.emplace_back(std::unique_ptr<mg::TcpClient>(new mg::TcpClient(mg::IPV4_DOMAIN, mg::TCP_SOCKET, loop,
+                                                                               mg::InternetAddress(ip, port), clientname.str())));
         _clients.back()->setMessageCallback(std::bind(&SessionClient::onMessage, this, std::placeholders::_1,
                                                       std::placeholders::_2, std::placeholders::_3));
         _clients.back()->setConnectionCallback(std::bind(&SessionClient::onConnectionStateChanged, this, std::placeholders::_1));

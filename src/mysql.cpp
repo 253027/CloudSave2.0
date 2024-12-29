@@ -126,7 +126,8 @@ std::string mg::Mysql::parseInsert(const std::string &name, DataField *column, c
             if (p->size)
                 len = std::min(len, p->size);
             std::string buf(len * 2 + 3, '\'');
-            len = mysql_real_escape_string(_handle, buf.data() + 1, data + offset, len);
+
+            len = mysql_real_escape_string(_handle, &(*(buf.begin() + 1)), data + offset, len);
             buf.resize(len + 2);
             buf.back() = '\'';
             value += buf;

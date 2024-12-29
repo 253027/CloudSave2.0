@@ -33,9 +33,10 @@ namespace Protocal
 
         std::string serialize(const std::string &data)
         {
-            std::string res(sizeof(Command) + sizeof(this->type), '\0');
-            ::memcpy(res.data(), static_cast<void *>(this), sizeof(Command));
-            ::memcpy(res.data() + sizeof(Command), &type, sizeof(type));
+            char buffer[sizeof(Command) + sizeof(this->type)] = {0};
+            ::memcpy(buffer, static_cast<void *>(this), sizeof(Command));
+            ::memcpy(buffer + sizeof(Command), &type, sizeof(type));
+            std::string res = buffer;
             res.append(data);
             return std::move(res);
         }

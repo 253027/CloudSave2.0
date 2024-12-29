@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "log.h"
 
-static std::atomic_int64_t timeSequence = 0;
+static std::atomic_int64_t timeSequence{0};
 static int64_t generateAndGetID()
 {
     return ++timeSequence;

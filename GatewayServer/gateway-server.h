@@ -34,6 +34,8 @@ public:
     void onInternalServerResponse(const std::string &name, nlohmann::json &js);
 
 private:
+    void regist();
+
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
     void connectionStateChange(const mg::TcpConnectionPointer &a);
