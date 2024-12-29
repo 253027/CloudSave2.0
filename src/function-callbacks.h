@@ -13,11 +13,16 @@ namespace mg
     class Connector;
     using TcpConnectionPointer = std::shared_ptr<TcpConnection>;
     using ConnectorPointer = std::shared_ptr<Connector>;
-    using TcpConnectionCallback = std::function<void(const TcpConnectionPointer &)>;
-    using MessageDataCallback = std::function<void(const TcpConnectionPointer &, Buffer *, TimeStamp)>;
-    using WriteCompleteCallback = std::function<void(const TcpConnectionPointer &)>;
-    using ConnectionClosedCallback = std::function<void(const TcpConnectionPointer &)>;
-    using HighWaterMarkCallback = std::function<void(const TcpConnectionPointer &, int)>;
+
+    template <typename... Args>
+    using BaseHandler = std::function<void(Args...)>;
+
+    using Handler = BaseHandler<>;
+    using TcpConnectionCallback = BaseHandler<const TcpConnectionPointer &>;
+    using MessageDataCallback = BaseHandler<const TcpConnectionPointer &, Buffer *, TimeStamp>;
+    using WriteCompleteCallback = BaseHandler<const TcpConnectionPointer &>;
+    using ConnectionClosedCallback = BaseHandler<const TcpConnectionPointer &>;
+    using HighWaterMarkCallback = BaseHandler<const TcpConnectionPointer &, int>;
 }
 
 #endif //__MG_FUNCTION_CALLBACK_H__
