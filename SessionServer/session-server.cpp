@@ -43,21 +43,24 @@ void SessionServer::quit()
 
 void SessionServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
-    std::string data;
-    if (!mg::TcpPacketParser::get().reveive(a, data))
-        return;
-
-    Protocal::SessionCommand userdata(data);
-
-    switch (TO_ENUM(SessionType, userdata.type))
+    while (1)
     {
-    case SessionType::LOGIN:
-    case SessionType::REGIST:
-    case SessionType::UPLOAD:
-        BusinessTask::get().parse(a, userdata);
-        break;
-    default:
-        break;
+        std::string data;
+        if (!mg::TcpPacketParser::get().reveive(a, data))
+            break;
+
+        Protocal::SessionCommand userdata(data);
+
+        switch (TO_ENUM(SessionType, userdata.type))
+        {
+        case SessionType::LOGIN:
+        case SessionType::REGIST:
+        case SessionType::UPLOAD:
+            BusinessTask::get().parse(a, userdata);
+            break;
+        default:
+            break;
+        }
     }
 }
 

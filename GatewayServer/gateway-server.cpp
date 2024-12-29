@@ -101,30 +101,33 @@ void GateWayServer::regist()
 
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
-    mg::HttpData data;
-    if (!mg::HttpPacketParser::get().reveive(a, data))
-        return;
-
-    mg::HttpHead head;
-    mg::HttpBody body;
-    std::tie(head, body) = std::move(data);
-    bool valid = true;
-
-    int type = mg::HttpPacketParser::get().parseType(head["content-type"]);
-    switch (type)
+    while (1)
     {
-    case 7: // json数据
-    {
-        valid = JsonDataParser::get().parse(a, body);
-        break;
-    }
-    default:
-        valid = false;
-        break;
-    }
+        mg::HttpData data;
+        if (!mg::HttpPacketParser::get().reveive(a, data))
+            break;
 
-    if (!valid)
-        this->invalidResponse(a);
+        mg::HttpHead head;
+        mg::HttpBody body;
+        std::tie(head, body) = std::move(data);
+        bool valid = true;
+
+        int type = mg::HttpPacketParser::get().parseType(head["content-type"]);
+        switch (type)
+        {
+        case 7: // json数据
+        {
+            valid = JsonDataParser::get().parse(a, body);
+            break;
+        }
+        default:
+            valid = false;
+            break;
+        }
+
+        if (!valid)
+            this->invalidResponse(a);
+    }
 }
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)

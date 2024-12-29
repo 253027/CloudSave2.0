@@ -116,30 +116,33 @@ bool SessionClient::sendToServer(const std::string &data)
 
 void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
-    std::string data;
-    if (!mg::TcpPacketParser::get().reveive(a, data))
-        return;
-    data = SessionCommand(data).unserialize();
-
-    json js;
-    try
+    while (1)
     {
-        js = json::parse(data);
-    }
-    catch (const json::parse_error &e)
-    {
-        LOG_ERROR("{}", e.what());
-        return;
-    }
+        std::string data;
+        if (!mg::TcpPacketParser::get().reveive(a, data))
+            break;
+        data = SessionCommand(data).unserialize();
 
-    std::string name;
-    if (!mg::JsonExtract::extract(js, "connection-name", name, mg::JsonExtract::STRING))
-    {
-        LOG_ERROR("invalid connection-name");
-        return;
-    }
-    js.erase("connection-name");
+        json js;
+        try
+        {
+            js = json::parse(data);
+        }
+        catch (const json::parse_error &e)
+        {
+            LOG_ERROR("{}", e.what());
+            return;
+        }
 
-    GateWayServer::get().onInternalServerResponse(name, js);
-    LOG_DEBUG("{} data:\n{}", a->name(), data);
+        std::string name;
+        if (!mg::JsonExtract::extract(js, "connection-name", name, mg::JsonExtract::STRING))
+        {
+            LOG_ERROR("invalid connection-name");
+            return;
+        }
+        js.erase("connection-name");
+
+        GateWayServer::get().onInternalServerResponse(name, js);
+        LOG_DEBUG("{} data:\n{}", a->name(), data);
+    }
 }
