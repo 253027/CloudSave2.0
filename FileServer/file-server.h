@@ -12,13 +12,13 @@ public:
 
     ~FileServer();
 
-    void initial() override;
+    bool initial() override;
 
     void start() override;
 
     void stop() override;
 
-    void onMessage() override;
+    void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c) override;
 };
 
 #endif // __FILE_SERVER_H__
