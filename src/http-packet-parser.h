@@ -16,6 +16,23 @@ namespace mg
     using HttpBody = std::string;
     using HttpData = std::tuple<HttpHead, HttpBody>;
 
+    struct HttpRequest
+    {
+        std::string method;
+        std::string path;
+        std::unordered_map<std::string, std::string> headers;
+        std::string body;
+    };
+
+    struct HttpResponse
+    {
+        int status;
+        std::unordered_map<std::string, std::string> headers;
+        std::string body;
+
+        std::string dump() const;
+    };
+
     class HttpPacketParser : public Singleton<HttpPacketParser>
     {
     public:
@@ -26,9 +43,9 @@ namespace mg
          * @param con TCP连接
          * @param data 待接收数据的存放容器
          */
-        bool reveive(const mg::TcpConnectionPointer con, mg::HttpData &data);
+        bool reveive(const mg::TcpConnectionPointer con, mg::HttpRequest &data);
 
-        bool send(const mg::TcpConnectionPointer con, mg::HttpData &data);
+        bool send(const mg::TcpConnectionPointer con, mg::HttpResponse &data);
 
         int parseType(const std::string &data);
 

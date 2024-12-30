@@ -7,7 +7,7 @@ mg::HttpPacketParser::HttpPacketParser()
     ;
 }
 
-bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpData &data)
+bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpRequest &data)
 {
     const char *method;
     const char *path;
@@ -20,44 +20,22 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpD
     if (ret < 0)
         return false;
 
-    HttpHead &head = std::get<0>(data);
-    HttpBody &body = std::get<1>(data);
-    head["method"] = std::string(method, method_len);
-    head["method_path"] = std::string(path, path_len);
+    data.method = std::string(method, method_len);
+    data.path = std::string(path, path_len);
     for (int i = 0; i < num_headers; i++)
-        head[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
+        data.headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
 
     int body_size = 0;
-    auto it = head.find("content-length");
-    if (it != head.end())
+    auto it = data.headers.find("content-length");
+    if (it != data.headers.end())
         body_size = std::stoi(it->second);
-    body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
+    data.body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
     return true;
 }
 
-bool mg::HttpPacketParser::send(const mg::TcpConnectionPointer con, mg::HttpData &data)
+bool mg::HttpPacketParser::send(const mg::TcpConnectionPointer con, mg::HttpResponse &data)
 {
-    std::stringstream response;
-
-    HttpHead head;
-    HttpBody body;
-    std::tie(head, body) = std::move(data);
-
-    if (!head.count("HTTP/1.1"))
-        return false;
-
-    response << "HTTP/1.1 " << head["HTTP/1.1"] << "\r\n";
-    for (auto &val : head)
-    {
-        if (val.first == "HTTP/1.1")
-            continue;
-        response << val.first << ": " << val.second << "\r\n";
-    }
-    response << "Content-Length: " << std::to_string(body.size()) << "\r\n";
-    response << "\r\n"
-             << body;
-
-    con->send(response.str());
+    con->send(data.dump());
     return true;
 }
 
@@ -79,4 +57,16 @@ std::string mg::tolower(const std::string &str)
     std::transform(res.begin(), res.end(), res.begin(), [](unsigned char c)
                    { return std::tolower(c); });
     return std::move(res);
+}
+
+std::string mg::HttpResponse::dump() const
+{
+    std::stringstream response;
+    response << "HTTP/1.1 " << status << "\r\n";
+    for (auto &val : headers)
+        response << val.first << ": " << val.second << "\r\n";
+    response << "Content-Length: " << std::to_string(body.size()) << "\r\n";
+    response << "\r\n"
+             << body;
+    return response.str();
 }

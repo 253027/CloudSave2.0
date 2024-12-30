@@ -82,15 +82,12 @@ void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::
         js.erase("con-state");
     }
 
-    mg::HttpData httpData;
-    mg::HttpHead &head = std::get<0>(httpData);
-    mg::HttpBody &body = std::get<1>(httpData);
-    head["HTTP/1.1"] = "200 OK";
-    head["Content-Type"] = "application/json";
-    head["Server"] = "Apache/2.4.41 (Ubuntu)";
-    // body = "<html>Hello World</html>";
-    body = js.dump();
-    mg::HttpPacketParser::get().send(p, httpData);
+    mg::HttpResponse response;
+    response.status = 200;
+    response.headers["Content-Type"] = "application/json";
+    response.headers["Server"] = "Apache/2.4.41 (Ubuntu)";
+    response.body = js.dump();
+    mg::HttpPacketParser::get().send(p, response);
 }
 
 void GateWayServer::regist()
@@ -103,21 +100,17 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
 {
     while (1)
     {
-        mg::HttpData data;
+        mg::HttpRequest data;
         if (!mg::HttpPacketParser::get().reveive(a, data))
             break;
-
-        mg::HttpHead head;
-        mg::HttpBody body;
-        std::tie(head, body) = std::move(data);
         bool valid = true;
 
-        int type = mg::HttpPacketParser::get().parseType(head["content-type"]);
+        int type = mg::HttpPacketParser::get().parseType(data.headers["content-type"]);
         switch (type)
         {
         case 7: // json数据
         {
-            valid = JsonDataParser::get().parse(a, body);
+            valid = JsonDataParser::get().parse(a, data.body);
             break;
         }
         default:
@@ -152,11 +145,10 @@ void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
 
 void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
 {
-    mg::HttpData httpData;
-    mg::HttpHead &head = std::get<0>(httpData);
-    mg::HttpBody &body = std::get<1>(httpData);
-    head["HTTP/1.1"] = "400 Bad Request";
-    head["Content-Type"] = "text/html";
-    body = "<html>Invalid Request</html>";
-    mg::HttpPacketParser::get().send(a, httpData);
+
+    mg::HttpResponse response;
+    response.status = 400;
+    response.headers["Content-Type"] = "text/html";
+    response.body = "<html>Invalid Request</html>";
+    mg::HttpPacketParser::get().send(a, response);
 }
