@@ -20,16 +20,16 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpR
     if (ret < 0)
         return false;
 
-    data.method = std::string(method, method_len);
-    data.path = std::string(path, path_len);
+    data._method = std::string(method, method_len);
+    data._path = std::string(path, path_len);
     for (int i = 0; i < num_headers; i++)
-        data.headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
+        data._headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
 
     int body_size = 0;
-    auto it = data.headers.find("content-length");
-    if (it != data.headers.end())
+    auto it = data._headers.find("content-length");
+    if (it != data._headers.end())
         body_size = std::stoi(it->second);
-    data.body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
+    data._body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
     return true;
 }
 
@@ -59,14 +59,53 @@ std::string mg::tolower(const std::string &str)
     return std::move(res);
 }
 
+void mg::HttpResponse::setStatus(int status)
+{
+    this->_status = status;
+}
+
+void mg::HttpResponse::setHeader(const std::string &key, const std::string &value)
+{
+    this->_headers[key] = value;
+}
+
+void mg::HttpResponse::setBody(const std::string &body)
+{
+    this->_body = body;
+}
+
 std::string mg::HttpResponse::dump() const
 {
     std::stringstream response;
-    response << "HTTP/1.1 " << status << "\r\n";
-    for (auto &val : headers)
+    response << "HTTP/1.1 " << _status << "\r\n";
+    for (auto &val : _headers)
         response << val.first << ": " << val.second << "\r\n";
-    response << "Content-Length: " << std::to_string(body.size()) << "\r\n";
+    response << "Content-Length: " << std::to_string(_body.size()) << "\r\n";
     response << "\r\n"
-             << body;
+             << _body;
     return response.str();
+}
+
+const std::string &mg::HttpRequest::method() const
+{
+    return this->_method;
+}
+
+const std::string &mg::HttpRequest::path() const
+{
+    return this->_path;
+}
+
+const std::string &mg::HttpRequest::getHeader(const std::string &key) const
+{
+    static std::string memo;
+    auto it = this->_headers.find(key);
+    if (it == this->_headers.end())
+        return memo;
+    return it->second;
+}
+
+const std::string mg::HttpRequest::body() const
+{
+    return this->_body;
 }

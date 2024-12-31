@@ -83,10 +83,10 @@ void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::
     }
 
     mg::HttpResponse response;
-    response.status = 200;
-    response.headers["Content-Type"] = "application/json";
-    response.headers["Server"] = "Apache/2.4.41 (Ubuntu)";
-    response.body = js.dump();
+    response.setStatus(200);
+    response.setHeader("Content-Type", "application/json");
+    response.setHeader("Server", "Apache/2.4.41 (Ubuntu)");
+    response.setBody(js.dump());
     mg::HttpPacketParser::get().send(p, response);
 }
 
@@ -105,12 +105,12 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
             break;
         bool valid = true;
 
-        int type = mg::HttpPacketParser::get().parseType(data.headers["content-type"]);
+        int type = mg::HttpPacketParser::get().parseType(data.getHeader("content-type"));
         switch (type)
         {
         case 7: // json数据
         {
-            valid = JsonDataParser::get().parse(a, data.body);
+            valid = JsonDataParser::get().parse(a, data.body());
             break;
         }
         default:
@@ -145,10 +145,9 @@ void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
 
 void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
 {
-
     mg::HttpResponse response;
-    response.status = 400;
-    response.headers["Content-Type"] = "text/html";
-    response.body = "<html>Invalid Request</html>";
+    response.setStatus(400);
+    response.setHeader("Content-Type", "text/html");
+    response.setBody("<html>Invalid Request</html>");
     mg::HttpPacketParser::get().send(a, response);
 }

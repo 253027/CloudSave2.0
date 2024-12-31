@@ -12,7 +12,7 @@ class JsonDataParser : public Singleton<JsonDataParser>
 public:
     JsonDataParser();
 
-    bool parse(const mg::TcpConnectionPointer &a, std::string &data);
+    bool parse(const mg::TcpConnectionPointer &a, const std::string &data);
 
 private:
     enum Method

@@ -16,21 +16,40 @@ namespace mg
     using HttpBody = std::string;
     using HttpData = std::tuple<HttpHead, HttpBody>;
 
-    struct HttpRequest
+    class HttpRequest
     {
-        std::string method;
-        std::string path;
-        std::unordered_map<std::string, std::string> headers;
-        std::string body;
+    public:
+        const std::string &method() const;
+
+        const std::string &path() const;
+
+        const std::string &getHeader(const std::string &key) const;
+
+        const std::string body() const;
+
+    private:
+        friend class HttpPacketParser;
+        std::string _method;
+        std::string _path;
+        std::unordered_map<std::string, std::string> _headers;
+        std::string _body;
     };
 
-    struct HttpResponse
+    class HttpResponse
     {
-        int status;
-        std::unordered_map<std::string, std::string> headers;
-        std::string body;
+    public:
+        void setStatus(int status);
+
+        void setHeader(const std::string &key, const std::string &value);
+
+        void setBody(const std::string &body);
 
         std::string dump() const;
+
+    private:
+        int _status;
+        std::unordered_map<std::string, std::string> _headers;
+        std::string _body;
     };
 
     class HttpPacketParser : public Singleton<HttpPacketParser>

@@ -15,7 +15,7 @@ JsonDataParser::JsonDataParser()
     ;
 }
 
-bool JsonDataParser::parse(const mg::TcpConnectionPointer &a, std::string &data)
+bool JsonDataParser::parse(const mg::TcpConnectionPointer &a, const std::string &data)
 {
     json js;
     try
