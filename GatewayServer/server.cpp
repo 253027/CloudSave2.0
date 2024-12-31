@@ -6,7 +6,7 @@
 
 void sighandle(int sig)
 {
-    if (sig != SIGINT)
+    if (sig != SIGINT && sig != SIGTERM)
         return;
     GateWayServer::get().quit();
     GateWayServer::destroyInstance();
@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
         std::cout << "GatewayServer started in daemon mode" << std::endl;
     }
     signal(SIGINT, sighandle);
+    signal(SIGTERM, sighandle);
 
     mg::LogConfig logConfig("debug", "./log", "GatewayServer.log");
     INITLOG(logConfig);

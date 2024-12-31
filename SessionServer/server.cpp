@@ -4,6 +4,9 @@
 
 void sighandle(int sig)
 {
+    if (sig != SIGTERM && sig != SIGINT)
+        return;
+
     SessionServer::get().quit();
     mg::MysqlConnectionPool::get().quit();
 
