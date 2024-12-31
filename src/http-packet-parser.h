@@ -25,7 +25,7 @@ namespace mg
 
         const std::string &getHeader(const std::string &key) const;
 
-        const std::string body() const;
+        const std::string &body() const;
 
     private:
         friend class HttpPacketParser;

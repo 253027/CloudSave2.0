@@ -105,7 +105,7 @@ const std::string &mg::HttpRequest::getHeader(const std::string &key) const
     return it->second;
 }
 
-const std::string mg::HttpRequest::body() const
+const std::string &mg::HttpRequest::body() const
 {
     return this->_body;
 }
