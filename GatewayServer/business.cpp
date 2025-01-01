@@ -5,6 +5,7 @@
 #include "../src/json-extract.h"
 #include "../protocal/protocal-session.h"
 
+#include <fstream>
 using json = nlohmann::json;
 
 bool Business::main(const mg::HttpRequest &request)
@@ -13,7 +14,15 @@ bool Business::main(const mg::HttpRequest &request)
     mg::HttpResponse response;
     response.setStatus(200);
     response.setHeader("Content-Type", "text/html");
-    response.setBody("<html>Hello World!</html>");
+
+    std::ifstream file("./source/index.html");
+    if (file.is_open())
+    {
+        std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        response.setBody(data);
+    }
+    else
+        response.setBody("<html>Hello World!</html>");
     mg::HttpPacketParser::get().send(a, response);
     return true;
 }

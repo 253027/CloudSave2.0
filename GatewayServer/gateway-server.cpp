@@ -135,6 +135,6 @@ void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
 
 void GateWayServer::regist()
 {
-    mg::HttpMethodCall::get().regist("GET", "/", std::bind(&Business::main, Business::getInstance(), std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("GET", "/index.html", std::bind(&Business::main, Business::getInstance(), std::placeholders::_1));
     mg::HttpMethodCall::get().regist("GET", "/login", std::bind(&Business::login, Business::getInstance(), std::placeholders::_1));
 }
