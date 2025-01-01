@@ -1,6 +1,7 @@
 #include "gateway-server.h"
 #include "json-data-parser.h"
 #include "session-server-client.h"
+#include "business.h"
 #include "../src/json.hpp"
 #include "../src/tcp-server.h"
 #include "../src/event-loop.h"
@@ -48,6 +49,8 @@ bool GateWayServer::initial()
     _server->setMessageCallback(std::bind(&GateWayServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _server->setConnectionCallback(std::bind(&GateWayServer::connectionStateChange, this, std::placeholders::_1));
     _server->setThreadNums(js["GatewayServer"].value("threadnums", 1));
+
+    this->regist();
     return true;
 }
 
@@ -90,35 +93,14 @@ void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::
     mg::HttpPacketParser::get().send(p, response);
 }
 
-void GateWayServer::regist()
-{
-    // mg::HttpMethodCall::get().regist("POST", "/gateway", []()
-    //                                  { ; });
-}
-
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     while (1)
     {
-        mg::HttpRequest data;
+        mg::HttpRequest data(a);
         if (!mg::HttpPacketParser::get().reveive(a, data))
             break;
-        bool valid = true;
-
-        int type = mg::HttpPacketParser::get().parseType(data.getHeader("content-type"));
-        switch (type)
-        {
-        case 7: // json数据
-        {
-            valid = JsonDataParser::get().parse(a, data.body());
-            break;
-        }
-        default:
-            valid = false;
-            break;
-        }
-
-        if (!valid)
+        if (!mg::HttpMethodCall::get().exec(data.method(), data.path(), data))
             this->invalidResponse(a);
     }
 }
@@ -150,4 +132,9 @@ void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
     response.setHeader("Content-Type", "text/html");
     response.setBody("<html>Invalid Request</html>");
     mg::HttpPacketParser::get().send(a, response);
+}
+
+void GateWayServer::regist()
+{
+    mg::HttpMethodCall::get().regist("GET", "/login", std::bind(&Business::login, Business::getInstance(), std::placeholders::_1));
 }
