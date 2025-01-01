@@ -8,6 +8,11 @@ bool mg::HttpMethodCall::regist(const std::string &name, const std::string &path
     return true;
 }
 
+bool mg::HttpMethodCall::exec(const HttpRequest &request)
+{
+    return this->exec(request.method(), request.path(), request);
+}
+
 bool mg::HttpMethodCall::exec(const std::string &name, const std::string &path, HttpRequest request)
 {
     auto it_name = this->_functions.find(name);

@@ -20,6 +20,8 @@ namespace mg
     public:
         bool regist(const std::string &name, const std::string &path, HttpHandler handler);
 
+        bool exec(const HttpRequest &request);
+
         bool exec(const std::string &name, const std::string &path, HttpRequest request);
 
     private:

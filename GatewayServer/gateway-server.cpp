@@ -100,7 +100,7 @@ void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, 
         mg::HttpRequest data(a);
         if (!mg::HttpPacketParser::get().reveive(a, data))
             break;
-        if (!mg::HttpMethodCall::get().exec(data.method(), data.path(), data))
+        if (!mg::HttpMethodCall::get().exec(data))
             this->invalidResponse(a);
     }
 }
