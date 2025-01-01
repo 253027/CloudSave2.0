@@ -15,7 +15,7 @@ namespace mg
 {
     class HttpMethodCall : public Singleton<HttpMethodCall>
     {
-        using HttpHandler = BaseHandler<HttpRequest>;
+        using HttpHandler = std::function<bool(HttpRequest)>;
 
     public:
         bool regist(const std::string &name, const std::string &path, HttpHandler handler);

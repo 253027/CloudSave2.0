@@ -23,6 +23,5 @@ bool mg::HttpMethodCall::exec(const std::string &name, const std::string &path, 
     if (it_path == it_name->second.end())
         return false;
 
-    it_path->second(request);
-    return true;
+    return it_path->second(request);
 }
