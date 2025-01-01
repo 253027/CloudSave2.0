@@ -1,6 +1,5 @@
 #include "gateway-server.h"
 #include "json-data-parser.h"
-#include "session-server-client.h"
 #include "business.h"
 #include "../src/json.hpp"
 #include "../src/tcp-server.h"

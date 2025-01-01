@@ -1,6 +1,9 @@
 #include "business.h"
+#include "session-server-client.h"
+#include "../src/tcp-connection.h"
 #include "../src/log.h"
 #include "../src/json-extract.h"
+#include "../protocal/protocal-session.h"
 
 using json = nlohmann::json;
 
@@ -22,14 +25,11 @@ bool Business::login(const mg::HttpRequest &request)
         return false;
 
     json js;
-    mg::HttpResponse response;
     if (!this->parse(js, request.body()))
         return false;
 
-    std::string name, password;
-    if (!mg::JsonExtract::extract(js, "name", name, mg::JsonExtract::STRING))
-        return false;
-
+    js["connection-name"] = con->name();
+    SessionClient::get().sendToServer(Protocal::SessionCommand(Protocal::SessionType::LOGIN).serialize(js.dump()));
     return true;
 }
 
