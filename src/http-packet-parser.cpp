@@ -86,6 +86,11 @@ std::string mg::HttpResponse::dump() const
     return response.str();
 }
 
+mg::HttpRequest::HttpRequest(const mg::TcpConnectionPointer &con)
+{
+    this->addParam(con);
+}
+
 const std::string &mg::HttpRequest::method() const
 {
     return this->_method;
@@ -108,4 +113,9 @@ const std::string &mg::HttpRequest::getHeader(const std::string &key) const
 const std::string &mg::HttpRequest::body() const
 {
     return this->_body;
+}
+
+const mg::TcpConnectionPointer mg::HttpRequest::getConnection() const
+{
+    return getParam<mg::TcpConnectionPointer>(0);
 }

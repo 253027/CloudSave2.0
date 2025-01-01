@@ -12,13 +12,11 @@
 
 namespace mg
 {
-    using HttpHead = std::unordered_map<std::string, std::string>;
-    using HttpBody = std::string;
-    using HttpData = std::tuple<HttpHead, HttpBody>;
-
     class HttpRequest
     {
     public:
+        HttpRequest(const mg::TcpConnectionPointer &con);
+
         const std::string &method() const;
 
         const std::string &path() const;
@@ -27,12 +25,52 @@ namespace mg
 
         const std::string &body() const;
 
+        const mg::TcpConnectionPointer getConnection() const;
+
+        template <typename T>
+        inline void addParam(T value)
+        {
+            std::shared_ptr<IParamHolder> holder = std::make_shared<ParamHolder<T>>(std::forward<T>(value));
+            _params.push_back(holder);
+        }
+
+        template <typename T>
+        inline T getParam(size_t index) const
+        {
+            if (index >= _params.size())
+                return T();
+            auto holder = std::dynamic_pointer_cast<ParamHolder<T>>(_params[index]);
+            if (holder)
+                return holder->value;
+            return T();
+        }
+
     private:
         friend class HttpPacketParser;
         std::string _method;
         std::string _path;
         std::unordered_map<std::string, std::string> _headers;
         std::string _body;
+
+    private:
+        struct IParamHolder
+        {
+            virtual ~IParamHolder() = default;
+        };
+
+        template <typename T>
+        struct ParamHolder : IParamHolder
+        {
+            ParamHolder(T &&value)
+                : value(std::forward<T>(value))
+            {
+                ;
+            }
+
+            T value;
+        };
+
+        std::vector<std::shared_ptr<IParamHolder>> _params;
     };
 
     class HttpResponse
