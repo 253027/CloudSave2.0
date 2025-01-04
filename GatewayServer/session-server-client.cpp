@@ -114,6 +114,21 @@ bool SessionClient::sendToServer(const std::string &data)
     return true;
 }
 
+void SessionClient::quit()
+{
+    for (auto &x : _clients)
+        x->stop();
+
+    {
+        std::lock_guard<std::mutex> guard(_mutex);
+        for (auto &x : _connections)
+        {
+            auto temp = x.lock();
+            temp->shutdown();
+        }
+    }
+}
+
 void SessionClient::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
     while (1)

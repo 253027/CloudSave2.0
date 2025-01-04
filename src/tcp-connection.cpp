@@ -62,6 +62,15 @@ void mg::TcpConnection::shutdown()
     }
 }
 
+void mg::TcpConnection::forceClose()
+{
+    if (_state == CONNECTED || _state == CONNECTING)
+    {
+        this->setConnectionState(DISCONNECTING);
+        _loop->run(std::bind(&TcpConnection::forceCloseInOwnerloop, this, shared_from_this()));
+    }
+}
+
 void mg::TcpConnection::send(const std::string &data)
 {
     if (_state != CONNECTED)
@@ -260,4 +269,12 @@ void mg::TcpConnection::sendInOwnerLoop(const void *data, int len)
 void mg::TcpConnection::sendInOwnerLoop(const std::string &data)
 {
     this->sendInOwnerLoop(data.data(), data.size());
+}
+
+void mg::TcpConnection::forceCloseInOwnerloop(TcpConnectionPointer con)
+{
+    if (_state == CONNECTED || _state == DISCONNECTING)
+    {
+        handleClose();
+    }
 }

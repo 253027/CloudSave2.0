@@ -27,6 +27,8 @@ public:
 
     bool sendToServer(const std::string &data);
 
+    void quit();
+
 private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 

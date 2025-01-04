@@ -10,6 +10,7 @@ void sighandle(int sig)
         return;
     GateWayServer::get().quit();
     GateWayServer::destroyInstance();
+    SessionClient::get().quit();
     SessionClient::destroyInstance();
     ::sleep(1);
     LOG_DEBUG("\r----------------------GatewayServer exited-----------------------------------");
