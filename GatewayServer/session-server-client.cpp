@@ -57,9 +57,9 @@ bool SessionClient::initial()
         clientname << "SessionClient#" << (i + 1);
 
         _threads.emplace_back(std::unique_ptr<mg::EventLoopThread>(new mg::EventLoopThread(threadname.str())));
-        std::weak_ptr<mg::EventLoop> loop = _threads.back()->startLoop();
+        mg::EventLoop *loop = _threads.back()->startLoop();
 
-        _clients.emplace_back(std::unique_ptr<mg::TcpClient>(new mg::TcpClient(mg::IPV4_DOMAIN, mg::TCP_SOCKET, loop.lock().get(),
+        _clients.emplace_back(std::unique_ptr<mg::TcpClient>(new mg::TcpClient(mg::IPV4_DOMAIN, mg::TCP_SOCKET, loop,
                                                                                mg::InternetAddress(ip, port), clientname.str())));
         _clients.back()->setMessageCallback(std::bind(&SessionClient::onMessage, this, std::placeholders::_1,
                                                       std::placeholders::_2, std::placeholders::_3));
