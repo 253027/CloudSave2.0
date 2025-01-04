@@ -60,13 +60,13 @@ bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::
     _timeout = js.value("timeout", 0);
     _idletimeout = js.value("idletimeout", 0);
     _thread.reset(new mg::EventLoopThread(name));
-    _loop = _thread->startLoop();
+    _loop = _thread->startLoop().lock();
     return true;
 }
 
 bool mg::MysqlConnectionPool::start(int keeplive)
 {
-    if (!_thread || _loop == nullptr)
+    if (!_thread || !_loop)
         assert(0);
     {
         std::lock_guard<std::mutex> guard(_mutex);

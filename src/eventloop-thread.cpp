@@ -20,10 +20,10 @@ mg::EventLoopThread::~EventLoopThread()
     }
 }
 
-mg::EventLoop *mg::EventLoopThread::startLoop()
+std::weak_ptr<mg::EventLoop> mg::EventLoopThread::startLoop()
 {
     this->_thread.start();
-    EventLoop *loop = nullptr;
+    std::weak_ptr<mg::EventLoop> loop;
     {
         std::unique_lock<std::mutex> lock(this->_mutex);
         while (!this->_loop)
@@ -35,17 +35,14 @@ mg::EventLoop *mg::EventLoopThread::startLoop()
 
 void mg::EventLoopThread::run()
 {
-    EventLoop loop(this->_name);
+    std::shared_ptr<mg::EventLoop> loop(new mg::EventLoop(this->_name));
     if (this->_callback)
-        this->_callback(&loop);
+        this->_callback(loop.get());
     {
         std::unique_lock<std::mutex> lock(this->_mutex);
-        this->_loop = &loop;
+        this->_loop = loop;
         this->_condition.notify_one();
     }
     // 这里执行了底层的事件循环，如果还能往下走说明事件循环停止了，此时释放掉_loop
     this->_loop->loop();
-
-    std::lock_guard<std::mutex> guard(this->_mutex);
-    this->_loop = nullptr;
 }

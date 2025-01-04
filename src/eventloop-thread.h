@@ -7,6 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <semaphore>
+#include <memory>
 
 namespace mg
 {
@@ -20,12 +21,12 @@ namespace mg
 
         ~EventLoopThread();
 
-        EventLoop *startLoop();
+        std::weak_ptr<EventLoop> startLoop();
 
         void run();
 
     private:
-        EventLoop *_loop; // 线程所属的事件循环
+        std::shared_ptr<EventLoop> _loop; // 线程所属的事件循环
         std::string _name;
         bool _quit;
         Thread _thread;

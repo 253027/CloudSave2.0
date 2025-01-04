@@ -81,7 +81,7 @@ namespace mg
         std::queue<Mysql *> _queue;
         std::mutex _mutex;
         std::condition_variable _condition;
-        EventLoop *_loop;
+        std::shared_ptr<mg::EventLoop> _loop;
         std::unique_ptr<mg::EventLoopThread> _thread;
     };
 };
