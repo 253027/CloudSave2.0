@@ -101,6 +101,11 @@ const std::string &mg::HttpRequest::path() const
     return this->_path;
 }
 
+bool mg::HttpRequest::hasHeader(const std::string &key) const
+{
+    return this->_headers.count(key);
+}
+
 const std::string &mg::HttpRequest::getHeader(const std::string &key) const
 {
     static std::string memo;

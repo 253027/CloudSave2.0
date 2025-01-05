@@ -21,6 +21,8 @@ namespace mg
 
         const std::string &path() const;
 
+        bool hasHeader(const std::string &key) const;
+
         const std::string &getHeader(const std::string &key) const;
 
         const std::string &body() const;
