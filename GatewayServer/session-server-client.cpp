@@ -126,6 +126,7 @@ void SessionClient::quit()
             auto temp = x.lock();
             temp->shutdown();
         }
+        _connections.clear();
     }
 }
 
