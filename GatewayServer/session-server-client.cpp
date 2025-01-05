@@ -92,7 +92,8 @@ void SessionClient::onConnectionStateChanged(const mg::TcpConnectionPointer &con
                 std::swap(_connections[i], _connections[j]);
                 break;
             }
-            _connections.pop_back();
+            if (!_connections.empty())
+                _connections.pop_back();
         }
         LOG_INFO("{} disconnected from {}", connection->name(), connection->peerAddress().toIpPort());
     }
