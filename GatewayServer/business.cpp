@@ -8,6 +8,11 @@
 #include <fstream>
 using json = nlohmann::json;
 
+Business::Business() : _mutexMain()
+{
+    ;
+}
+
 bool Business::main(const mg::HttpRequest &request)
 {
     auto a = request.getConnection();
@@ -15,12 +20,20 @@ bool Business::main(const mg::HttpRequest &request)
     response.setStatus(200);
     response.setHeader("Content-Type", "text/html");
 
-    std::ifstream file("./source/index.html");
-    if (file.is_open())
+    static std::string fileContent;
+    if (fileContent.empty())
     {
-        std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        response.setBody(data);
+        std::lock_guard<std::mutex> guard(_mutexMain);
+        std::fstream file("./source/index.html");
+        if (file.is_open())
+        {
+            fileContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            file.close();
+        }
     }
+
+    if (!fileContent.empty())
+        response.setBody(fileContent);
     else
         response.setBody("<html>Hello World!</html>");
     mg::HttpPacketParser::get().send(a, response);
