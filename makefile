@@ -5,9 +5,9 @@ CXXFLAGS = -std=c++11
 LIBS ?= -lpthread
 
 ifeq ($(DEBUG), 1)
-	CXXFLAGS += -g -D_DEBUG -fsanitize=address
+	CXXFLAGS += -g -D_DEBUG -fsanitize=address -MMD -MP
 else
-	CXXFLAGS += -O2
+	CXXFLAGS += -O2 -MMD -MP
 endif
 
 LDFLAGS += $(LIBS)
