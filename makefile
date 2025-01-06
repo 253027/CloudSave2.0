@@ -17,7 +17,7 @@ export LDFLAGS
 export DEBUG
 
 .PHONY: all
-all: src GatewayServer SessionServer #FileServer
+all: src GatewayServer SessionServer FileServer
 
 .PHONY: src
 src:
@@ -31,9 +31,9 @@ SessionServer: src
 GatewayServer: src
 	$(MAKE) -C GatewayServer
 
-# .PHONY: FileServer
-# FileServer: src
-# 	$(MAKE) -C FileServer
+.PHONY: FileServer
+FileServer: src
+	$(MAKE) -C FileServer
 
 .PHONY: clean
 clean:

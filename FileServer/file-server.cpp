@@ -1,6 +1,8 @@
 #include "file-server.h"
 #include "../src/json.hpp"
 #include "../src/log.h"
+#include "../src/http-packet-parser.h"
+#include "../src/http-method-call.h"
 
 #include <fstream>
 
@@ -56,5 +58,16 @@ void FileServer::stop()
 
 void FileServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
-    ;
+    while (1)
+    {
+        mg::HttpRequest request(a);
+        if (!mg::HttpPacketParser::get().reveive(a, request))
+            break;
+        if (!mg::HttpMethodCall::get().exec(request))
+        {
+            mg::HttpResponse req;
+            req.setStatus(400);
+            mg::HttpPacketParser::get().send(a, req);
+        }
+    }
 }
