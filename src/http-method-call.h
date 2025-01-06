@@ -15,14 +15,14 @@ namespace mg
 {
     class HttpMethodCall : public Singleton<HttpMethodCall>
     {
-        using HttpHandler = std::function<bool(HttpRequest)>;
+        using HttpHandler = std::function<bool(const HttpRequest &)>;
 
     public:
         bool regist(const std::string &name, const std::string &path, HttpHandler handler);
 
         bool exec(const HttpRequest &request);
 
-        bool exec(const std::string &name, const std::string &path, HttpRequest request);
+        bool exec(const std::string &name, const std::string &path, const HttpRequest &request);
 
     private:
         std::unordered_map<std::string, std::unordered_map<std::string, HttpHandler>> _functions;
