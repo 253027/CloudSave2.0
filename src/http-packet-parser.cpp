@@ -29,6 +29,9 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpR
     auto it = data._headers.find("content-length");
     if (it != data._headers.end())
         body_size = std::stoi(it->second);
+    if (con->_readBuffer.readableBytes() < ret + body_size)
+        return false;
+
     data._body = con->_readBuffer.retrieveAsString(ret + body_size).substr(ret);
     return true;
 }
