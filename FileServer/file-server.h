@@ -3,6 +3,7 @@
 
 #include "../src/singleton.h"
 #include "../src/tcp-server.h"
+#include "../src/http-packet-parser.h"
 
 class FileServer : public Singleton<FileServer>
 {
@@ -19,7 +20,21 @@ public:
 
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
-private:
+private: // 业务处后面可以单独抽出成一个类
+    bool main(const mg::HttpRequest &request);
+
+private: // 服务器底层接口定义处
+    /**
+     * @brief Restful API注册接口处
+     */
+    void regist();
+
+    /**
+     * @param 加载一些资源配置
+     */
+    void loadSource();
+
+    std::string _indexContent; // 网站首页内容
     std::shared_ptr<mg::TcpServer> _server;
     std::shared_ptr<mg::EventLoop> _loop;
 };
