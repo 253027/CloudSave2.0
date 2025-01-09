@@ -3,22 +3,25 @@
 
 #include "../src/singleton.h"
 #include "../src/tcp-server.h"
-#include "../src/common-server.h"
 
-class FileServer : public CommonServer
+class FileServer : public Singleton<FileServer>
 {
 public:
     FileServer();
 
     ~FileServer();
 
-    bool initial() override;
+    bool initial();
 
-    void start() override;
+    void start();
 
-    void stop() override;
+    void stop();
 
-    void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c) override;
+    void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
+
+private:
+    std::shared_ptr<mg::TcpServer> _server;
+    std::shared_ptr<mg::EventLoop> _loop;
 };
 
 #endif // __FILE_SERVER_H__

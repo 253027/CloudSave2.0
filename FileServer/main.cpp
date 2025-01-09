@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     if (!FileServer::get().initial())
         assert(0 && "GatewayServer initial failed");
-    FileServer::get().start();
 
+    FileServer::get().start();
     return 0;
 }
