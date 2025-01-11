@@ -23,6 +23,12 @@ public:
 private: // 业务处后面可以单独抽出成一个类
     bool main(const mg::HttpRequest &request);
 
+    bool upload(const mg::HttpRequest &request);
+
+    bool waitFileInfo(const mg::HttpRequest &request);
+
+    bool fileInfo(const mg::HttpRequest &request);
+
 private: // 服务器底层接口定义处
     /**
      * @brief Restful API注册接口处

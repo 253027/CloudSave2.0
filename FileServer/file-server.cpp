@@ -2,6 +2,7 @@
 #include "../src/json.hpp"
 #include "../src/log.h"
 #include "../src/http-method-call.h"
+#include "../src/json-extract.h"
 
 #include <fstream>
 
@@ -77,6 +78,9 @@ void FileServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg:
 void FileServer::regist()
 {
     mg::HttpMethodCall::get().regist("GET", "/index.html", std::bind(&FileServer::main, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("POST", "/upload", std::bind(&FileServer::upload, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("POST", "/upload/file-info", std::bind(&FileServer::waitFileInfo, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("GET", "/file-list", std::bind(&FileServer::fileInfo, this, std::placeholders::_1));
 }
 
 void FileServer::loadSource()
@@ -100,6 +104,69 @@ bool FileServer::main(const mg::HttpRequest &request)
         response.setBody(_indexContent);
     else
         response.setBody("<html>Hello World!</html>");
+    mg::HttpPacketParser::get().send(a, response);
+    return true;
+}
+
+bool FileServer::upload(const mg::HttpRequest &request)
+{
+    auto a = request.getConnection();
+    mg::HttpResponse response;
+    response.setStatus(200);
+
+    mg::HttpPacketParser::get().send(a, response);
+    return true;
+}
+
+bool FileServer::waitFileInfo(const mg::HttpRequest &request)
+{
+    json js;
+    auto a = request.getConnection();
+    mg::HttpResponse response;
+
+    try
+    {
+        js = json::parse(request.body());
+    }
+    catch (const json::parse_error &e)
+    {
+        LOG_ERROR("fileInfo parse error: {}", e.what());
+        return false;
+    }
+
+    int size = 0;
+    std::string filename, md5;
+    if (!mg::JsonExtract::extract(js, "fileSize", size, mg::JsonExtract::INT) ||
+        !mg::JsonExtract::extract(js, "fileName", filename, mg::JsonExtract::STRING) ||
+        !mg::JsonExtract::extract(js, "fileMD5", md5, mg::JsonExtract::STRING))
+        return false;
+
+    LOG_INFO("filename:[{}] md5:[{}] size:[{}]", filename, md5, size);
+    const int ChunkSize = 8 * 1024 * 1024; // 分块大小8M
+    js.clear();
+    js["chunk_size"] = ChunkSize;
+
+    response.setStatus(200);
+    response.setHeader("Content-Type", "application/json");
+    response.setBody(js.dump());
+    mg::HttpPacketParser::get().send(a, response);
+    return true;
+}
+
+bool FileServer::fileInfo(const mg::HttpRequest &request)
+{
+    json js;
+    auto a = request.getConnection();
+    mg::HttpResponse response;
+
+    // 这里先手动填充写文件信息，待后面修改
+    js.push_back({{"name", "test.txt"}, {"size", 1024}});
+    js.push_back({{"name", "test2.txt"}, {"size", 2048}});
+    js.push_back({{"name", "test3.txt"}, {"size", 4096}});
+
+    response.setStatus(200);
+    response.setHeader("Content-Type", "application/json");
+    response.setBody(js.dump());
     mg::HttpPacketParser::get().send(a, response);
     return true;
 }
