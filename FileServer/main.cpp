@@ -10,6 +10,7 @@ void sighandle(int sig)
         return;
     FileServer::get().stop();
     FileServer::destroyInstance();
+    mg::MysqlConnectionPool::destroyInstance();
     ::sleep(1);
     LOG_DEBUG("\r----------------------FileServer exited-----------------------------------");
     ::exit(0);
@@ -29,6 +30,11 @@ int main(int argc, char *argv[])
     mg::LogConfig logConfig("debug", "./log", "FileServer.log");
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------FileServer started-----------------------------------");
+
+    if (!mg::MysqlConnectionPool::get().initial("./FileServer/database.json", "mysql"))
+        assert(0 && "mysql initial failed");
+    if (!mg::MysqlConnectionPool::get().start(180))
+        assert(0 && "mysql start failed");
 
     if (!FileServer::get().initial())
         assert(0 && "GatewayServer initial failed");

@@ -3,8 +3,10 @@
 #include "../src/log.h"
 #include "../src/http-method-call.h"
 #include "../src/json-extract.h"
+#include "../src/macros.h"
 
 #include <fstream>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -78,9 +80,10 @@ void FileServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg:
 void FileServer::regist()
 {
     mg::HttpMethodCall::get().regist("GET", "/index.html", std::bind(&FileServer::main, this, std::placeholders::_1));
-    mg::HttpMethodCall::get().regist("POST", "/upload", std::bind(&FileServer::upload, this, std::placeholders::_1));
-    mg::HttpMethodCall::get().regist("POST", "/upload/file-info", std::bind(&FileServer::waitFileInfo, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("GET", "/file-list", std::bind(&FileServer::fileInfo, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("POST", "/upload", std::bind(&FileServer::upload, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("POST", "/login", std::bind(&FileServer::login, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("POST", "/upload/file-info", std::bind(&FileServer::waitFileInfo, this, std::placeholders::_1));
 }
 
 void FileServer::loadSource()
@@ -114,6 +117,7 @@ bool FileServer::upload(const mg::HttpRequest &request)
     mg::HttpResponse response;
     response.setStatus(200);
 
+    LOG_DEBUG("content size: {}", request.body().size());
     mg::HttpPacketParser::get().send(a, response);
     return true;
 }
@@ -124,13 +128,9 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
     auto a = request.getConnection();
     mg::HttpResponse response;
 
-    try
+    if (mg::JsonExtract::parse(js, request.body()))
     {
-        js = json::parse(request.body());
-    }
-    catch (const json::parse_error &e)
-    {
-        LOG_ERROR("fileInfo parse error: {}", e.what());
+        LOG_ERROR("fileInfo parse error {}", a->name());
         return false;
     }
 
@@ -169,4 +169,71 @@ bool FileServer::fileInfo(const mg::HttpRequest &request)
     response.setBody(js.dump());
     mg::HttpPacketParser::get().send(a, response);
     return true;
+}
+
+bool FileServer::login(const mg::HttpRequest &request)
+{
+    auto a = request.getConnection();
+    auto state = a->getUserConnectionState();
+
+    json js;
+    bool valid = true;
+    std::tie(valid, js) = mg::JsonExtract::parse(request.body());
+    if (!valid)
+        return false;
+
+    mg::HttpResponse response;
+    response.setHeader("Content-Type", "application/json");
+
+    std::string name, password;
+    if (!mg::JsonExtract::extract(js, "name", name, mg::JsonExtract::STRING))
+        return false;
+    if (!mg::JsonExtract::extract(js, "password", password, mg::JsonExtract::STRING))
+        return false;
+
+    if (name.empty() || password.empty())
+        return false;
+
+    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::get().getHandle();
+    if (!sql)
+    {
+        LOG_ERROR("get mysql handle failed");
+        return false;
+    }
+
+    std::stringstream query;
+    query << "SELECT passwd FROM user_info WHERE `username` = \'" << name << "\';";
+    if (!sql->query(query.str()))
+    {
+        LOG_ERROR("query failed {}", a->name());
+        return false;
+    }
+
+    js.clear();
+    if (!sql->next())
+    {
+        js["status"] = "failed";
+        js["message"] = "user not exit";
+        goto end;
+    }
+
+    if (sql->getData("passwd") != password)
+    {
+        js["status"] = "failed";
+        js["message"] = "password error";
+        goto end;
+    }
+
+    js["status"] = "success";
+    response.setStatus(200);
+    response.setBody(js.dump());
+    mg::HttpPacketParser::get().send(a, response);
+    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_LOGIN));
+    return true;
+
+end:
+    response.setStatus(400);
+    response.setBody(js.dump());
+    mg::HttpPacketParser::get().send(a, response);
+    return false;
 }

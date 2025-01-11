@@ -4,6 +4,7 @@
 #include "../src/singleton.h"
 #include "../src/tcp-server.h"
 #include "../src/http-packet-parser.h"
+#include "../src/mysql-connection-pool.h"
 
 class FileServer : public Singleton<FileServer>
 {
@@ -21,6 +22,14 @@ public:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);
 
 private: // 业务处后面可以单独抽出成一个类
+    enum class FILESTATE : uint16_t
+    {
+        FILE_LOGIN = 1,
+        FILE_WAIT_INFO,
+        FILE_UPLOAD,
+        FILE_COMPLETE
+    };
+
     bool main(const mg::HttpRequest &request);
 
     bool upload(const mg::HttpRequest &request);
@@ -28,6 +37,8 @@ private: // 业务处后面可以单独抽出成一个类
     bool waitFileInfo(const mg::HttpRequest &request);
 
     bool fileInfo(const mg::HttpRequest &request);
+
+    bool login(const mg::HttpRequest &request);
 
 private: // 服务器底层接口定义处
     /**
