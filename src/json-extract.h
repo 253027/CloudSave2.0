@@ -21,6 +21,28 @@ namespace mg
 
         template <typename T>
         static bool extract(const nlohmann::json &js, const std::string &name, T &output, JsonType type);
+
+        inline static std::pair<bool, nlohmann::json> parse(const std::string &data)
+        {
+            nlohmann::json js;
+            try
+            {
+                js = nlohmann::json::parse(data);
+            }
+            catch (const nlohmann::json::parse_error &e)
+            {
+                return std::make_pair(false, js);
+            }
+            return std::make_pair(true, js);
+        }
+
+        inline static bool parse(nlohmann::json &js, const std::string &data)
+        {
+            auto ret = parse(data);
+            if (ret.first)
+                js = std::move(ret.second);
+            return ret.first;
+        }
     };
 
     template <typename T>
