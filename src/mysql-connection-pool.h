@@ -5,6 +5,7 @@
 #include "singleton.h"
 #include "thread.h"
 #include "timer-queue.h"
+#include "mysql.h"
 
 #include <mutex>
 #include <condition_variable>
