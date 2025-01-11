@@ -127,25 +127,32 @@
                 formData.append("chunk", currentChunk);
                 formData.append("totalChunks", totalChunks);
 
-                try {
-                    const response = await fetch("/upload", {
-                        method: "POST",
-                        body: formData
-                    });
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/upload", true);
 
-                    if (!response.ok) {
-                        throw new Error("上传块失败");
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        uploadedBytes = start + e.loaded;
+                        progressBar.value = uploadedBytes;
+                        progressText.textContent = `上传进度: ${((uploadedBytes / file.size) * 100).toFixed(2)}%`;
                     }
+                };
 
-                    uploadedBytes += blob.size;
-                    progressBar.value = uploadedBytes;
-                    progressText.textContent = `上传进度: ${((uploadedBytes / file.size) * 100).toFixed(2)}%`;
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        uploadNextChunk(currentChunk + 1);
+                    } else {
+                        console.error("上传块失败:", xhr.statusText);
+                        alert("上传块失败");
+                    }
+                };
 
-                    uploadNextChunk(currentChunk + 1);
-                } catch (error) {
-                    console.error("上传出错:", error);
+                xhr.onerror = function () {
+                    console.error("上传出错:", xhr.statusText);
                     alert("上传出错");
-                }
+                };
+
+                xhr.send(formData);
             }
 
             uploadNextChunk();
