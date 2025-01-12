@@ -139,32 +139,38 @@ bool FileServer::uploadPage(const mg::HttpRequest &request)
 
 bool FileServer::upload(const mg::HttpRequest &request)
 {
-    if (!request.hasHeader("content-type"))
+    if (!request.hasHeader("x-chunk-number") ||
+        !request.hasHeader("x-file-name"))
         return false;
+
     auto a = request.getConnection();
     if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::VERIFY)
         return false;
 
-    std::shared_ptr<FileInfo> file; // get file handle
-    {
-        mg::SharedLock guard(fileLock);
-        auto it = fileInfoMemo.find(a->name());
-        if (it == fileInfoMemo.end())
-            return false;
-        file = it->second;
-    }
+    auto it_file = fileInfoMemo.find(a->name());
+    auto it = it_file->second.find(request.getHeader("x-file-name"));
+    if (it == it_file->second.end())
+        return false;
+    std::shared_ptr<FileInfo> file = it->second; // get file handle
 
     if (file->getFileStatus() != FileInfo::FILESTATUS::UPLOADING)
         return false;
 
-    std::string data;
-    const std::string &contentTpe = request.getHeader("content-type");
+    int chunkIndex = 0;
+    try
+    {
+        chunkIndex = std::stoi(request.getHeader("x-chunk-number"));
+    }
+    catch (const std::exception &e)
+    {
+        LOG_ERROR("chunk number parse error {}, which is {}", e.what(), request.getHeader("x-chunk-number"));
+        return false;
+    }
 
     mg::HttpResponse response;
     response.setStatus(200);
     mg::HttpPacketParser::get().send(a, response);
-
-    LOG_DEBUG("content size: {}", data.size());
+    file->write(chunkIndex, request.body());
     return true;
 }
 
@@ -190,16 +196,13 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
         return false;
 
     // insert file information into fileInfoMemo
-    {
-        mg::UniqueLock gurad(fileLock); // writelock
-        fileInfoMemo[a->name()] = std::make_shared<FileInfo>(filename, md5, size, FileInfo::WRITE);
-    }
-    auto file = fileInfoMemo[a->name()];
+    auto file = std::make_shared<FileInfo>(filename, md5, size, FileInfo::WRITE);
     file->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
-    LOG_INFO("{}: filename:[{}] md5:[{}] size:[{}]", a->name(), filename, md5, size);
+    fileInfoMemo[a->name()][filename] = file;
 
     js.clear();
     js["chunk_size"] = file->getChunkSize();
+    LOG_INFO("{}: filename:[{}] md5:[{}] size:[{}]", a->name(), filename, md5, size);
 
     response.setStatus(200);
     response.setHeader("Content-Type", "application/json");

@@ -122,13 +122,15 @@
                 const end = Math.min((start + chunkSize), file.size);
                 const blob = file.slice(start, end);
 
-                const formData = new FormData();
-                formData.append("file", blob, file.name);
-                formData.append("chunk", currentChunk);
-                formData.append("totalChunks", totalChunks);
-
+                // 创建 XMLHttpRequest 请求
                 const xhr = new XMLHttpRequest();
                 xhr.open("POST", "/upload", true);
+
+                // 设置请求头部，包含文件名、当前块编号、总块数等信息
+                xhr.setRequestHeader("X-File-Name", encodeURIComponent(file.name));
+                xhr.setRequestHeader("X-Chunk-Number", currentChunk);
+                xhr.setRequestHeader("X-Total-Chunks", totalChunks);
+                xhr.setRequestHeader("Content-Type", "application/octet-stream");
 
                 xhr.upload.onprogress = function (e) {
                     if (e.lengthComputable) {
@@ -152,11 +154,13 @@
                     alert("上传出错");
                 };
 
-                xhr.send(formData);
+                // 发送文件块（blob），并不使用 FormData，只发送文件的二进制内容
+                xhr.send(blob);
             }
 
             uploadNextChunk();
         }
+
 
         function updateFileList() {
             const fileListTable = document.getElementById('fileList');
