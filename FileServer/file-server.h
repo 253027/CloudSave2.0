@@ -24,13 +24,15 @@ public:
 private: // 业务处后面可以单独抽出成一个类
     enum class FILESTATE : uint16_t
     {
-        FILE_LOGIN = 1,
+        FILE_LOGIN = 0,
         FILE_WAIT_INFO,
         FILE_UPLOAD,
         FILE_COMPLETE
     };
 
     bool main(const mg::HttpRequest &request);
+
+    bool uploadPage(const mg::HttpRequest &request);
 
     bool upload(const mg::HttpRequest &request);
 
@@ -51,7 +53,8 @@ private: // 服务器底层接口定义处
      */
     void loadSource();
 
-    std::string _indexContent; // 网站首页内容
+    std::string _indexContent;       // 网站首页内容
+    std::string _uploadIndexContent; // 上传页面内容
     std::shared_ptr<mg::TcpServer> _server;
     std::shared_ptr<mg::EventLoop> _loop;
 };

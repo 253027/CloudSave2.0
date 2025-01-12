@@ -80,6 +80,7 @@ void FileServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg:
 void FileServer::regist()
 {
     mg::HttpMethodCall::get().regist("GET", "/index.html", std::bind(&FileServer::main, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("GET", "/upload.html", std::bind(&FileServer::uploadPage, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("GET", "/file-list", std::bind(&FileServer::fileInfo, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("POST", "/upload", std::bind(&FileServer::upload, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("POST", "/login", std::bind(&FileServer::login, this, std::placeholders::_1));
@@ -92,6 +93,13 @@ void FileServer::loadSource()
     if (file.is_open())
     {
         this->_indexContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        file.close();
+    }
+
+    file.open("./FileServer/source/upload.html");
+    if (file.is_open())
+    {
+        this->_uploadIndexContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         file.close();
     }
 }
@@ -111,9 +119,28 @@ bool FileServer::main(const mg::HttpRequest &request)
     return true;
 }
 
+bool FileServer::uploadPage(const mg::HttpRequest &request)
+{
+    auto a = request.getConnection();
+    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) == FILESTATE::FILE_LOGIN)
+        return false;
+
+    mg::HttpResponse response;
+    response.setStatus(200);
+    response.setHeader("Content-Type", "text/html");
+    if (!_indexContent.empty())
+        response.setBody(_uploadIndexContent);
+    else
+        response.setBody("<html>Hello World!</html>");
+    mg::HttpPacketParser::get().send(a, response);
+    return true;
+}
+
 bool FileServer::upload(const mg::HttpRequest &request)
 {
     auto a = request.getConnection();
+    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::FILE_UPLOAD)
+        return false;
     mg::HttpResponse response;
     response.setStatus(200);
 
@@ -126,6 +153,9 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
 {
     json js;
     auto a = request.getConnection();
+    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::FILE_WAIT_INFO)
+        return false;
+    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_UPLOAD));
     mg::HttpResponse response;
 
     if (mg::JsonExtract::parse(js, request.body()))
@@ -186,7 +216,7 @@ bool FileServer::login(const mg::HttpRequest &request)
     response.setHeader("Content-Type", "application/json");
 
     std::string name, password;
-    if (!mg::JsonExtract::extract(js, "name", name, mg::JsonExtract::STRING))
+    if (!mg::JsonExtract::extract(js, "username", name, mg::JsonExtract::STRING))
         return false;
     if (!mg::JsonExtract::extract(js, "password", password, mg::JsonExtract::STRING))
         return false;
@@ -228,7 +258,7 @@ bool FileServer::login(const mg::HttpRequest &request)
     response.setStatus(200);
     response.setBody(js.dump());
     mg::HttpPacketParser::get().send(a, response);
-    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_LOGIN));
+    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_WAIT_INFO));
     return true;
 
 end:
