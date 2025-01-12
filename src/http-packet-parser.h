@@ -137,7 +137,12 @@ namespace mg
     };
 
     std::string tolower(const std::string &str);
+
     std::vector<std::string> spilt(const std::string &str, const std::string &delimiter);
+
+    std::string urlDecode(const std::string &str);
+
+    std::string urlEncode(const std::string &str);
 };
 
 #endif //__MG_HTTP_PACKET_PARSER_H__

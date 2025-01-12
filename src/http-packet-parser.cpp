@@ -1,6 +1,7 @@
 #include "http-packet-parser.h"
 #include "tcp-connection.h"
 #include <sstream>
+#include <iomanip>
 
 mg::HttpPacketParser::HttpPacketParser()
 {
@@ -23,7 +24,7 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpR
     data._method = std::string(method, method_len);
     data._path = std::string(path, path_len);
     for (int i = 0; i < num_headers; i++)
-        data._headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = std::string(headers[i].value, headers[i].value_len);
+        data._headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = urlDecode(std::string(headers[i].value, headers[i].value_len));
 
     int body_size = 0;
     auto it = data._headers.find("content-length");
@@ -80,6 +81,45 @@ std::vector<std::string> mg::spilt(const std::string &str, const std::string &de
     if (!temp.empty())
         ret.push_back(temp);
     return ret;
+}
+
+std::string mg::urlDecode(const std::string &str)
+{
+    std::string result;
+    for (int i = 0; i < str.size();)
+    {
+        if (str[i] == '%')
+        {
+            int value = 0;
+            std::istringstream(str.substr(i + 1, 2)) >> std::hex >> value;
+            result += static_cast<char>(value);
+            i += 3;
+        }
+        else if (str[i] == '+')
+        {
+            result += ' ';
+            i++;
+        }
+        else
+        {
+            result += str[i];
+            i++;
+        }
+    }
+    return result;
+}
+
+std::string mg::urlEncode(const std::string &str)
+{
+    std::ostringstream os;
+    for (auto &c : str)
+    {
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+            os << c;
+        else
+            os << '%' << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+    }
+    return os.str();
 }
 
 void mg::HttpResponse::setStatus(int status)
