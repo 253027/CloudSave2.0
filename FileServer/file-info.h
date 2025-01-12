@@ -44,7 +44,7 @@ public:
     /**
      * @param 获取文件分块大小
      */
-    const uint16_t getChunkSize() const;
+    const uint32_t getChunkSize() const;
 
     /**
      * @brief 设置文件hash值
@@ -92,6 +92,5 @@ private:
     std::unordered_map<int16_t, uint32_t> _chunkSize;    // 分块文件目前的大小
 };
 
-extern std::unordered_map<std::string, std::shared_ptr<FileInfo>> fileInfoMemo;
-extern mg::RWLock fileLock;
+extern thread_local std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<FileInfo>>> fileInfoMemo;
 #endif //__FILE_INFO_H__

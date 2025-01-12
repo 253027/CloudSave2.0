@@ -4,9 +4,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-mg::RWLock fileLock;
-std::unordered_map<std::string, std::shared_ptr<FileInfo>> fileInfoMemo; // 管理所有文件对象的集合
-static const uint32_t initialChunkSize = 8192 * 1024;                    // 8M bytes
+thread_local std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<FileInfo>>> fileInfoMemo; // 管理所有文件对象的集合
+static const uint32_t initialChunkSize = 8192 * 1024;                                                                  // 8M bytes
 
 FileInfo::FileInfo(const std::string &name, FILEMODE mode)
     : FileInfo(name, "", 0, mode)
@@ -39,7 +38,7 @@ int32_t FileInfo::write(int16_t chunkIndex, const std::string &data)
         LOG_DEBUG("{} invalid chunkindex maxsize:{} input-size:{}", this->_name, this->_nums, chunkIndex);
         return 0;
     }
-    int ret = ::pwrite(this->_fd, data.data(), data.size(), this->_chunkPerSize * std::max(0, chunkIndex - 1));
+    int ret = ::pwrite(this->_fd, data.data(), data.size(), this->_chunkPerSize * std::max(0, static_cast<int>(chunkIndex)));
     LOG_DEBUG("{} index: {} wirte: {}", this->_name, chunkIndex, ret);
     return _chunkSize[chunkIndex] = ret;
 }
@@ -84,7 +83,7 @@ bool FileInfo::isCompleted()
     return size == this->_size;
 }
 
-const uint16_t FileInfo::getChunkSize() const
+const uint32_t FileInfo::getChunkSize() const
 {
     return this->_chunkPerSize;
 }
