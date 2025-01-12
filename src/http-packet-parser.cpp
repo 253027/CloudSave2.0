@@ -23,7 +23,7 @@ bool mg::HttpPacketParser::reveive(const mg::TcpConnectionPointer con, mg::HttpR
     data._method = std::string(method, method_len);
     data._path = std::string(path, path_len);
     for (int i = 0; i < num_headers; i++)
-        data._headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = mg::tolower(std::string(headers[i].value, headers[i].value_len));
+        data._headers[mg::tolower(std::string(headers[i].name, headers[i].name_len))] = std::string(headers[i].value, headers[i].value_len);
 
     int body_size = 0;
     auto it = data._headers.find("content-length");
