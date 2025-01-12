@@ -143,7 +143,7 @@ bool FileServer::upload(const mg::HttpRequest &request)
         return false;
     mg::HttpResponse response;
     response.setStatus(200);
-
+    response.setHeader("Location", "/upload.html");
     LOG_DEBUG("content size: {}", request.body().size());
     mg::HttpPacketParser::get().send(a, response);
     return true;
@@ -205,6 +205,14 @@ bool FileServer::login(const mg::HttpRequest &request)
 {
     auto a = request.getConnection();
     auto state = a->getUserConnectionState();
+    if (TO_ENUM(FILESTATE, state) != FILESTATE::FILE_LOGIN)
+    {
+        mg::HttpResponse response; // redirect the url
+        response.setStatus(302);
+        response.setHeader("Location", "/upload.html");
+        mg::HttpPacketParser::get().send(a, response);
+        return true;
+    }
 
     json js;
     bool valid = true;
@@ -213,7 +221,6 @@ bool FileServer::login(const mg::HttpRequest &request)
         return false;
 
     mg::HttpResponse response;
-    response.setHeader("Content-Type", "application/json");
 
     std::string name, password;
     if (!mg::JsonExtract::extract(js, "username", name, mg::JsonExtract::STRING))
@@ -254,15 +261,15 @@ bool FileServer::login(const mg::HttpRequest &request)
         goto end;
     }
 
-    js["status"] = "success";
-    response.setStatus(200);
-    response.setBody(js.dump());
+    response.setStatus(302);
+    response.setHeader("Location", "/upload.html");
     mg::HttpPacketParser::get().send(a, response);
     a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_WAIT_INFO));
     return true;
 
 end:
     response.setStatus(400);
+    response.setHeader("Content-Type", "application/json");
     response.setBody(js.dump());
     mg::HttpPacketParser::get().send(a, response);
     return false;

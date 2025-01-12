@@ -70,10 +70,10 @@
                 body: JSON.stringify({ username, password })
             });
 
-            if (response.ok) {
+            if (response.status == 200) {
                 alert('登录成功');
                 // 处理登录成功后的逻辑
-                window.location.href = '/upload.html'; // 登录成功后跳转到上传页面
+                window.location.href = response.url; // 登录成功后跳转到上传页面
             } else {
                 alert('登录失败');
                 // 处理登录失败后的逻辑
