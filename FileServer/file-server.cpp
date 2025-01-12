@@ -1,4 +1,5 @@
 #include "file-server.h"
+#include "file-info.h"
 #include "../src/json.hpp"
 #include "../src/log.h"
 #include "../src/http-method-call.h"
@@ -122,7 +123,7 @@ bool FileServer::main(const mg::HttpRequest &request)
 bool FileServer::uploadPage(const mg::HttpRequest &request)
 {
     auto a = request.getConnection();
-    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) == FILESTATE::FILE_LOGIN)
+    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::VERIFY)
         return false;
 
     mg::HttpResponse response;
@@ -138,14 +139,32 @@ bool FileServer::uploadPage(const mg::HttpRequest &request)
 
 bool FileServer::upload(const mg::HttpRequest &request)
 {
-    auto a = request.getConnection();
-    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::FILE_UPLOAD)
+    if (!request.hasHeader("content-type"))
         return false;
+    auto a = request.getConnection();
+    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::VERIFY)
+        return false;
+
+    std::shared_ptr<FileInfo> file; // get file handle
+    {
+        mg::SharedLock guard(fileLock);
+        auto it = fileInfoMemo.find(a->name());
+        if (it == fileInfoMemo.end())
+            return false;
+        file = it->second;
+    }
+
+    if (file->getFileStatus() != FileInfo::FILESTATUS::UPLOADING)
+        return false;
+
+    std::string data;
+    const std::string &contentTpe = request.getHeader("content-type");
+
     mg::HttpResponse response;
     response.setStatus(200);
-    response.setHeader("Location", "/upload.html");
-    LOG_DEBUG("content size: {}", request.body().size());
     mg::HttpPacketParser::get().send(a, response);
+
+    LOG_DEBUG("content size: {}", data.size());
     return true;
 }
 
@@ -153,12 +172,11 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
 {
     json js;
     auto a = request.getConnection();
-    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::FILE_WAIT_INFO)
+    if (TO_ENUM(FILESTATE, a->getUserConnectionState()) != FILESTATE::VERIFY)
         return false;
-    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_UPLOAD));
-    mg::HttpResponse response;
 
-    if (mg::JsonExtract::parse(js, request.body()))
+    mg::HttpResponse response;
+    if (!mg::JsonExtract::parse(js, request.body()))
     {
         LOG_ERROR("fileInfo parse error {}", a->name());
         return false;
@@ -171,10 +189,17 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
         !mg::JsonExtract::extract(js, "fileMD5", md5, mg::JsonExtract::STRING))
         return false;
 
-    LOG_INFO("filename:[{}] md5:[{}] size:[{}]", filename, md5, size);
-    const int ChunkSize = 8 * 1024 * 1024; // 分块大小8M
+    // insert file information into fileInfoMemo
+    {
+        mg::UniqueLock gurad(fileLock); // writelock
+        fileInfoMemo[a->name()] = std::make_shared<FileInfo>(filename, md5, size, FileInfo::WRITE);
+    }
+    auto file = fileInfoMemo[a->name()];
+    file->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
+    LOG_INFO("{}: filename:[{}] md5:[{}] size:[{}]", a->name(), filename, md5, size);
+
     js.clear();
-    js["chunk_size"] = ChunkSize;
+    js["chunk_size"] = file->getChunkSize();
 
     response.setStatus(200);
     response.setHeader("Content-Type", "application/json");
@@ -189,7 +214,6 @@ bool FileServer::fileInfo(const mg::HttpRequest &request)
     auto a = request.getConnection();
     mg::HttpResponse response;
 
-    // 这里先手动填充写文件信息，待后面修改
     js.push_back({{"name", "test.txt"}, {"size", 1024}});
     js.push_back({{"name", "test2.txt"}, {"size", 2048}});
     js.push_back({{"name", "test3.txt"}, {"size", 4096}});
@@ -205,7 +229,7 @@ bool FileServer::login(const mg::HttpRequest &request)
 {
     auto a = request.getConnection();
     auto state = a->getUserConnectionState();
-    if (TO_ENUM(FILESTATE, state) != FILESTATE::FILE_LOGIN)
+    if (TO_ENUM(FILESTATE, state) != FILESTATE::UNVERIFY)
     {
         mg::HttpResponse response; // redirect the url
         response.setStatus(302);
@@ -264,7 +288,7 @@ bool FileServer::login(const mg::HttpRequest &request)
     response.setStatus(302);
     response.setHeader("Location", "/upload.html");
     mg::HttpPacketParser::get().send(a, response);
-    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::FILE_WAIT_INFO));
+    a->setUserConnectionState(TO_UNDERLYING(FILESTATE::VERIFY));
     return true;
 
 end:

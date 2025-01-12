@@ -24,10 +24,8 @@ public:
 private: // 业务处后面可以单独抽出成一个类
     enum class FILESTATE : uint16_t
     {
-        FILE_LOGIN = 0,
-        FILE_WAIT_INFO,
-        FILE_UPLOAD,
-        FILE_COMPLETE
+        UNVERIFY,
+        VERIFY
     };
 
     bool main(const mg::HttpRequest &request);
