@@ -62,6 +62,26 @@ std::string mg::tolower(const std::string &str)
     return std::move(res);
 }
 
+std::vector<std::string> mg::spilt(const std::string &str, const std::string &delimiter)
+{
+    if (delimiter.empty())
+        return {str};
+    std::vector<std::string> ret;
+
+    size_t start = 0, end;
+    while ((end = str.find(delimiter, start)) != std::string::npos)
+    {
+        std::string temp = str.substr(start, end - start);
+        if (!temp.empty())
+            ret.emplace_back(temp);
+        start = end + delimiter.size();
+    }
+    std::string temp = str.substr(start);
+    if (!temp.empty())
+        ret.push_back(temp);
+    return ret;
+}
+
 void mg::HttpResponse::setStatus(int status)
 {
     this->_status = status;
