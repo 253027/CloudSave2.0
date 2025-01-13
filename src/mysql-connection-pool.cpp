@@ -110,7 +110,7 @@ void mg::MysqlConnectionPool::remove()
 {
     LOG_TRACE("mysql remove called");
     std::lock_guard<std::mutex> guard(_mutex);
-    while (this->_totalsize > _minsize)
+    while (_queue.size() > _minsize)
     {
         auto front = _queue.front();
         if (front->getVacantTime().getSeconds() < _idletimeout)
@@ -126,7 +126,7 @@ void mg::MysqlConnectionPool::add()
 {
     LOG_TRACE("mysql add called");
     std::lock_guard<std::mutex> guard(_mutex);
-    if (this->_totalsize > this->_maxsize)
+    if (!_queue.empty() || this->_totalsize > this->_maxsize)
         return;
     addInitial();
     _condition.notify_one();
