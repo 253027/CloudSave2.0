@@ -43,7 +43,7 @@ bool FileServer::initial()
     _loop.reset(new mg::EventLoop("FileServerLoop"));
     _server.reset(new mg::TcpServer(_loop.get(), mg::InternetAddress(js.value("port", 0)), "FileServer"));
     _server->setMessageCallback(std::bind(&FileServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    _server->setThreadNums(js.value("threadNums", 0));
+    _server->setThreadNums(std::max(static_cast<unsigned int>(js.value("threadNums", 0)), std::thread::hardware_concurrency()));
 
     this->regist();
     this->loadSource();
