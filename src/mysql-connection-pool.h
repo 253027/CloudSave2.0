@@ -77,6 +77,7 @@ namespace mg
         uint16_t _port;
         uint16_t _maxsize;
         uint16_t _minsize;
+        uint16_t _totalsize;
         uint16_t _timeout;
         uint32_t _idletimeout;
         std::queue<Mysql *> _queue;

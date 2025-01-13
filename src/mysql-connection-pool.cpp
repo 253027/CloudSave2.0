@@ -11,8 +11,8 @@ using json = nlohmann::json;
 
 mg::MysqlConnectionPool::MysqlConnectionPool() : _host(), _username(), _password(),
                                                  _databasename(), _port(0), _maxsize(0),
-                                                 _minsize(0), _timeout(0), _idletimeout(0),
-                                                 _loop(nullptr)
+                                                 _minsize(0), _totalsize(0), _timeout(0),
+                                                 _idletimeout(0), _loop(nullptr)
 {
     ;
 }
@@ -110,7 +110,7 @@ void mg::MysqlConnectionPool::remove()
 {
     LOG_TRACE("mysql remove called");
     std::lock_guard<std::mutex> guard(_mutex);
-    while (_queue.size() > _maxsize)
+    while (this->_totalsize > _minsize)
     {
         auto front = _queue.front();
         if (front->getVacantTime().getSeconds() < _idletimeout)
@@ -118,6 +118,7 @@ void mg::MysqlConnectionPool::remove()
         _queue.pop();
         LOG_TRACE("mysql remove {}", (void *)front);
         SAFE_DELETE(front);
+        this->_totalsize--;
     }
 }
 
@@ -125,7 +126,7 @@ void mg::MysqlConnectionPool::add()
 {
     LOG_TRACE("mysql add called");
     std::lock_guard<std::mutex> guard(_mutex);
-    if (_queue.size() >= _minsize)
+    if (this->_totalsize > this->_maxsize)
         return;
     addInitial();
     _condition.notify_one();
@@ -145,6 +146,7 @@ bool mg::MysqlConnectionPool::addInitial()
         sql->refresh();
         LOG_TRACE("mysql add {}", (void *)sql);
         _queue.push(sql);
+        this->_totalsize++;
     }
     return true;
 }
