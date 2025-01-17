@@ -2,7 +2,7 @@
 
 mg::EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string &name)
     : _baseloop(baseLoop), _name(name), _started(false),
-      _threadNums(0), _next(0)
+      _threadNums(0)
 {
     ;
 }
@@ -43,8 +43,23 @@ mg::EventLoop *mg::EventLoopThreadPool::getNextLoop()
     EventLoop *loop = this->_baseloop;
     if (!this->_loops.empty())
     {
-        loop = this->_loops[_next];
-        _next = (_next + 1) % this->_loops.size();
+#if 0
+        //std::atomic_int _next;
+        int next = _next.fetch_add(1) % this->_loops.size();
+        loop = this->_loops[next];
+#endif
+
+#if 1
+        pair current, next;
+        do
+        {
+            current = _next.load(std::memory_order_acquire);
+            next.first = (current.first + 1) % this->_loops.size();
+            next.second = current.second + 1;
+            loop = this->_loops[next.first];
+        } while (!_next.compare_exchange_weak(current, next, std::memory_order_acquire));
+
+#endif
     }
     return loop;
 }
