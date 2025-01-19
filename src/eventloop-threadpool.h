@@ -26,7 +26,7 @@ namespace mg
         /**
          * @brief 启动线程池
          */
-        void start(ThreadInitialCallback callBack);
+        void start(ThreadInitialCallback callBack = ThreadInitialCallback());
 
         /**
          * @brief 以轮询方式得到下一个eventloop实例
