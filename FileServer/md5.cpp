@@ -201,11 +201,14 @@ void FileMD5::transform(unsigned char block[64])
     this->_context.state[3] += d;
 }
 
+FileMD5::FileMD5()
+{
+    this->init();
+}
+
 std::string FileMD5::compute(const std::string &filename)
 {
-    char md5[this->_md5Len] = {0};
     unsigned char data[this->_readSize];
-    unsigned char value[this->_md5Size];
 
     int fd = ::open(filename.c_str(), O_RDONLY);
     if (fd == -1)
@@ -226,6 +229,14 @@ std::string FileMD5::compute(const std::string &filename)
             break;
     }
     ::close(fd);
+
+    return this->generate();
+}
+
+std::string FileMD5::generate()
+{
+    unsigned char value[this->_md5Size];
+    char md5[this->_md5Len] = {0};
 
     this->final(value);
     for (int i = 0; i < this->_md5Size; i++)

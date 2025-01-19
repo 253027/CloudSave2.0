@@ -9,12 +9,16 @@
 class FileMD5
 {
 public:
+    FileMD5();
+
     std::string compute(const std::string &filename);
+
+    void update(unsigned char *input, unsigned int inputlen);
+
+    std::string generate();
 
 private:
     void init();
-
-    void update(unsigned char *input, unsigned int inputlen);
 
     void final(unsigned char digest[16]);
 
