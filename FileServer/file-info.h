@@ -1,6 +1,7 @@
 #ifndef __FILE_INFO_H__
 #define __FILE_INFO_H__
 
+#include "md5.h"
 #include "../src/rwlock.h"
 #include "../src/macros.h"
 
@@ -8,6 +9,7 @@
 #include <string>
 #include <fstream>
 #include <memory>
+#include <vector>
 
 class FileInfo
 {
@@ -39,7 +41,7 @@ public:
     /**
      * @param 设置文件分块大小
      */
-    void setChunkSize(uint16_t size);
+    void setChunkSize(uint32_t size);
 
     /**
      * @param 获取文件分块大小
@@ -57,6 +59,11 @@ public:
     void setFileSize(uint32_t size);
 
     /**
+     * @brief 得到文件名
+     */
+    const std::string &fileName() const;
+
+    /**
      * @brief 写入文件
      *
      * @param chunkIndex 写入第几个文件分块
@@ -64,6 +71,17 @@ public:
      * @return 本次写入文件数据字节
      */
     int32_t write(int16_t chunkIndex, const std::string &data);
+
+    /**
+     * @brief 按块编号顺序写入
+     * @return
+     */
+    int32_t sequenceWrite(int16_t chunkIndex, const std::string &data);
+
+    /**
+     * @brief 按块读取文件内容
+     */
+    std::string read(int16_t chunkIndex);
 
     /**
      * @brief 设置文件状态
@@ -76,9 +94,19 @@ public:
     FILESTATUS getFileStatus() const;
 
     /**
-     * @brief 文件数据大小是否完整
+     * @brief 文件是数据否上传完成（未校验）
      */
     bool isCompleted();
+
+    /**
+     * @brief 文件数据大小是否完整（校验文件）
+     */
+    bool verify(bool needCalc = true);
+
+    /**
+     * @brief 动态计算MD5
+     */
+    bool update(std::vector<unsigned char> data);
 
 private:
     int _fd;                                             // 写入文件的文件描述符
@@ -90,6 +118,8 @@ private:
     uint32_t _size;                                      // 文件总大小
     std::unordered_map<int16_t, std::string> _chunkHash; // 分块文件的Hash值
     std::unordered_map<int16_t, uint32_t> _chunkSize;    // 分块文件目前的大小
+    FileMD5 _md5;                                        // 文件校验
+    uint32_t _calcIndex;                                 // 计算MD5的分块下标
 };
 
 extern thread_local std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<FileInfo>>> fileInfoMemo;

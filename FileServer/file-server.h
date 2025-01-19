@@ -3,9 +3,11 @@
 
 #include "../src/singleton.h"
 #include "../src/tcp-server.h"
+#include "../src/json.hpp"
 #include "../src/http-packet-parser.h"
 #include "../src/mysql-connection-pool.h"
 
+class FileInfo;
 class FileServer : public Singleton<FileServer>
 {
 public:
@@ -40,6 +42,8 @@ private: // 业务处后面可以单独抽出成一个类
 
     bool login(const mg::HttpRequest &request);
 
+    void judgeFileMD5(std::shared_ptr<FileInfo> &file, mg::TcpConnectionPointer &connection, bool needCalc = false);
+
 private: // 服务器底层接口定义处
     /**
      * @brief Restful API注册接口处
@@ -51,8 +55,10 @@ private: // 服务器底层接口定义处
      */
     void loadSource();
 
-    std::string _indexContent;       // 网站首页内容
-    std::string _uploadIndexContent; // 上传页面内容
+    std::string _indexContent;                          // 网站首页内容
+    std::string _uploadIndexContent;                    // 上传页面内容
+    nlohmann::json _config;                             // 配置文件
+    std::shared_ptr<mg::EventLoopThreadPool> _calcPool; // 文件校验线程池
     std::shared_ptr<mg::TcpServer> _server;
     std::shared_ptr<mg::EventLoop> _loop;
 };

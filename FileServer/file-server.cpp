@@ -1,6 +1,5 @@
 #include "file-server.h"
 #include "file-info.h"
-#include "../src/json.hpp"
 #include "../src/log.h"
 #include "../src/http-method-call.h"
 #include "../src/json-extract.h"
@@ -23,7 +22,6 @@ FileServer::~FileServer()
 
 bool FileServer::initial()
 {
-    json js;
     std::ifstream file("./FileServer/config.json");
     if (!file.is_open())
     {
@@ -32,7 +30,7 @@ bool FileServer::initial()
     }
     try
     {
-        file >> js;
+        file >> this->_config;
     }
     catch (const json::parse_error &e)
     {
@@ -41,9 +39,11 @@ bool FileServer::initial()
     }
 
     _loop.reset(new mg::EventLoop("FileServerLoop"));
-    _server.reset(new mg::TcpServer(_loop.get(), mg::InternetAddress(js.value("port", 0)), "FileServer"));
+    _server.reset(new mg::TcpServer(_loop.get(), mg::InternetAddress(this->_config.value("port", 0)), "FileServer"));
     _server->setMessageCallback(std::bind(&FileServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    _server->setThreadNums(std::max(static_cast<unsigned int>(js.value("threadNums", 0)), std::thread::hardware_concurrency()));
+    _server->setThreadNums(std::max(static_cast<unsigned int>(this->_config.value("threadNums", 0)), std::thread::hardware_concurrency()));
+    _calcPool.reset(new mg::EventLoopThreadPool(_loop.get(), "FileServerCalcLoop"));
+    _calcPool->setThreadNums(2); // 默认设置2个
 
     this->regist();
     this->loadSource();
@@ -53,6 +53,7 @@ bool FileServer::initial()
 void FileServer::start()
 {
     _server->start();
+    _calcPool->start();
     _loop->loop();
 }
 
@@ -167,10 +168,21 @@ bool FileServer::upload(const mg::HttpRequest &request)
         return false;
     }
 
+    if (file->write(chunkIndex, request.body()) != request.body().size())
+        return false;
+
+    _calcPool->getNextLoop()->push(std::bind(&FileInfo::update, file,
+                                             std::vector<unsigned char>(request.body().begin(), request.body().end())));
+
+    if (file->isCompleted())
+    {
+        _calcPool->getNextLoop()->push(std::bind(&FileServer::judgeFileMD5, this, std::move(file), std::move(a), false));
+        return true;
+    }
+
     mg::HttpResponse response;
     response.setStatus(200);
     mg::HttpPacketParser::get().send(a, response);
-    file->write(chunkIndex, request.body());
     return true;
 }
 
@@ -196,7 +208,7 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
         return false;
 
     // insert file information into fileInfoMemo
-    auto file = std::make_shared<FileInfo>(filename, md5, size, FileInfo::WRITE);
+    auto file = std::make_shared<FileInfo>(this->_config.value("filepath", "./") + filename, md5, size, FileInfo::WRITE);
     file->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
     fileInfoMemo[a->name()][filename] = file;
 
@@ -300,4 +312,20 @@ end:
     response.setBody(js.dump());
     mg::HttpPacketParser::get().send(a, response);
     return false;
+}
+
+void FileServer::judgeFileMD5(std::shared_ptr<FileInfo> &file, mg::TcpConnectionPointer &connection, bool needCalc)
+{
+    mg::HttpResponse response;
+    if (file->verify(needCalc))
+    {
+        response.setStatus(200);
+        json js;
+        js["status"] = "success";
+        response.setHeader("Content-Type", "application/json");
+        response.setBody(js.dump());
+    }
+    else
+        response.setStatus(400);
+    mg::HttpPacketParser::get().send(connection, response);
 }
