@@ -17,7 +17,7 @@ FileInfo::FileInfo(const std::string &name, FILEMODE mode)
 
 FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode)
     : _fd(-1), _status(0), _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size),
-      _md5(), _calcIndex(0)
+      _md5(), _calcIndex(0), _loop(nullptr)
 {
     int flags = (mode == FILEMODE::READ) ? O_RDONLY : (O_WRONLY | O_CREAT);
     mode_t permissions = (mode == FILEMODE::WRITE) ? 0644 : 0;
@@ -106,6 +106,16 @@ bool FileInfo::update(std::vector<unsigned char> data)
     this->_calcIndex++;
     this->_md5.update(data.data(), data.size());
     return true;
+}
+
+void FileInfo::setOwnerLoop(mg::EventLoop *loop)
+{
+    this->_loop = loop;
+}
+
+mg::EventLoop *FileInfo::getOwnerLoop()
+{
+    return this->_loop;
 }
 
 const uint32_t FileInfo::getChunkSize() const

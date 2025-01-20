@@ -11,6 +11,11 @@
 #include <memory>
 #include <vector>
 
+namespace mg
+{
+    class EventLoop;
+};
+
 class FileInfo
 {
 public:
@@ -108,6 +113,16 @@ public:
      */
     bool update(std::vector<unsigned char> data);
 
+    /**
+     * @brief 设置所属计算线程
+     */
+    void setOwnerLoop(mg::EventLoop *loop);
+
+    /**
+     * @brief 得到所属计算线程
+     */
+    mg::EventLoop *getOwnerLoop();
+
 private:
     int _fd;                                             // 写入文件的文件描述符
     uint8_t _status;                                     // 文件状态
@@ -120,6 +135,7 @@ private:
     std::unordered_map<int16_t, uint32_t> _chunkSize;    // 分块文件目前的大小
     FileMD5 _md5;                                        // 文件校验
     uint32_t _calcIndex;                                 // 计算MD5的分块下标
+    mg::EventLoop *_loop;                                // 所属eventloop
 };
 
 extern thread_local std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<FileInfo>>> fileInfoMemo;

@@ -171,12 +171,15 @@ bool FileServer::upload(const mg::HttpRequest &request)
     if (file->write(chunkIndex, request.body()) != request.body().size())
         return false;
 
-    _calcPool->getNextLoop()->push(std::bind(&FileInfo::update, file,
-                                             std::vector<unsigned char>(request.body().begin(), request.body().end())));
+    if (file->getOwnerLoop() == nullptr)
+        file->setOwnerLoop(_calcPool->getNextLoop());
+
+    file->getOwnerLoop()->push(std::bind(&FileInfo::update, file,
+                                         std::vector<unsigned char>(request.body().begin(), request.body().end())));
 
     if (file->isCompleted())
     {
-        _calcPool->getNextLoop()->push(std::bind(&FileServer::judgeFileMD5, this, std::move(file), std::move(a), false));
+        file->getOwnerLoop()->push(std::bind(&FileServer::judgeFileMD5, this, std::move(file), std::move(a), false));
         return true;
     }
 
