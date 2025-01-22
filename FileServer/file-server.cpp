@@ -300,6 +300,7 @@ bool FileServer::login(const mg::HttpRequest &request)
     {
         js["status"] = "failed";
         js["message"] = "password error";
+        LOG_ERROR("{} {} {}", a->name(), name, password);
         goto end;
     }
 
