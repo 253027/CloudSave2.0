@@ -246,10 +246,28 @@ bool FileServer::fileInfo(const mg::HttpRequest &request)
     json js;
     auto a = request.getConnection();
     mg::HttpResponse response;
+    auto it = connectionInfo.find(a->name());
+    if (it == connectionInfo.end())
+    {
+        LOG_ERROR(" can not find {}", a->name());
+        return false;
+    }
+    auto &user = it->second;
 
-    js.push_back({{"name", "test.txt"}, {"size", 1024}});
-    js.push_back({{"name", "test2.txt"}, {"size", 2048}});
-    js.push_back({{"name", "test3.txt"}, {"size", 4096}});
+    std::stringstream query;
+    query << "SELECT `file_name`, `file_size` FROM `Files` WHERE `user_id` = " << user.id;
+
+    auto sql = mg::MysqlConnectionPool::get().getHandle();
+    if (!sql || !sql->query(query.str()))
+    {
+        LOG_ERROR("query failed");
+        return false;
+    }
+
+    while (sql->next())
+    {
+        js.push_back({{"name", sql->getData("file_name")}, {"size", std::stoi(sql->getData("file_size"))}});
+    }
 
     response.setStatus(200);
     response.setHeader("Content-Type", "application/json");
