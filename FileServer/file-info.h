@@ -33,9 +33,9 @@ public:
         COMPLETED = 2,    // 上传完成
     };
 
-    FileInfo(const std::string &name, FILEMODE mode);
+    FileInfo(const std::string &name, FILEMODE mode, const std::string &dir = "./");
 
-    FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode);
+    FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode, const std::string &dir = "./");
 
     ~FileInfo();
 

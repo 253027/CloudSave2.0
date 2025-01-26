@@ -5,24 +5,28 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <numeric>
+#include <sstream>
 
 thread_local std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<FileInfo>>> fileInfoMemo; // 管理所有文件对象的集合
 static const uint32_t initialChunkSize = 8192 * 1024;                                                                  // 8M bytes
 
-FileInfo::FileInfo(const std::string &name, FILEMODE mode)
-    : FileInfo(name, "", 0, mode)
+FileInfo::FileInfo(const std::string &name, FILEMODE mode, const std::string &dir)
+    : FileInfo(name, "", 0, mode, dir)
 {
     ;
 }
 
-FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode)
+FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode, const std::string &dir)
     : _fd(-1), _status(0), _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size),
       _md5(), _calcIndex(0), _loop(nullptr)
 {
     int flags = (mode == FILEMODE::READ) ? O_RDONLY : (O_WRONLY | O_CREAT);
     mode_t permissions = (mode == FILEMODE::WRITE) ? 0644 : 0;
 
-    this->_fd = ::open(name.c_str(), flags, permissions);
+    std::stringstream actual;
+    actual << dir << name;
+
+    this->_fd = ::open(actual.str().c_str(), flags, permissions);
     if (this->_fd == -1)
         LOG_ERROR("Failed to open file {}: {}", name, std::strerror(errno));
 
