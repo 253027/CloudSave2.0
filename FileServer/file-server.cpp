@@ -226,8 +226,9 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
         return false;
 
     // insert file information into fileInfoMemo
-    auto file = std::make_shared<FileInfo>(filename, md5, size, FileInfo::WRITE, this->_config.value("filepath", "./"));
+    auto file = std::make_shared<FileInfo>(md5, md5, size, FileInfo::WRITE, this->_config.value("filepath", "./"));
     file->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
+    file->setFileName(filename);
     fileInfoMemo[a->name()][filename] = file;
 
     js.clear();
