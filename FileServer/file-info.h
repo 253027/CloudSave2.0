@@ -123,6 +123,16 @@ public:
      */
     mg::EventLoop *getOwnerLoop();
 
+    /**
+     * @brief 得到文件大小
+     */
+    uint32_t getFileSize();
+
+    /**
+     * @brief 得到文件哈希值
+     */
+    const std::string &getFileHash() const;
+
 private:
     int _fd;                                             // 写入文件的文件描述符
     uint8_t _status;                                     // 文件状态

@@ -118,6 +118,16 @@ mg::EventLoop *FileInfo::getOwnerLoop()
     return this->_loop;
 }
 
+uint32_t FileInfo::getFileSize()
+{
+    return this->_size;
+}
+
+const std::string &FileInfo::getFileHash() const
+{
+    return this->_fileHash;
+}
+
 const uint32_t FileInfo::getChunkSize() const
 {
     return this->_chunkPerSize;
