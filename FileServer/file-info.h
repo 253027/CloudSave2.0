@@ -44,6 +44,11 @@ public:
     inline const std::string &getName() { return this->_name; };
 
     /**
+     * @brief 设置文件名
+     */
+    void setFileName(const std::string &filename);
+
+    /**
      * @param 设置文件分块大小
      */
     void setChunkSize(uint32_t size);

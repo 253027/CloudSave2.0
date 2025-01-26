@@ -58,6 +58,11 @@ bool FileInfo::exist(std::string &name)
     return ::access(name.c_str(), F_OK) == 0; // 后面可以改成查数据库获得
 }
 
+void FileInfo::setFileName(const std::string &filename)
+{
+    this->_name = filename;
+}
+
 void FileInfo::setChunkSize(uint32_t size)
 {
     this->_chunkPerSize = size;
