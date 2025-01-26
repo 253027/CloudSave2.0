@@ -393,4 +393,5 @@ void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file, const std::stri
 
     if (!sql->insert(is.str()))
         LOG_ERROR("insert fileinfo error: {}", is.str());
+    file->setFileStatus(FileInfo::FILESTATUS::COMPLETED);
 }
