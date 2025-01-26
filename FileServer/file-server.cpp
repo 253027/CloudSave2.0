@@ -10,6 +10,21 @@
 
 using json = nlohmann::json;
 
+struct UserInfo
+{
+    UserInfo() {}
+
+    UserInfo(int id, const std::string &name) : id(id), name(name)
+    {
+        ;
+    }
+
+    int id;
+    std::string name;
+};
+
+thread_local std::unordered_map<std::string, UserInfo> connectionInfo;
+
 FileServer::FileServer()
 {
     ;
@@ -211,7 +226,7 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
         return false;
 
     // insert file information into fileInfoMemo
-    auto file = std::make_shared<FileInfo>(this->_config.value("filepath", "./") + filename, md5, size, FileInfo::WRITE);
+    auto file = std::make_shared<FileInfo>(filename, md5, size, FileInfo::WRITE, this->_config.value("filepath", "./"));
     file->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
     fileInfoMemo[a->name()][filename] = file;
 
@@ -281,7 +296,7 @@ bool FileServer::login(const mg::HttpRequest &request)
     }
 
     std::stringstream query;
-    query << "SELECT password FROM UserInfo WHERE `username` = \'" << name << "\';";
+    query << "SELECT password, id FROM UserInfo WHERE `username` = \'" << name << "\';";
     if (!sql->query(query.str()))
     {
         LOG_ERROR("query failed {}", a->name());
@@ -303,6 +318,7 @@ bool FileServer::login(const mg::HttpRequest &request)
         LOG_ERROR("{} {} {}", a->name(), name, password);
         goto end;
     }
+    connectionInfo[a->name()] = UserInfo(std::stoi(sql->getData("id")), name);
 
     response.setStatus(302);
     response.setHeader("Location", "/upload.html");
@@ -328,13 +344,35 @@ void FileServer::judgeFileMD5(std::shared_ptr<FileInfo> &file, mg::TcpConnection
         js["status"] = "success";
         response.setHeader("Content-Type", "application/json");
         response.setBody(js.dump());
+        connection->getLoop()->push(std::bind(&FileServer::updateDataBase, this, file, connection->name()));
     }
     else
         response.setStatus(400);
     mg::HttpPacketParser::get().send(connection, response);
 }
 
-void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file)
+void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file, const std::string &name)
 {
-    ;
+    auto it = connectionInfo.find(name);
+    if (it == connectionInfo.end())
+    {
+        LOG_ERROR("file {} can not find {}", file->fileName(), name);
+        return;
+    }
+    auto &user = it->second;
+
+    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::get().getHandle();
+    if (!sql)
+    {
+        LOG_ERROR("get mysql handle failed");
+        return;
+    }
+
+    std::stringstream is;
+    is << "INSERT INTO `Files` (`file_name`, `file_size`, `hash_value`, `user_id`) VALUES ('"
+       << file->getName() << "', '" << file->getFileSize() << "', '"
+       << file->getFileHash() << "', " << user.id << ");";
+
+    if (!sql->insert(is.str()))
+        LOG_ERROR("insert fileinfo error: {}", is.str());
 }

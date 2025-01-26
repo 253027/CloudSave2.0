@@ -44,6 +44,8 @@ private: // 业务处后面可以单独抽出成一个类
 
     void judgeFileMD5(std::shared_ptr<FileInfo> &file, mg::TcpConnectionPointer &connection, bool needCalc = false);
 
+    void updateDataBase(std::shared_ptr<FileInfo> &file, const std::string &name);
+
 private: // 服务器底层接口定义处
     /**
      * @brief Restful API注册接口处
