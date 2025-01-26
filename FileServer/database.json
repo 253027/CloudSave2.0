@@ -3,7 +3,7 @@
     "port": 3306,
     "username": "aa",
     "password": "1234",
-    "databasename": "server",
+    "databasename": "FileServer",
     "maxsize": 8,
     "minsize": 4,
     "timeout": 3,

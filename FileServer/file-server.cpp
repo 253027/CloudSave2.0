@@ -281,7 +281,7 @@ bool FileServer::login(const mg::HttpRequest &request)
     }
 
     std::stringstream query;
-    query << "SELECT passwd FROM user_info WHERE `username` = \'" << name << "\';";
+    query << "SELECT password FROM UserInfo WHERE `username` = \'" << name << "\';";
     if (!sql->query(query.str()))
     {
         LOG_ERROR("query failed {}", a->name());
@@ -296,7 +296,7 @@ bool FileServer::login(const mg::HttpRequest &request)
         goto end;
     }
 
-    if (sql->getData("passwd") != password)
+    if (sql->getData("password") != password)
     {
         js["status"] = "failed";
         js["message"] = "password error";
@@ -332,4 +332,9 @@ void FileServer::judgeFileMD5(std::shared_ptr<FileInfo> &file, mg::TcpConnection
     else
         response.setStatus(400);
     mg::HttpPacketParser::get().send(connection, response);
+}
+
+void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file)
+{
+    ;
 }

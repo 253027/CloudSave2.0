@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 {
     if (argc > 1 && !strcasecmp("-daemon", argv[1]))
     {
+        std::cout << "FileServer started in daemon mode" << std::endl;
         if (::daemon(1, 1) == -1)
             return 0;
-        std::cout << "FileServer started in daemon mode" << std::endl;
     }
     signal(SIGINT, sighandle);
     signal(SIGTERM, sighandle);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
         assert(0 && "mysql start failed");
 
     if (!FileServer::get().initial())
-        assert(0 && "GatewayServer initial failed");
+        assert(0 && "FileServer initial failed");
 
     FileServer::get().start();
     return 0;
