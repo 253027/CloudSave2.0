@@ -57,6 +57,11 @@ private: // 服务器底层接口定义处
      */
     void loadSource();
 
+    /**
+     * @brief 连接断开时执行资源释放操作
+     */
+    void onConnectionStateChanged(const mg::TcpConnectionPointer &connection);
+
     std::string _indexContent;                          // 网站首页内容
     std::string _uploadIndexContent;                    // 上传页面内容
     nlohmann::json _config;                             // 配置文件

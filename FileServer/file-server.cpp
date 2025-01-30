@@ -57,6 +57,7 @@ bool FileServer::initial()
     _server.reset(new mg::TcpServer(_loop.get(), mg::InternetAddress(this->_config.value("port", 0)), "FileServer"));
     _server->setMessageCallback(std::bind(&FileServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _server->setThreadNums(std::max(static_cast<unsigned int>(this->_config.value("threadNums", 0)), std::thread::hardware_concurrency()));
+    _server->setConnectionCallback(std::bind(&FileServer::onConnectionStateChanged, this, std::placeholders::_1));
     _calcPool.reset(new mg::EventLoopThreadPool(_loop.get(), "FileServerCalcLoop"));
     _calcPool->setThreadNums(2); // 默认设置2个
 
@@ -118,6 +119,16 @@ void FileServer::loadSource()
     {
         this->_uploadIndexContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         file.close();
+    }
+}
+
+void FileServer::onConnectionStateChanged(const mg::TcpConnectionPointer &connection)
+{
+    if (!connection->connected())
+    {
+        connectionInfo.erase(connection->name());
+        fileInfoMemo.erase(connection->name());
+        LOG_DEBUG("{} disconnected", connection->name());
     }
 }
 
