@@ -194,8 +194,8 @@ bool FileServer::upload(const mg::HttpRequest &request)
 
     if (file->isCompleted())
     {
-        file->getOwnerLoop()->push(std::bind(&FileServer::judgeFileMD5, this, std::move(file), std::move(a), false));
         fileInfoMemo[a->name()].erase(file->fileName());
+        file->getOwnerLoop()->push(std::bind(&FileServer::judgeFileMD5, this, std::move(file), std::move(a), false));
         return true;
     }
 
