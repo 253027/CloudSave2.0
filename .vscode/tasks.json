@@ -30,6 +30,21 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "FileServer",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/FileServer" // 指定当前工作目录
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }
