@@ -94,6 +94,11 @@ public:
     std::string read(int16_t chunkIndex);
 
     /**
+     * @brief 按字节范围读取文件内容
+     */
+    std::string read(uint32_t start, uint32_t nums);
+
+    /**
      * @brief 设置文件状态
      */
     void setFileStatus(FILESTATUS status);

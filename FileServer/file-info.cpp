@@ -30,6 +30,14 @@ FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t si
     if (this->_fd == -1)
         LOG_ERROR("Failed to open file {}: {}", name, std::strerror(errno));
 
+    if (mode == FILEMODE::READ)
+    {
+        struct stat file_stat;
+        if (fstat(this->_fd, &file_stat) == -1)
+            LOG_ERROR("get file size error");
+        this->_size = file_stat.st_size;
+    }
+
     this->_nums = (this->_size + _chunkPerSize - 1) / _chunkPerSize;
 }
 
@@ -156,5 +164,18 @@ int32_t FileInfo::sequenceWrite(int16_t chunkIndex, const std::string &data)
 
 std::string FileInfo::read(int16_t chunkIndex)
 {
-    return std::string();
+    return this->read(chunkIndex * _chunkPerSize, _chunkPerSize);
+}
+
+std::string FileInfo::read(uint32_t start, uint32_t nums)
+{
+    if (start >= this->_size)
+        return "";
+
+    uint32_t actual = std::min(this->_size - start, nums);
+    std::vector<char> buffer(actual);
+    uint32_t ret = ::pread(this->_fd, buffer.data(), actual, start);
+    buffer.resize(ret);
+
+    return std::string(buffer.begin(), buffer.end());
 }
