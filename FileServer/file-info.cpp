@@ -150,6 +150,11 @@ const uint32_t FileInfo::getChunkSize() const
     return this->_chunkPerSize;
 }
 
+const uint32_t FileInfo::getChunkNums() const
+{
+    return this->_nums;
+}
+
 const std::string &FileInfo::fileName() const
 {
     return this->_name;

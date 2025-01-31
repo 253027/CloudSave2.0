@@ -59,6 +59,11 @@ public:
     const uint32_t getChunkSize() const;
 
     /**
+     * @brief 获取文件分块数
+     */
+    const uint32_t getChunkNums() const;
+
+    /**
      * @brief 设置文件hash值
      */
     void setFileHash(const std::string &hash);
