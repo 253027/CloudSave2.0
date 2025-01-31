@@ -46,6 +46,8 @@ private: // 业务处后面可以单独抽出成一个类
 
     void updateDataBase(std::shared_ptr<FileInfo> &file, const std::string &name);
 
+    bool download(const mg::HttpRequest &request);
+
 private: // 服务器底层接口定义处
     /**
      * @brief Restful API注册接口处

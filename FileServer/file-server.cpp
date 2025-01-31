@@ -100,6 +100,7 @@ void FileServer::regist()
     mg::HttpMethodCall::get().regist("GET", "/index.html", std::bind(&FileServer::main, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("GET", "/upload.html", std::bind(&FileServer::uploadPage, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("GET", "/file-list", std::bind(&FileServer::fileInfo, this, std::placeholders::_1));
+    mg::HttpMethodCall::get().regist2("GET", "/download/.*", std::bind(&FileServer::download, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("POST", "/upload", std::bind(&FileServer::upload, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("POST", "/login", std::bind(&FileServer::login, this, std::placeholders::_1));
     mg::HttpMethodCall::get().regist("POST", "/upload/file-info", std::bind(&FileServer::waitFileInfo, this, std::placeholders::_1));
@@ -407,4 +408,67 @@ void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file, const std::stri
     if (!sql->insert(is.str()))
         LOG_ERROR("insert fileinfo error: {}", is.str());
     file->setFileStatus(FileInfo::FILESTATUS::COMPLETED);
+}
+
+bool FileServer::download(const mg::HttpRequest &request)
+{
+    auto connection = request.getConnection();
+    if (TO_ENUM(FILESTATE, connection->getUserConnectionState()) != FILESTATE::VERIFY)
+        return false;
+
+    auto &userInfo = connectionInfo[connection->name()];
+
+    auto it = request.path().find("/download/");
+    if (it == std::string::npos)
+        return false;
+    std::string filename = request.path().substr(it + 10);
+
+    // if download file not in fileInfoMemo
+    {
+        auto it_file = fileInfoMemo[connection->name()].find(filename);
+        if (it_file == fileInfoMemo[connection->name()].end())
+        {
+            std::stringstream query;
+            query << "SELECT hash_value, file_size FROM `Files`"
+                  << "LEFT JOIN `UserInfo` ON Files.user_id = UserInfo.id WHERE username = \'"
+                  << userInfo.name << "\' and file_name = \'" << filename << "\';";
+
+            auto sql = mg::MysqlConnectionPool::get().getHandle();
+            if (!sql || !sql->query(query.str()))
+            {
+                LOG_ERROR("{} get download file info failed", connection->name());
+                return false;
+            }
+
+            if (!sql->next())
+                return false;
+
+            auto file = std::make_shared<FileInfo>(sql->getData("hash_value"), FileInfo::READ, this->_config.value("filepath", "./"));
+            fileInfoMemo[connection->name()][filename] = file;
+        }
+    }
+    auto file = fileInfoMemo[connection->name()][filename];
+
+    if (request.hasHeader("range")) // request ranges bytes
+    {
+        // std::regex pattern("bytes=(\d+)-(\d+)");
+        // std::smatch result;
+        // if (!std::regex_search(request.getHeader("range"), result, pattern))
+        //     return false;
+
+        // std::string data =
+    }
+    else
+    {
+        mg::HttpResponse ret;
+        ret.setStatus(200);
+        ret.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        ret.setHeader("Connection", "keep-alive");
+        ret.setHeader("Accept-Ranges", "bytes");
+        ret.setHeader("Content-Type", "application/octet-stream");
+        ret.setBody(file->read(0, file->getFileSize()));
+        mg::HttpPacketParser::get().send(connection, ret);
+    }
+
+    return true;
 }
