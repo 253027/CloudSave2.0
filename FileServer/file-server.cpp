@@ -413,8 +413,8 @@ void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file, const std::stri
 bool FileServer::download(const mg::HttpRequest &request)
 {
     auto connection = request.getConnection();
-    if (TO_ENUM(FILESTATE, connection->getUserConnectionState()) != FILESTATE::VERIFY)
-        return false;
+    // if (TO_ENUM(FILESTATE, connection->getUserConnectionState()) != FILESTATE::VERIFY)
+    //     return false;
 
     auto &userInfo = connectionInfo[connection->name()];
 
@@ -422,6 +422,7 @@ bool FileServer::download(const mg::HttpRequest &request)
     if (it == std::string::npos)
         return false;
     std::string filename = request.path().substr(it + 10);
+    userInfo.name = "mogaitesheng";
 
     // if download file not in fileInfoMemo
     {
@@ -464,11 +465,39 @@ bool FileServer::download(const mg::HttpRequest &request)
         ret.setStatus(200);
         ret.setHeader("Content-Disposition", "attachment; filename=" + filename);
         ret.setHeader("Connection", "keep-alive");
+        ret.setHeader("Transfer-Encoding", "chunked");
         ret.setHeader("Accept-Ranges", "bytes");
         ret.setHeader("Content-Type", "application/octet-stream");
-        ret.setBody(file->read(0, file->getFileSize()));
-        mg::HttpPacketParser::get().send(connection, ret);
+        connection->send(ret.dumpHead() + "\r\n");
+        connection->getLoop()->push(std::bind(&FileServer::streamSend, FileServer::getInstance(), 0, std::move(connection), std::move(filename)));
     }
 
     return true;
+}
+
+void FileServer::streamSend(int index, const mg::TcpConnectionPointer &connection, const std::string &filename)
+{
+    auto it_connection = fileInfoMemo.find(connection->name());
+    if (it_connection == fileInfoMemo.end())
+        return;
+    auto it_file = it_connection->second.find(filename);
+    if (it_file == it_connection->second.end())
+        return;
+    auto file = it_file->second;
+
+    std::string data = file->read(index * file->getChunkSize(), file->getChunkSize());
+    std::stringstream range;
+    range << std::hex << data.size() << "\r\n"
+          << data << "\r\n";
+
+    connection->send(range.str());
+
+    if (index + 1 >= file->getChunkNums())
+    {
+        connection->send("0\r\n\r\n");
+        return;
+    }
+
+    connection->getLoop()->push(std::bind(&FileServer::streamSend, FileServer::getInstance(),
+                                          index + 1, std::move(connection), std::move(filename)));
 }

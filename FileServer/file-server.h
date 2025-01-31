@@ -48,6 +48,8 @@ private: // 业务处后面可以单独抽出成一个类
 
     bool download(const mg::HttpRequest &request);
 
+    void streamSend(int index, const mg::TcpConnectionPointer &connection, const std::string &filename);
+
 private: // 服务器底层接口定义处
     /**
      * @brief Restful API注册接口处
