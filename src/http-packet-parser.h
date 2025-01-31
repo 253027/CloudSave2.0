@@ -84,6 +84,8 @@ namespace mg
 
         void setBody(const std::string &body);
 
+        std::string dumpHead() const;
+
         std::string dump() const;
 
     private:

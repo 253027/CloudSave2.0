@@ -137,14 +137,20 @@ void mg::HttpResponse::setBody(const std::string &body)
     this->_body = body;
 }
 
-std::string mg::HttpResponse::dump() const
+std::string mg::HttpResponse::dumpHead() const
 {
     std::stringstream response;
     response << "HTTP/1.1 " << _status << "\r\n";
     for (auto &val : _headers)
         response << val.first << ": " << val.second << "\r\n";
-    response << "Content-Length: " << std::to_string(_body.size()) << "\r\n";
-    response << "\r\n"
+    return response.str();
+}
+
+std::string mg::HttpResponse::dump() const
+{
+    std::stringstream response;
+    response << this->dumpHead() << "Content-Length: "
+             << std::to_string(_body.size()) << "\r\n\r\n"
              << _body;
     return response.str();
 }
