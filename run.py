@@ -2,7 +2,7 @@
 import subprocess
 from typing import List
 
-process = ["./SessionServer/server", "./GatewayServer/server", "./FileServer/server"]
+process = ["./FileServer/server"]
 
 def run(proclist: List[str]) -> bool:
     for name in proclist:
