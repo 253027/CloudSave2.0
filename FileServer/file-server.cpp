@@ -413,8 +413,8 @@ void FileServer::updateDataBase(std::shared_ptr<FileInfo> &file, const std::stri
 bool FileServer::download(const mg::HttpRequest &request)
 {
     auto connection = request.getConnection();
-    // if (TO_ENUM(FILESTATE, connection->getUserConnectionState()) != FILESTATE::VERIFY)
-    //     return false;
+    if (TO_ENUM(FILESTATE, connection->getUserConnectionState()) != FILESTATE::VERIFY)
+        return false;
 
     auto &userInfo = connectionInfo[connection->name()];
 
@@ -422,7 +422,6 @@ bool FileServer::download(const mg::HttpRequest &request)
     if (it == std::string::npos)
         return false;
     std::string filename = request.path().substr(it + 10);
-    userInfo.name = "mogaitesheng";
 
     // if download file not in fileInfoMemo
     {
