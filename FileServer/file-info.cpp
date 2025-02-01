@@ -16,7 +16,7 @@ FileInfo::FileInfo(const std::string &name, FILEMODE mode, const std::string &di
     ;
 }
 
-FileInfo::FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode, const std::string &dir)
+FileInfo::FileInfo(const std::string &name, const std::string &hash, uint64_t size, FILEMODE mode, const std::string &dir)
     : _fd(-1), _status(0), _name(name), _fileHash(hash), _chunkPerSize(initialChunkSize), _size(size),
       _md5(), _calcIndex(0), _loop(nullptr)
 {
@@ -82,7 +82,7 @@ void FileInfo::setFileHash(const std::string &hash)
     this->_fileHash = hash;
 }
 
-void FileInfo::setFileSize(uint32_t size)
+void FileInfo::setFileSize(uint64_t size)
 {
     this->_size = size;
     this->_nums = (this->_size + _chunkPerSize - 1) / _chunkPerSize;
@@ -135,7 +135,7 @@ mg::EventLoop *FileInfo::getOwnerLoop()
     return this->_loop;
 }
 
-uint32_t FileInfo::getFileSize()
+uint64_t FileInfo::getFileSize()
 {
     return this->_size;
 }
@@ -177,9 +177,9 @@ std::string FileInfo::read(uint32_t start, uint32_t nums)
     if (start >= this->_size)
         return "";
 
-    uint32_t actual = std::min(this->_size - start, nums);
+    uint64_t actual = std::min(this->_size - start, static_cast<uint64_t>(nums));
     std::vector<char> buffer(actual);
-    uint32_t ret = ::pread(this->_fd, buffer.data(), actual, start);
+    uint64_t ret = ::pread(this->_fd, buffer.data(), actual, start);
     buffer.resize(ret);
 
     return std::string(buffer.begin(), buffer.end());

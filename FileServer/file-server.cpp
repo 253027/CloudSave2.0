@@ -231,7 +231,7 @@ bool FileServer::waitFileInfo(const mg::HttpRequest &request)
         return false;
     }
 
-    int size = 0;
+    uint64_t size = 0;
     std::string filename, md5;
     if (!mg::JsonExtract::extract(js, "fileSize", size, mg::JsonExtract::INT) ||
         !mg::JsonExtract::extract(js, "fileName", filename, mg::JsonExtract::STRING) ||
@@ -280,7 +280,7 @@ bool FileServer::fileInfo(const mg::HttpRequest &request)
 
     while (sql->next())
     {
-        js.push_back({{"name", sql->getData("file_name")}, {"size", std::stoi(sql->getData("file_size"))}});
+        js.push_back({{"name", sql->getData("file_name")}, {"size", std::stoull(sql->getData("file_size"))}});
     }
 
     response.setStatus(200);

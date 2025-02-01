@@ -35,7 +35,7 @@ public:
 
     FileInfo(const std::string &name, FILEMODE mode, const std::string &dir = "./");
 
-    FileInfo(const std::string &name, const std::string &hash, uint32_t size, FILEMODE mode, const std::string &dir = "./");
+    FileInfo(const std::string &name, const std::string &hash, uint64_t size, FILEMODE mode, const std::string &dir = "./");
 
     ~FileInfo();
 
@@ -71,7 +71,7 @@ public:
     /**
      * @brief 设置文件大小
      */
-    void setFileSize(uint32_t size);
+    void setFileSize(uint64_t size);
 
     /**
      * @brief 得到文件名
@@ -141,7 +141,7 @@ public:
     /**
      * @brief 得到文件大小
      */
-    uint32_t getFileSize();
+    uint64_t getFileSize();
 
     /**
      * @brief 得到文件哈希值
@@ -155,7 +155,7 @@ private:
     std::string _fileHash;                               // 文件hash值
     uint16_t _nums;                                      // 文件分块数
     uint32_t _chunkPerSize;                              // 分块文件大小
-    uint32_t _size;                                      // 文件总大小
+    uint64_t _size;                                      // 文件总大小
     std::unordered_map<int16_t, std::string> _chunkHash; // 分块文件的Hash值
     std::unordered_map<int16_t, uint32_t> _chunkSize;    // 分块文件目前的大小
     FileMD5 _md5;                                        // 文件校验
