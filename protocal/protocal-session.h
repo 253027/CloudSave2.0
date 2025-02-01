@@ -11,6 +11,7 @@ namespace Protocal
     {
         LOGIN = 1,  // 登录
         REGIST = 2, // 注册
+        UPLOAD = 3, // 上传
     };
 
     struct SessionCommand : public Command
@@ -32,11 +33,12 @@ namespace Protocal
 
         std::string serialize(const std::string &data)
         {
-            std::string res(sizeof(Command) + sizeof(this->type), '\0');
-            ::memcpy(res.data(), static_cast<void *>(this), sizeof(Command));
-            ::memcpy(res.data() + sizeof(Command), &type, sizeof(type));
+            char buffer[sizeof(Command) + sizeof(this->type)] = {0};
+            ::memcpy(buffer, static_cast<void *>(this), sizeof(Command));
+            ::memcpy(buffer + sizeof(Command), &type, sizeof(type));
+            std::string res(buffer, sizeof(buffer));
             res.append(data);
-            return std::move(res);
+            return res;
         }
 
         const std::string &unserialize(const std::string &data)

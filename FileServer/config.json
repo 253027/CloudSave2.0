@@ -1,0 +1,5 @@
+{
+    "port": 9200,
+    "threadNums": 3,
+    "filepath": "./upload/"
+}

@@ -1,8 +1,13 @@
 #! /usr/bin/env python3
 import socket
 import json
+from typing import List
 
 s = socket.socket()
+
+def initial() -> None:
+    pass
+
 
 try:
     s.connect(("127.0.0.1", 9190))
@@ -19,8 +24,9 @@ try:
         else:
             try:
                 json_str = {}
-                json_str["val"] = message
                 json_str["type"] = 1
+                json_str["name"] = message
+                json_str["password"] = "1234"
                 message = json.dumps(json_str)
                 type = 3    #数据类型
 
@@ -47,3 +53,7 @@ try:
 
 finally:
     s.close()
+
+
+if __name__ == "__main__":
+    pass

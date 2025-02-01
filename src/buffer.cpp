@@ -1,6 +1,10 @@
 #include "buffer.h"
+
+#include <string.h>
 #include <sys/uio.h>
+#include <arpa/inet.h>
 #include <unistd.h>
+#include <memory>
 
 mg::Buffer::Buffer(int initialSize)
     : _buffer(_headSize + initialSize),
@@ -12,6 +16,56 @@ mg::Buffer::Buffer(int initialSize)
 int mg::Buffer::writeableBytes()
 {
     return this->_buffer.size() - this->_writeIndex;
+}
+
+int64_t mg::Buffer::peekInt64()
+{
+#ifndef _DEBUG
+    assert(readableBytes() >= sizeof(int64_t));
+#endif
+    int32_t len2 = 0, len1 = 0;
+    ::memcpy(&len2, readPeek(), sizeof(len2));
+    ::memcpy(&len1, readPeek() + sizeof(len2), sizeof(len1));
+    int64_t ret = static_cast<int64_t>(::ntohl(len2)) << 32;
+    return ret | ::ntohl(len1);
+}
+
+int64_t mg::Buffer::readInt64()
+{
+    int ret = peekInt64();
+    this->retrieve(sizeof(int64_t));
+    return ret;
+}
+
+void mg::Buffer::appendInt64(int64_t len)
+{
+    int32_t len1 = ::htonl(len & 0xffffffff);
+    int32_t len2 = ::htonl(len >> 32);
+    append((char *)&len2, sizeof(int32_t));
+    append((char *)&len1, sizeof(int32_t));
+}
+
+void mg::Buffer::appendInt32(int32_t len)
+{
+    len = ::htonl(len);
+    append((char *)&len, sizeof(uint32_t));
+}
+
+int32_t mg::Buffer::peekInt32()
+{
+#ifndef _DEBUG
+    assert(readableBytes() >= sizeof(int32_t));
+#endif
+    int32_t ret = 0;
+    ::memcpy(&ret, readPeek(), sizeof(ret));
+    return ::ntohl(ret);
+}
+
+int32_t mg::Buffer::readInt32()
+{
+    int32_t ret = peekInt32();
+    this->retrieve(sizeof(int32_t));
+    return ret;
 }
 
 int mg::Buffer::readableBytes()
@@ -65,7 +119,7 @@ std::string mg::Buffer::retrieveAllAsString()
 
 std::string mg::Buffer::retrieveAsString(int len)
 {
-    len = std::min(len, this->readableBytes());
+    assert(len <= this->readableBytes());
     std::string res(this->readPeek(), len);
     retrieve(len);
     return res;
@@ -75,7 +129,7 @@ void mg::Buffer::append(const char *data, int len)
 {
     this->ensureWriteSpace(len);
     std::copy(data, data + len, this->writePeek());
-    this->_writeIndex + len;
+    this->_writeIndex += len;
 }
 
 void mg::Buffer::append(const std::string &data)
@@ -103,7 +157,7 @@ int mg::Buffer::receive(int fd, int &saveError)
     vec[1].iov_base = extraBuffer;
     vec[1].iov_len = sizeof(extraBuffer);
 
-    const int vecSize = (writeSize < sizeof(Buffer)) ? 2 : 1;
+    const int vecSize = (writeSize < sizeof(extraBuffer)) ? 2 : 1;
     const int len = ::readv(fd, vec, vecSize);
     if (len < 0)
         saveError = errno;
@@ -132,6 +186,7 @@ void mg::Buffer::ensureWriteSpace(int len)
     if (this->writeableBytes() >= len)
         return;
     this->allocate(len);
+    assert(this->writeableBytes() >= len);
 }
 
 void mg::Buffer::allocate(int len)

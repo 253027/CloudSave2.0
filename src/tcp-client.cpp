@@ -23,6 +23,9 @@ mg::TcpClient::TcpClient(int domain, int type, EventLoop *loop, const InternetAd
 mg::TcpClient::~TcpClient()
 {
     LOG_INFO("~TcpClient() called");
+    if (!_connected)
+        return;
+
     TcpConnectionPointer connection;
     bool unique = false;
     {
@@ -35,6 +38,8 @@ mg::TcpClient::~TcpClient()
         assert(_loop == connection->getLoop());
         ConnectionClosedCallback callback = std::bind(&mg::removeConnection, _loop, std::placeholders::_1);
         _loop->run(std::bind(&TcpConnection::setCloseCallback, connection, callback));
+        if (unique)
+            connection->forceClose();
     }
     else
     {
@@ -52,6 +57,8 @@ void mg::TcpClient::connect()
 void mg::TcpClient::stop()
 {
     _connected = false;
+    if (_connection)
+        _connection->forceClose();
     _connector->stop();
 }
 

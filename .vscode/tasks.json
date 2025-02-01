@@ -6,13 +6,45 @@
             "type": "shell",
             "command": "make",
             "options": {
-                "cwd": "${workspaceFolder}/SessionServer"  // 指定当前工作目录
+                "cwd": "${workspaceFolder}/SessionServer" // 指定当前工作目录
             },
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$gcc"]
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/test" // 指定当前工作目录
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "FileServer",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}" // 指定当前工作目录
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }

@@ -20,7 +20,7 @@ private:
     using json = nlohmann::json;
     using TCPCONNECTION = const mg::TcpConnectionPointer;
 
-    enum class ConnectionState : uint8_t
+    enum class ConState : uint16_t
     {
         UNVERIFY = 0, // 未验证
         VERIFY = 1,   // 已验证
@@ -35,6 +35,13 @@ private:
      * @brief 注册模块
      */
     bool regist(TCPCONNECTION &con, const json &jsData);
+
+    /**
+     * @brief 文件上传
+     */
+    bool upload(TCPCONNECTION &con, const json &jsData);
+    bool waitFileInfo(const std::string &filename, const json &jsData);
+    bool uploading(const std::string &filename, const json &jsData);
 };
 
 #endif //__BUSINESS_TYPE_H__

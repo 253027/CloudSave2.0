@@ -1,11 +1,12 @@
 #include "gateway-server.h"
 #include "json-data-parser.h"
-#include "session-server-client.h"
+#include "business.h"
 #include "../src/json.hpp"
 #include "../src/tcp-server.h"
 #include "../src/event-loop.h"
 #include "../src/http-packet-parser.h"
 #include "../src/tcp-packet-parser.h"
+#include "../src/http-method-call.h"
 #include "../src/log.h"
 
 #include <fstream>
@@ -14,7 +15,7 @@ using json = nlohmann::json;
 
 GateWayServer::GateWayServer()
 {
-    mg::HttpPacketParser::getMe();
+    mg::HttpPacketParser::get();
 }
 
 GateWayServer::~GateWayServer()
@@ -47,6 +48,8 @@ bool GateWayServer::initial()
     _server->setMessageCallback(std::bind(&GateWayServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _server->setConnectionCallback(std::bind(&GateWayServer::connectionStateChange, this, std::placeholders::_1));
     _server->setThreadNums(js["GatewayServer"].value("threadnums", 1));
+
+    this->regist();
     return true;
 }
 
@@ -62,56 +65,43 @@ void GateWayServer::quit()
     _loop->quit();
 }
 
-void GateWayServer::onInternalServerResponse(const std::string &name, const std::string &data)
+void GateWayServer::onInternalServerResponse(const std::string &name, nlohmann::json &js)
 {
-    auto it = _connection.find(name);
-    if (it == _connection.end())
-        return;
-    mg::TcpConnectionPointer p = it->second.lock();
-    if (!p)
+    mg::TcpConnectionPointer p;
     {
         std::lock_guard<std::mutex> guard(_mutex);
-        _connection.erase(name);
-        return;
+        auto it = _connection.find(name);
+        if (it == _connection.end())
+            return;
+        p = it->second.lock();
+        if (!p)
+        {
+            _connection.erase(name);
+            return;
+        }
+        if (js.value("con-state", 0))
+            p->setUserConnectionState(js["con-state"]);
+        js.erase("con-state");
     }
 
-    mg::HttpData httpData;
-    mg::HttpHead &head = std::get<0>(httpData);
-    mg::HttpBody &body = std::get<1>(httpData);
-    head["HTTP/1.1"] = "200 OK";
-    head["Content-Type"] = "application/json";
-    head["Server"] = "Apache/2.4.41 (Ubuntu)";
-    // body = "<html>Hello World</html>";
-    body = data;
-    mg::HttpPacketParser::getMe().send(p, httpData);
+    mg::HttpResponse response;
+    response.setStatus(200);
+    response.setHeader("Content-Type", "application/json");
+    response.setHeader("Server", "Apache/2.4.41 (Ubuntu)");
+    response.setBody(js.dump());
+    mg::HttpPacketParser::get().send(p, response);
 }
 
 void GateWayServer::onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c)
 {
-    mg::HttpData data;
-    if (!mg::HttpPacketParser::getMe().reveive(a, data))
-        return;
-
-    mg::HttpHead head;
-    mg::HttpBody body;
-    std::tie(head, body) = std::move(data);
-    bool valid = true;
-
-    int type = mg::HttpPacketParser::getMe().parseType(head["content-type"]);
-    switch (type)
+    while (1)
     {
-    case 7: // json数据
-    {
-        valid = JsonDataParser::getMe().parse(a->name(), body);
-        break;
+        mg::HttpRequest data(a);
+        if (!mg::HttpPacketParser::get().reveive(a, data))
+            break;
+        if (!mg::HttpMethodCall::get().exec(data))
+            this->invalidResponse(a);
     }
-    default:
-        valid = false;
-        break;
-    }
-
-    if (!valid)
-        this->invalidResponse(a);
 }
 
 void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
@@ -136,11 +126,15 @@ void GateWayServer::connectionStateChange(const mg::TcpConnectionPointer &a)
 
 void GateWayServer::invalidResponse(const mg::TcpConnectionPointer &a)
 {
-    mg::HttpData httpData;
-    mg::HttpHead &head = std::get<0>(httpData);
-    mg::HttpBody &body = std::get<1>(httpData);
-    head["HTTP/1.1"] = "400 Bad Request";
-    head["Content-Type"] = "text/html";
-    body = "<html>Invalid Request</html>";
-    mg::HttpPacketParser::getMe().send(a, httpData);
+    mg::HttpResponse response;
+    response.setStatus(400);
+    response.setHeader("Content-Type", "text/html");
+    response.setBody("<html>Invalid Request</html>");
+    mg::HttpPacketParser::get().send(a, response);
+}
+
+void GateWayServer::regist()
+{
+    mg::HttpMethodCall::get().regist("GET", "/index.html", std::bind(&Business::main, Business::getInstance(), std::placeholders::_1));
+    mg::HttpMethodCall::get().regist("GET", "/login", std::bind(&Business::login, Business::getInstance(), std::placeholders::_1));
 }

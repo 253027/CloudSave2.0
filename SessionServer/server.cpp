@@ -4,8 +4,11 @@
 
 void sighandle(int sig)
 {
-    SessionServer::getMe().quit();
-    mg::MysqlConnectionPool::getMe().quit();
+    if (sig != SIGTERM && sig != SIGINT)
+        return;
+
+    SessionServer::get().quit();
+    mg::MysqlConnectionPool::get().quit();
 
     SessionServer::destroyInstance();
     mg::MysqlConnectionPool::destroyInstance();
@@ -15,10 +18,14 @@ void sighandle(int sig)
     ::exit(0);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    if (::daemon(1, 1) == -1)
-        return 0;
+    if (argc > 1 && !strcasecmp("-daemon", argv[1]))
+    {
+        if (::daemon(1, 1) == -1)
+            return 0;
+        std::cout << "SessionServer started in daemon mode" << std::endl;
+    }
     signal(SIGINT, sighandle);
     signal(SIGTERM, sighandle);
 
@@ -27,12 +34,12 @@ int main()
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------SessionServer started-----------------------------------");
 
-    if (!mg::MysqlConnectionPool::getMe().initial("./SessionServer/database.json", "mysql"))
+    if (!mg::MysqlConnectionPool::get().initial("./SessionServer/database.json", "mysql"))
         assert(0 && "mysql initial failed");
-    if (!mg::MysqlConnectionPool::getMe().start(180))
+    if (!mg::MysqlConnectionPool::get().start(180))
         assert(0 && "mysql start failed");
 
-    SessionServer::getMe().initial();
-    SessionServer::getMe().start();
+    SessionServer::get().initial();
+    SessionServer::get().start();
     return 0;
 }

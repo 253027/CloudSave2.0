@@ -8,6 +8,8 @@
 #ifndef __MG_SINGLETION_H__
 #define __MG_SINGLETION_H__
 
+#include <pthread.h>
+
 template <typename T>
 class Singleton
 {
@@ -24,6 +26,7 @@ private:
 
 protected:
     static T *instance;
+    static pthread_once_t ponce;
 
     Singleton() {}
 
@@ -40,18 +43,26 @@ public:
 
     static T *getInstance()
     {
-        if (!instance)
-            instance = new T();
+        pthread_once(&ponce, &Singleton::init);
         return instance;
     }
 
-    static T &getMe()
+    static T &get()
     {
         return *getInstance();
+    }
+
+private:
+    static void init()
+    {
+        instance = new T();
     }
 };
 
 template <typename T>
 T *Singleton<T>::instance = nullptr;
+
+template <typename T>
+pthread_once_t Singleton<T>::ponce = PTHREAD_ONCE_INIT;
 
 #endif //__MG_SINGLETION_H__

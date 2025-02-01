@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="icon" href="data:;base64,=">
+    <title>文件列表</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.1/spark-md5.min.js"></script>
+    <script type="text/javascript">
+        function confirmDelete() {
+            return confirm('确认删除该文件吗？');
+        }
+
+        function uploadWin() {
+            var vDiv = document.getElementById('div1');
+            vDiv.style.display = 'block';
+            vDiv.style.zIndex = 10;
+            vDiv.style.position = "absolute";
+
+            var vDiv2 = document.getElementById('div2');
+            vDiv2.style.display = 'block';
+            vDiv2.style.zIndex = 11;
+            vDiv2.style.position = "fixed";
+            vDiv2.style.top = "20%";
+            vDiv2.style.left = "50%";
+            vDiv2.style.marginLeft = "-111px";
+            vDiv2.style.marginTop = "-20px";
+        }
+
+        const CHUNK_SIZE_DEFAULT = 5 * 1024 * 1024;  // 默认分块大小为5MB
+        let uploadProgress = null;
+
+        async function calculateMD5(file) {
+            return new Promise((resolve, reject) => {
+                const chunkSize = 2 * 1024 * 1024;
+                const chunks = Math.ceil(file.size / chunkSize);
+                const spark = new SparkMD5.ArrayBuffer();
+                const fileReader = new FileReader();
+                let currentChunk = 0;
+
+                fileReader.onload = function (e) {
+                    spark.append(e.target.result);
+                    currentChunk++;
+
+                    if (currentChunk < chunks) {
+                        loadNextChunk();
+                    } else {
+                        resolve(spark.end());
+                    }
+                };
+
+                fileReader.onerror = function () {
+                    reject('MD5计算失败');
+                };
+
+                function loadNextChunk() {
+                    const start = currentChunk * chunkSize;
+                    const end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+                    fileReader.readAsArrayBuffer(file.slice(start, end));
+                }
+
+                loadNextChunk();
+            });
+        }
+
+        async function sendFileInfo(file) {
+            const fileInfo = {
+                fileName: file.name,
+                fileSize: file.size,
+                fileMD5: await calculateMD5(file)
+            };
+
+            const response = await fetch('/upload/file-info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fileInfo)
+            });
+
+            if (!response.ok) {
+                alert('发送文件信息失败');
+                return null;
+            }
+
+            return await response.json();
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById("upload");
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("请选择一个文件进行上传");
+                return;
+            }
+
+            document.getElementById('progressContainer').style.display = 'block';
+
+            const serverResponse = await sendFileInfo(file);
+            if (!serverResponse) {
+                alert("服务器验证文件信息失败");
+                return;
+            }
+
+            const chunkSize = serverResponse.chunk_size || CHUNK_SIZE_DEFAULT;
+            const totalChunks = Math.ceil(file.size / chunkSize);
+
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressText = document.getElementById('uploadProgressText');
+            progressBar.max = file.size;
+
+            let uploadedBytes = 0;
+
+            async function uploadNextChunk(currentChunk = 0) {
+                if (currentChunk >= totalChunks) {
+                    alert("文件上传成功！");
+                    updateFileList();  // 上传成功后更新文件列表
+                    return;
+                }
+
+                const start = currentChunk * chunkSize;
+                const end = Math.min((start + chunkSize), file.size);
+                const blob = file.slice(start, end);
+
+                // 创建 XMLHttpRequest 请求
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/upload", true);
+
+                // 设置请求头部，包含文件名、当前块编号、总块数等信息
+                xhr.setRequestHeader("X-File-Name", encodeURIComponent(file.name));
+                xhr.setRequestHeader("X-Chunk-Number", currentChunk);
+                xhr.setRequestHeader("X-Total-Chunks", totalChunks);
+                xhr.setRequestHeader("Content-Type", "application/octet-stream");
+
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        uploadedBytes = start + e.loaded;
+                        progressBar.value = uploadedBytes;
+                        progressText.textContent = `上传进度: ${((uploadedBytes / file.size) * 100).toFixed(2)}%`;
+                    }
+                };
+
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        uploadNextChunk(currentChunk + 1);
+                    } else {
+                        console.error("上传块失败:", xhr.statusText);
+                        alert("上传块失败");
+                    }
+                };
+
+                xhr.onerror = function () {
+                    console.error("上传出错:", xhr.statusText);
+                    alert("上传出错");
+                };
+
+                // 发送文件块（blob），并不使用 FormData，只发送文件的二进制内容
+                xhr.send(blob);
+            }
+
+            uploadNextChunk();
+        }
+
+
+        function updateFileList() {
+            const fileListTable = document.getElementById('fileList');
+            while (fileListTable.rows.length > 1) {
+                fileListTable.deleteRow(1);
+            }
+
+            fetch('/file-list')
+                .then(response => response.json())
+                .then(files => {
+                    files.forEach(file => {
+                        const row = document.createElement('tr');
+                        const fileNameCell = document.createElement('td');
+                        fileNameCell.textContent = file.name;
+                        const fileSizeCell = document.createElement('td');
+                        fileSizeCell.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+
+                        const downloadCell = document.createElement('td');
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = `/download/${file.name}`;
+                        downloadLink.textContent = '下载';
+                        downloadCell.appendChild(downloadLink);
+
+                        row.appendChild(fileNameCell);
+                        row.appendChild(fileSizeCell);
+                        row.appendChild(downloadCell);
+                        fileListTable.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('获取文件列表失败', error);
+                });
+        }
+
+        window.onload = function () {
+            updateFileList();
+        };
+    </script>
+
+    <style>
+        .col1 {
+            text-align: left;
+            word-break: keep-all;
+            word-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .col2 {
+            width: 50px;
+        }
+
+        .col3 {
+            width: 50px;
+        }
+
+        #progressContainer {
+            display: none;
+            width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #uploadProgressBar {
+            width: 100%;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body style="text-align: center; margin: 0 auto;">
+    <div style="width:700px;  margin:50px auto; padding: 30px 0; border:1px dotted;">
+        <div style="width:600px; border:1px dotted;text-align: center; margin:auto; padding:20px 0px;">
+            <div style="width:300px; text-align: left; margin: auto;">选择文件上传：</div>
+            <br />
+            <form id="uploadfile" action="javascript:void(0);" method="post" enctype="multipart/form-data"
+                style="text-align: center;">
+                <input type="file" id="upload" name="upload" style="border:1px solid;" />
+                <input type="submit" onclick="uploadFile();" value="上传" />
+            </form>
+        </div>
+
+        <div id="progressContainer">
+            <progress id="uploadProgressBar" value="0"></progress>
+            <div id="uploadProgressText">上传进度: 0%</div>
+        </div>
+
+        </br>
+        <div style="width:600px; text-align: left; margin:auto;">文件列表：</div>
+        <table border="1px" style="width:600px; text-align: center; margin: auto; table-layout: fixed;">
+            <thead>
+                <tr>
+                    <td style="text-align: center; width: 50%;">文件名</td>
+                    <td class="col2" style="text-align: center; width: 30%;">文件大小</td>
+                    <td class="col3" style="width: 20%;"></td>
+                </tr>
+            </thead>
+            <tbody id="fileList">
+                <!-- 假设这里生成文件列表 -->
+                <tr>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

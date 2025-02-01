@@ -3,6 +3,7 @@
 
 #include "../src/singleton.h"
 #include "../src/function-callbacks.h"
+#include "../src/json_fwd.hpp"
 
 #include <memory>
 #include <mutex>
@@ -25,6 +26,8 @@ public:
     bool initial();
 
     bool sendToServer(const std::string &data);
+
+    void quit();
 
 private:
     void onMessage(const mg::TcpConnectionPointer &a, mg::Buffer *b, mg::TimeStamp c);

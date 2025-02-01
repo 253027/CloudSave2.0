@@ -2,7 +2,7 @@
 #include "event-loop.h"
 #include "log.h"
 
-const int mg::Connector::_maxRetryDelayMileSeconds = 30'000;
+const int mg::Connector::_maxRetryDelayMileSeconds = 30000;
 const int mg::Connector::_initialRetryDelayMileSeconds = 500;
 
 mg::Connector::Connector(int domain, int type, EventLoop *loop, const InternetAddress &address)
@@ -185,8 +185,8 @@ void mg::Connector::retry()
     this->setState(DisConnected);
     if (this->_connect)
     {
-        LOG_INFO("retry connnect to {}, next retrytime: {} seconds", _address.toIpPort(), _retryMileSeconds / 1'000.0);
-        _loop->runAfter(_retryMileSeconds / 1'000.0, std::bind(&Connector::startInLoop, shared_from_this()));
+        LOG_INFO("retry connnect to {}, next retrytime: {} seconds", _address.toIpPort(), _retryMileSeconds / 1000.0);
+        _loop->runAfter(_retryMileSeconds / 1000.0, std::bind(&Connector::startInLoop, shared_from_this()));
         _retryMileSeconds = std::min(_retryMileSeconds * 2, Connector::_maxRetryDelayMileSeconds);
     }
     else

@@ -44,6 +44,8 @@ namespace mg
 
         void shutdown();
 
+        void forceClose();
+
         /**
          * @brief 发送数据
          * @param data 待发送的数据
@@ -116,6 +118,11 @@ namespace mg
          */
         void sendInOwnerLoop(const void *data, int len);
         void sendInOwnerLoop(const std::string &data);
+
+        /**
+         * @brief 在所属线程中强制关闭连接
+         */
+        void forceCloseInOwnerloop(TcpConnectionPointer con);
 
         int _highWaterMark;                           // 高水位阈值
         EventLoop *_loop;                             // 所属的事件循环

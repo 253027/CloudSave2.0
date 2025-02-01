@@ -126,7 +126,7 @@ void mg::TimerQueue::cancelInOwnerLoop(TimerId id)
         delete it->first;
         _activeTimers.erase(it);
     }
-    else if (_isCallingExpiredTimers)
+    else if (_isCallingExpiredTimers) // 这里是单线程的会执行到这里吗？感觉有问题
         _cancleingTimers.insert(timer);
 }
 

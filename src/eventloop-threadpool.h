@@ -4,6 +4,7 @@
 #include "eventloop-thread.h"
 
 #include <functional>
+#include <vector>
 
 namespace mg
 {
@@ -25,7 +26,7 @@ namespace mg
         /**
          * @brief 启动线程池
          */
-        void start(ThreadInitialCallback callBack);
+        void start(ThreadInitialCallback callBack = ThreadInitialCallback());
 
         /**
          * @brief 以轮询方式得到下一个eventloop实例
@@ -46,9 +47,15 @@ namespace mg
         std::string _name;                                      // 线程池名字
         bool _started;                                          // 标志是否开启
         int _threadNums;                                        // 线程数
-        int _next;                                              // 下一个轮询到的时间循环下标
         std::vector<std::unique_ptr<EventLoopThread>> _threads; // 线程集合
         std::vector<EventLoop *> _loops;                        // 事件循环集合
+
+        struct pair
+        {
+            int first = 0;
+            int second = 0;
+        };
+        std::atomic<pair> _next; // 下一个轮询到的时间循环下标
     };
 };
 

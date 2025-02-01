@@ -2,11 +2,11 @@
 import subprocess
 from typing import List
 
-process = ["./SessionServer/server", "./GatewayServer/server"]
+process = ["./SessionServer/server", "./GatewayServer/server", "./FileServer/server"]
 
 def run(proclist: List[str]) -> bool:
     for name in proclist:
-        result = subprocess.Popen([name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.Popen([name, "-daemon"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             stdout, stderr = result.communicate(timeout=0.5)
             if stderr:
@@ -16,6 +16,7 @@ def run(proclist: List[str]) -> bool:
                 print("Output:", stdout.decode())
         except subprocess.TimeoutExpired:
             pass
+    return True
 
 if __name__ == "__main__":
     run(process)

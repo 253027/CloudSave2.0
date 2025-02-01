@@ -4,9 +4,9 @@
 
 bool mg::TcpPacketParser::send(const mg::TcpConnectionPointer con, const std::string &data)
 {
-    int len = ::htonl(data.size());
-    std::string buf((char *)&len, headSize);
-    buf += data;
+    mg::Buffer buf;
+    buf.appendInt32(data.size());
+    buf.append(data);
     con->send(buf);
     return true;
 }
@@ -16,11 +16,11 @@ bool mg::TcpPacketParser::reveive(const mg::TcpConnectionPointer con, std::strin
     if (con->_readBuffer.readableBytes() < headSize)
         return false;
 
-    int len = ::ntohl(*((int *)con->_readBuffer.readPeek()));
+    int len = con->_readBuffer.peekInt32();
     if (con->_readBuffer.readableBytes() < headSize + len)
         return false;
 
-    if (len != ::ntohl(*((int *)con->_readBuffer.retrieveAsString(headSize).c_str())))
+    if (len != con->_readBuffer.readInt32())
     {
         LOG_ERROR("data size not compatiable");
         return false;

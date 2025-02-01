@@ -37,7 +37,7 @@ namespace mg
          * @brief 得到TimeStamp对象具体的Unix时间戳（UTC时间）
          */
         inline int64_t getMircoSecond() const { return this->_microsecond; };
-        inline int64_t getMileSeconds() const { return this->_microsecond / 1'000; };
+        inline int64_t getMileSeconds() const { return this->_microsecond / 1000; };
         inline int64_t getSeconds() const { return this->_microsecond / _mircoSecondsPerSecond; };
 
         /**
@@ -72,7 +72,7 @@ namespace mg
         }
 
         // 1秒等于的微秒数
-        static const int _mircoSecondsPerSecond = 1'000 * 1'000;
+        static const int _mircoSecondsPerSecond = 1000 * 1000;
 
         friend TimeStamp addTime(TimeStamp timestamp, double seconds);
 

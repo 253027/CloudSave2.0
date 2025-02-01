@@ -1,12 +1,15 @@
 #include "business-task.h"
+#include "file-info.h"
+#include "session-json.h"
 #include "../src/tcp-packet-parser.h"
-#include "../src/json.hpp"
+#include "../src/json-extract.h"
 #include "../src/mysql.h"
 #include "../src/mysql-connection-pool.h"
 #include "../src/macros.h"
 #include "../protocal/protocal-session.h"
 
 #include <crypt.h>
+#include <sstream>
 using namespace Protocal;
 
 bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::SessionCommand &data)
@@ -25,6 +28,9 @@ bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::S
     case SessionType::REGIST:
         valid = regist(connection, js);
         break;
+    case SessionType::UPLOAD:
+        valid = upload(connection, js);
+        break;
     }
 
     return valid;
@@ -32,21 +38,16 @@ bool BusinessTask::parse(const mg::TcpConnectionPointer &connection, Protocal::S
 
 bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
 {
-    ConnectionState state = TO_ENUM(ConnectionState, con->getUserConnectionState());
-    if (state != ConnectionState::UNVERIFY)
+    std::string name, password;
+    if (!mg::JsonExtract::extract(jsData, "name", name, mg::JsonExtract::STRING))
+        return false;
+    if (!mg::JsonExtract::extract(jsData, "password", password, mg::JsonExtract::STRING))
         return false;
 
-    if (!jsData.contains("name") || !jsData["name"].is_string())
-        return false;
-    if (!jsData.contains("password") || !jsData["password"].is_string())
-        return false;
-
-    std::string name = jsData["name"];
-    std::string password = jsData["password"];
     if (name.empty() || password.empty())
         return false;
 
-    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::getMe().getHandle();
+    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::get().getHandle();
     if (!sql)
     {
         LOG_ERROR("get mysql handle failed");
@@ -56,14 +57,14 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     json ret;
     ret["connection-name"] = jsData["connection-name"];
 
-    std::ostringstream os;
+    std::stringstream os;
     os << "select username, passwd, salt from user_info where ";
     os << "username = \'" << name << "\'";
     if (!sql->query(os.str()) || !sql->next())
     {
-        ret["status"] = "falied";
+        ret["status"] = "failed";
         ret["detail"] = "user not exit";
-        mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
+        mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
         return false;
     }
 
@@ -77,25 +78,20 @@ bool BusinessTask::login(TCPCONNECTION &con, const json &jsData)
     std::string cryptPassword(::strrchr(crypt, '$') + 1);
     if (cryptPassword != sql->getData("passwd"))
     {
-        ret["status"] = "falied";
+        ret["status"] = "failed";
         ret["detail"] = "password error";
-        mg::TcpPacketParser::getMe().send(con, SessionCommand().serialize(ret.dump()));
+        mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
         return false;
     }
 
-    con->setUserConnectionState(TO_UNDERLYING(ConnectionState::VERIFY));
-
-    // retData["type"] = TO_UNDERLYING(MethodType::LOGIN);
-    // retData["status"] = "success";
-    // mg::TcpPacketParser::getMe().send(con, retData.dump());
+    ret["con-state"] = TO_UNDERLYING(ConState::VERIFY);
+    ret["status"] = "success";
+    mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
     return true;
 }
 
 bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
 {
-    if (TO_ENUM(ConnectionState, con->getUserConnectionState()) != ConnectionState::UNVERIFY)
-        return false;
-
     std::string salt = "$y$j9T$byV0Zo35gBDQJtKsEx.XR/";
     std::string name = jsData.value("name", "");
     std::string password = jsData.value("password", "");
@@ -124,7 +120,7 @@ bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
     ::strncpy(data.password, ::strrchr(crypt, '$') + 1, sizeof(data.password) - 1);
     ::strncpy(data.username, name.c_str(), sizeof(data.username) - 1);
 
-    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::getMe().getHandle();
+    std::shared_ptr<mg::Mysql> sql = mg::MysqlConnectionPool::get().getHandle();
     if (!sql)
     {
         LOG_ERROR("get mysql handle failed");
@@ -132,4 +128,88 @@ bool BusinessTask::regist(TCPCONNECTION &con, const json &jsData)
     }
     sql->insert("user_info", field, (char *)&data);
     return true;
+}
+
+bool BusinessTask::upload(TCPCONNECTION &con, const json &jsData)
+{
+    uint16_t state = 0;
+    if (!mg::JsonExtract::extract(jsData, "con-state", state, mg::JsonExtract::INT))
+        return false;
+    if (state != TO_UNDERLYING(ConState::VERIFY))
+        return false;
+
+    int size = 0;
+    std::string filename, hash;
+    if (!mg::JsonExtract::extract(jsData, "filename", filename, mg::JsonExtract::STRING))
+        return false;
+
+    if (!fileMemo.count(filename))
+        fileMemo[filename] = std::unique_ptr<FileInfo>(new FileInfo(filename, FileInfo::FILEMODE::WRITE));
+    auto &fileInfo = fileMemo[filename];
+
+    switch (fileInfo->getFileStatus())
+    {
+    case FileInfo::FILESTATUS::WAITING_INFO:
+    {
+        json ret = SessionJson::generate(jsData);
+        if (!waitFileInfo(filename, jsData))
+            ret["status"] = "parameter error";
+        else
+            ret["status"] = "uploading";
+        mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
+        break;
+    }
+
+    case FileInfo::FILESTATUS::UPLOADING:
+    {
+        if (!uploading(filename, jsData))
+            return false;
+        if (fileInfo->isCompleted())
+        {
+            json js;
+            fileInfo->setFileStatus(FileInfo::FILESTATUS::COMPLETED);
+            js["connection-name"] = jsData["connection-name"];
+            js["filename"] = filename;
+            js["status"] = "success";
+            mg::TcpPacketParser::get().send(con, SessionCommand().serialize(js.dump()));
+        }
+        break;
+    }
+
+    case FileInfo::FILESTATUS::COMPLETED:
+        return true;
+    }
+
+    json ret;
+    ret["connection-name"] = jsData["connection-name"];
+    ret["status"] = "success";
+    mg::TcpPacketParser::get().send(con, SessionCommand().serialize(ret.dump()));
+    return true;
+}
+
+bool BusinessTask::waitFileInfo(const std::string &filename, const json &jsData)
+{
+    auto &fileInfo = fileMemo[filename];
+    int size = 0;
+    std::string hash;
+    if (!mg::JsonExtract::extract(jsData, "hash", hash, mg::JsonExtract::STRING))
+        return false;
+    if (!mg::JsonExtract::extract(jsData, "size", size, mg::JsonExtract::INT))
+        return false;
+    fileInfo->setFileHash(hash);
+    fileInfo->setFileSize(size);
+    fileInfo->setFileStatus(FileInfo::FILESTATUS::UPLOADING);
+    return true;
+}
+
+bool BusinessTask::uploading(const std::string &filename, const json &jsData)
+{
+    auto &fileInfo = fileMemo[filename];
+    int chunkIndex = 0;
+    if (!mg::JsonExtract::extract(jsData, "chunkIndex", chunkIndex, mg::JsonExtract::INT))
+        return false;
+    std::string data;
+    if (!mg::JsonExtract::extract(jsData, "data", data, mg::JsonExtract::BINARY))
+        return false;
+    return fileInfo->write(chunkIndex, data) == data.size();
 }

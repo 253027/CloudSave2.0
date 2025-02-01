@@ -5,7 +5,7 @@
 #include <sys/eventfd.h>
 
 __thread mg::EventLoop *t_loopInThisThread = nullptr;
-const int waitTime = 10'000;
+const int waitTime = 10000;
 
 mg::EventLoop::EventLoop(const std::string &name) : _name(name), _epoller(this),
                                                     _epollReturnTime(0), _looping(false),
