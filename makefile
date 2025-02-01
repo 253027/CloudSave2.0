@@ -31,6 +31,4 @@ FileServer: src
 clean:
 	$(RM) -r build
 	$(MAKE) -C src clean
-	$(MAKE) -C GatewayServer clean
-	$(MAKE) -C SessionServer clean
-	$(MAKE) -C test clean
+	$(MAKE) -C FileServer clean

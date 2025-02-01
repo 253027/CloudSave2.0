@@ -10,7 +10,7 @@ CloudSave2.0 是一个基于 [muduo](https://github.com/chenshuo/muduo) 网络�
   - **断点续传(未完成)**：通过支持 Range 请求，确保在网络中断或其他异常情况下，客户端可以从上次传输结束的地方继续下载文件。
   
 - **src**  
-  此目录包含了项目核心业务逻辑和通用组件的源代码。src 文件夹中实现了系统中各个模块之间的交互接口、数据处理逻辑以及工具函数，为 CloudSave2.0 提供了稳定、高效的基础支持。这里的代码不仅为 FileServer 提供必要的支撑，确保整体架构的模块化和可扩展性。
+  此目录包含了项目核心业务逻辑和通用组件的源代码。src 文件夹中实现了系统中各个模块之间的交互接口、数据处理逻辑以及工具函数，为 CloudSave2.0 提供了稳定、高效的基础支持。
 
 ## 主要功能
 
@@ -34,26 +34,31 @@ CloudSave2.0 是一个基于 [muduo](https://github.com/chenshuo/muduo) 网络�
    ```bash
    git clone https://github.com/253027/CloudSave2.0.git
    cd CloudSave2.0
-2. 使用仓库中提供的 makefile 进行构建
+2. 使用仓库中提供的`makefile`进行构建
    ```bash
    make
-3. 在仓库中的FileServer文件夹内提供了file-server.sql脚本，用于创建数据库、表结构及初始数据。使用以下命令导入数据库脚本（请将your_username替换为你的MySQL用户名）
+3. 在仓库中的`FileServer`文件夹内提供了`file-server.sql`脚本，用于创建数据库、表结构及初始数据。使用以下命令导入数据库脚本（请将your_username替换为你的MySQL用户名）
    ```bash
    mysql -u your_username -p < ./FileServer/file-server.sql
-4. 修改数据库database.json配置文件
+4. 修改数据库`database.json`配置文件
    ```
    {
-    "ip": "localhost",
-    "port": 3306,
-    "username": "your_username",
-    "password": "your_password",
-    "databasename": "your_databases_name",
-    "maxsize": 8,
-    "minsize": 4,
-    "timeout": 3,
-    "idletimeout": 60
+      "ip": "localhost",
+      "port": 3306,
+      "username": "your_username",
+      "password": "your_password",
+      "databasename": "your_databases_name",
+      "maxsize": 8,
+      "minsize": 4,
+      "timeout": 3,
+      "idletimeout": 60
    }
    ```
 5. 启动服务
    ```
    ./run.py
+## TODO:
+- **1.支持注册功能**
+- **2.支持HTTPS**
+- **3.断点续传**
+
