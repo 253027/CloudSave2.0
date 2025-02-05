@@ -17,18 +17,18 @@ export LDFLAGS
 export DEBUG
 
 .PHONY: all
-all: src FileServer
+all: src loginServer
 
 .PHONY: src
 src:
 	$(MAKE) -C src
 
-.PHONY: FileServer
-FileServer: src
-	$(MAKE) -C FileServer
+.PHONY: loginServer
+loginServer: src
+	$(MAKE) -C loginServer
 
 .PHONY: clean
 clean:
 	$(RM) -r build
 	$(MAKE) -C src clean
-	$(MAKE) -C FileServer clean
+	$(MAKE) -C loginServer clean
