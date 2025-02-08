@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------LoginServer started-----------------------------------");
 
-    if (!LoginServer::get().initial("./logServer.config"))
+    if (!LoginServer::get().initial("./loginServer/loginServer.json"))
         assert(0 && "Initial LoginServer failed");
     if (!LoginServer::get().start())
         assert(0 && "start LoginServer failed");
