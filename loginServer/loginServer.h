@@ -25,7 +25,6 @@ private:
     std::unique_ptr<mg::Acceptor> _messageServer; // 消息服务器接收器
     std::unique_ptr<mg::Acceptor> _httpClient;    // HTTP客户端接收器
     std::unique_ptr<mg::Acceptor> _client;        // 客户端接收器
-    int _connectionID = 0;
     bool _start = false;
 };
 

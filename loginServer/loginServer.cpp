@@ -87,10 +87,6 @@ void LoginServer::quit()
 void LoginServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddress, int state)
 {
     mg::EventLoop *loop = this->_loop.get();
-
-    std::stringstream name;
-    name << peerAddress.toIpPort().c_str() << "-" << ++this->_connectionID;
-
     sockaddr_in local;
     ::memset(&local, 0, sizeof(local));
     socklen_t addresslen = sizeof(local);
@@ -101,25 +97,32 @@ void LoginServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddres
     }
 
     mg::InternetAddress localAddress(local);
+    mg::TcpConnectionPointer connect;
 
     switch (state)
     {
     case CONNECTION_HTTP_CLIENT:
     {
+        connect = std::make_shared<HttpClientConnection>(loop, peerAddress.toIpPort(), fd, localAddress, peerAddress);
         break;
     }
     case CONNECTION_MESSAGE_SERVER:
     {
+        connect = std::make_shared<MessageServerConnection>(loop, peerAddress.toIpPort(), fd, localAddress, peerAddress);
         break;
     }
     case CONNECTION_CLIENT:
     {
+        connect = std::make_shared<ClientConnection>(loop, peerAddress.toIpPort(), fd, localAddress, peerAddress);
         break;
     }
     default:
-        LOG_ERROR("invalid connnection tyoe");
+        LOG_ERROR("invalid connnection type");
         return;
     }
 
+    ConnectionManger::get().addConnection(connect);
+    connect->setCloseCallback(std::bind(&ConnectionManger::removeConnection, ConnectionManger::getInstance(), std::placeholders::_1));
+    loop->run(std::bind(&mg::TcpConnection::connectionEstablished, connect.get()));
     LOG_INFO("new connection:[{}] socketFd:[{}]", peerAddress.toIpPort(), fd);
 }
