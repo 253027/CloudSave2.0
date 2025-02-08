@@ -20,7 +20,7 @@ namespace mg
         TcpConnection(EventLoop *loop, const std::string &name, int sockfd,
                       const InternetAddress &localAddress, const InternetAddress &peerAddress);
 
-        ~TcpConnection();
+        virtual ~TcpConnection();
 
         inline const std::string &name() const { return this->_name; }
 
