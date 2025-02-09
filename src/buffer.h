@@ -88,11 +88,18 @@ namespace mg
         void appendInt32(int32_t len);
 
         /**
-         * @brief 从缓冲区读int64_t大小字节的数据, peekInt32()只读取不取出数据,
+         * @brief 从缓冲区读int32_t大小字节的数据, peekInt32()只读取不取出数据,
          *        readInt32()读取并取出
          */
         int32_t peekInt32();
         int32_t readInt32();
+
+        /**
+         * @brief 将sizeof(len)大小数据附加到缓冲区中
+         */
+        void appendUInt16(uint16_t data);
+        uint16_t peekUInt16();
+        uint16_t readUInt16();
 
         static const int _headSize = 4;       // 每个数据包的包头长度
         static const int _initialSize = 1024; // 缓冲区长度

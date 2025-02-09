@@ -68,6 +68,26 @@ int32_t mg::Buffer::readInt32()
     return ret;
 }
 
+void mg::Buffer::appendUInt16(uint16_t data)
+{
+    data = ::htons(data);
+    append((char *)&data, sizeof(data));
+}
+
+uint16_t mg::Buffer::peekUInt16()
+{
+    uint16_t ret = 0;
+    ::memcpy(&ret, readPeek(), sizeof(ret));
+    return ::ntohs(ret);
+}
+
+uint16_t mg::Buffer::readUInt16()
+{
+    uint16_t data = peekUInt16();
+    this->retrieve(sizeof(data));
+    return data;
+}
+
 int mg::Buffer::readableBytes()
 {
     return this->_writeIndex - this->_readIndex;
