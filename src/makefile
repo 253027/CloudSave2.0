@@ -2,6 +2,7 @@
 SDK_DIR := .
 BASE_DIR := $(SDK_DIR)/base
 PROTOCOL_DIR := $(SDK_DIR)/protocal
+PROTO_DIR := $(SDK_DIR)/protocal
 
 # 对象文件输出目录
 OBJ_OUT_DIR := ../build
@@ -15,17 +16,19 @@ $(shell mkdir -p $(SDK_OUT_DIR))
 SDK_SRC := $(wildcard $(SDK_DIR)/*.cpp)
 BASE_SRC := $(wildcard $(BASE_DIR)/*.cpp)
 PROTOCOL_SRC := $(wildcard $(PROTOCOL_DIR)/*.cpp)
+PROTO_SRC := $(wildcard $(PROTO_DIR)/*.pb.cc)  # 包括 protobuf 生成的源文件
 
 # 所有源文件
-ALL_SRC := $(SDK_SRC) $(BASE_SRC) $(PROTOCOL_SRC)
+ALL_SRC := $(SDK_SRC) $(BASE_SRC) $(PROTOCOL_SRC) $(PROTO_SRC)
 
 # 对象文件
 SDK_OBJ := $(patsubst $(SDK_DIR)/%.cpp, $(SDK_OUT_DIR)/%.o, $(SDK_SRC))
 BASE_OBJ := $(patsubst $(BASE_DIR)/%.cpp, $(SDK_OUT_DIR)/%.o, $(BASE_SRC))
 PROTOCOL_OBJ := $(patsubst $(PROTOCOL_DIR)/%.cpp, $(SDK_OUT_DIR)/%.o, $(PROTOCOL_SRC))
+PROTO_OBJ := $(patsubst $(PROTO_DIR)/%.pb.cc, $(SDK_OUT_DIR)/%.o, $(PROTO_SRC))  # 包括 protobuf 生成的对象文件
 
 # 所有对象文件
-ALL_OBJ := $(SDK_OBJ) $(BASE_OBJ) $(PROTOCOL_OBJ)
+ALL_OBJ := $(SDK_OBJ) $(BASE_OBJ) $(PROTOCOL_OBJ) $(PROTO_OBJ)
 
 # 预编译头文件
 PCH := $(SDK_OUT_DIR)/pch.h.gch
@@ -52,6 +55,9 @@ $(SDK_OUT_DIR)/%.o: $(BASE_DIR)/%.cpp $(PCH)
 
 $(SDK_OUT_DIR)/%.o: $(PROTOCOL_DIR)/%.cpp $(PCH)
 	$(CC) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@ -include $(PCH_SRC)
+
+$(SDK_OUT_DIR)/%.o: $(PROTO_DIR)/%.pb.cc $(PCH)
+	$(CC) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
 # 包含依赖文件（.d）
 -include $(ALL_OBJ:.o=.d)

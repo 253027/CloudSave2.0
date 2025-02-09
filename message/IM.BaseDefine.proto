@@ -1,0 +1,10 @@
+syntax = "proto3";
+package IM.BaseDefine;
+option optimize_for = LITE_RUNTIME;
+
+enum ServiceID
+{
+    SERVER_ID_LOGIN = 0x0000;
+    SERVER_ID_BUDDY_LIST = 0x0001;
+}
+
