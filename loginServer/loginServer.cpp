@@ -75,6 +75,7 @@ bool LoginServer::start()
     this->_loop->run(std::bind(&mg::Acceptor::listen, this->_messageServer.get()));
     this->_loop->run(std::bind(&mg::Acceptor::listen, this->_client.get()));
     this->_loop->run(std::bind(&mg::Acceptor::listen, this->_httpClient.get()));
+    this->_loop->runEvery(1.0, std::bind(&ConnectionManger::Timer, ConnectionManger::getInstance())); // seconds Timer
     this->_loop->loop();
     return true;
 }
@@ -121,7 +122,7 @@ void LoginServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddres
         return;
     }
 
-    ConnectionManger::get().addConnection(connect);
+    ConnectionManger::get().addConnection(connect, state);
     connect->setCloseCallback(std::bind(&ConnectionManger::removeConnection, ConnectionManger::getInstance(), std::placeholders::_1));
     loop->run(std::bind(&mg::TcpConnection::connectionEstablished, connect.get()));
     LOG_INFO("new connection:[{}] socketFd:[{}]", peerAddress.toIpPort(), fd);
