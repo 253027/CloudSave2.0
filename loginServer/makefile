@@ -11,15 +11,16 @@ SDK_OBJ := $(wildcard $(ROOT_DIR)/build/src/*.o)
 
 CC := g++
 CXXFLAGS ?= -O2 -MMD -MP
+CPPFLAGS := -I$(ROOT_DIR)/protobuf/include
 LDFLAGS := -L$(ROOT_DIR)/lib
-LDLIBS := -lcrypt -lmysqlclient -lspdlog
+LDLIBS := -lcrypt -lmysqlclient -lspdlog -lprotobuf
 
 loginServer: $(OBJ) $(SDK_OBJ)
-	$(CC) $^ $(CXXFLAGS) -o $@ $(LDFLAGS) $(LDLIBS)
+	$(CC) $^ $(CXXFLAGS) $(CPPFLAGS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CC) -c $(CXXFLAGS) $< -o $@
+	$(CC) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
 -include $(OBJ:.o=.d)
 

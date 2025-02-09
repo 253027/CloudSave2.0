@@ -1,10 +1,10 @@
 #ifndef __LOGIN_CONNECTION_H__
 #define __LOGIN_CONNECTION_H__
 
-#include "../src/tcp-connection.h"
-#include "../src/inet-address.h"
-#include "../src/singleton.h"
-#include "../src/time-stamp.h"
+#include "../src/base/tcp-connection.h"
+#include "../src/base/inet-address.h"
+#include "../src/base/singleton.h"
+#include "../src/base/time-stamp.h"
 
 #include <memory>
 #include <string>

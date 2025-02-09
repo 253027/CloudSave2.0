@@ -1,6 +1,6 @@
 #include "loginConnection.h"
-#include "../src/event-loop.h"
-#include "../src/log.h"
+#include "../src/base/event-loop.h"
+#include "../src/base/log.h"
 
 void ConnectionManger::addConnection(mg::TcpConnectionPointer &link, int type)
 {

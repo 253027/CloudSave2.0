@@ -1,10 +1,10 @@
 #include "loginServer.h"
 #include "loginConnection.h"
-#include "../src/log.h"
-#include "../src/json.hpp"
-#include "../src/event-loop.h"
-#include "../src/json-extract.h"
-#include "../src/log.h"
+#include "../src/base/log.h"
+#include "../src/base/json.hpp"
+#include "../src/base/event-loop.h"
+#include "../src/base/json-extract.h"
+#include "../src/base/log.h"
 
 #include <fstream>
 #include <sstream>

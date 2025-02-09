@@ -1,5 +1,5 @@
 #include "loginServer.h"
-#include "../src/log.h"
+#include "../src/base/log.h"
 
 #include <iostream>
 

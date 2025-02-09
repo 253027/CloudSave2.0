@@ -1,7 +1,8 @@
 #ifndef __IM_PDU_BASE_H__
 #define __IM_PDU_BASE_H__
 
-#include "../src/buffer.h"
+#include "../base/buffer.h"
+#include "../../protobuf/include/google/protobuf/message_lite.h"
 
 #include <cstdint>
 

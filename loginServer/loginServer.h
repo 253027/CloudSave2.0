@@ -1,9 +1,9 @@
 #ifndef __LOGIN_SERVER_H__
 #define __LOGIN_SERVER_H__
 
-#include "../src/singleton.h"
-#include "../src/acceptor.h"
-#include "../src/inet-address.h"
+#include "../src/base/singleton.h"
+#include "../src/base/acceptor.h"
+#include "../src/base/inet-address.h"
 
 #include <string>
 #include <memory>
