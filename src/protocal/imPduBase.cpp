@@ -32,9 +32,13 @@ void PduMessage::setSequenceNumber(uint16_t num)
     this->_head.sequence_number = num;
 }
 
-void PduMessage::setPBMessage()
+bool PduMessage::setPBMessage(const google::protobuf::MessageLite *message)
 {
-    ;
+    std::vector<u_char> buffer(message->ByteSize());
+    if (!message->SerializeToArray(buffer.data(), message->ByteSize()))
+        return false;
+    this->_buffer.append(reinterpret_cast<char *>(buffer.data()), buffer.size());
+    return true;
 }
 
 std::string PduMessage::dump()

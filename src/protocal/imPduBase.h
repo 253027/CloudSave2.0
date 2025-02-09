@@ -32,7 +32,7 @@ public:
 
     void setSequenceNumber(uint16_t num);
 
-    void setPBMessage();
+    bool setPBMessage(const google::protobuf::MessageLite *message);
 
     std::string dump();
 

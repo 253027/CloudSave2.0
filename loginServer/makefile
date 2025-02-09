@@ -12,7 +12,7 @@ SDK_OBJ := $(wildcard $(ROOT_DIR)/build/src/*.o)
 CC := g++
 CXXFLAGS ?= -O2 -MMD -MP
 CPPFLAGS := -I$(ROOT_DIR)/protobuf/include
-LDFLAGS := -L$(ROOT_DIR)/lib
+LDFLAGS := -L$(ROOT_DIR)/lib -L$(ROOT_DIR)/protobuf/lib
 LDLIBS := -lcrypt -lmysqlclient -lspdlog -lprotobuf
 
 loginServer: $(OBJ) $(SDK_OBJ)
