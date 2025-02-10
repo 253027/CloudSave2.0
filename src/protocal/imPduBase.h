@@ -34,6 +34,18 @@ public:
 
     bool setPBMessage(const google::protobuf::MessageLite *message);
 
+    bool parse(std::string &data);
+
+    uint16_t getVersion();
+
+    uint16_t getFlag();
+
+    uint16_t getServiceId();
+
+    uint16_t getCommandId();
+
+    const mg::Buffer &getPBmessage() const;
+
     std::string dump();
 
 private:

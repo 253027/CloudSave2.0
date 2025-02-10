@@ -1,6 +1,9 @@
 #include "loginConnection.h"
 #include "../src/base/event-loop.h"
 #include "../src/base/log.h"
+#include "../src/base/tcp-packet-parser.h"
+#include "../src/protocal/IM.BaseDefine.pb.h"
+#include "../src/protocal/imPduBase.h"
 
 void ConnectionManger::addConnection(mg::TcpConnectionPointer &link, int type)
 {
@@ -44,6 +47,7 @@ void ConnectionManger::Timer()
             if (curTime > mg::TimeStamp(link->getLastSendTime().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL))
             {
                 // TODO: send heart beat data
+                IM::BaseDefine::ServiceID::SERVER_ID_LOGIN;
             }
 
             break;
@@ -137,7 +141,35 @@ MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std:
 
 void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
 {
-    ;
+    while (1)
+    {
+        std::string data;
+        if (!mg::TcpPacketParser::get().reveive(link, data))
+            break;
+
+        std::unique_ptr<PduMessage> message(new PduMessage());
+        if (!message->parse(data))
+        {
+            LOG_ERROR("{} wrong message", link->name());
+            continue;
+        }
+
+        switch (message->getCommandId())
+        {
+        case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
+        {
+            break;
+        }
+        case IM::BaseDefine::COMMAND_ID_OTHER_MSG_SERV_INFO:
+        {
+            break;
+        }
+        case IM::BaseDefine::COMMAND_ID_OTHER_USER_CNT_UPDATE:
+        {
+            break;
+        }
+        }
+    }
 }
 
 void MessageServerConnection::connectionChangeCallback(const mg::TcpConnectionPointer &link)
