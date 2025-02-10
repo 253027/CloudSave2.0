@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Session-Attach",
+            "name": "loginServer-Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/SessionServer/server",
+            "program": "${workspaceFolder}/loginServer/loginServer",
             "processId": "${command:pickProcess}",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
@@ -33,10 +33,10 @@
             }
         },
         {
-            "name": "Session-Start",
+            "name": "loginServer-Start",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/SessionServer/server",
+            "program": "${workspaceFolder}/loginServer/loginServer",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -55,7 +55,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "SessionServer"
+            "preLaunchTask": "loginServer"
         },
         {
             "name": "GateWay-Attach",

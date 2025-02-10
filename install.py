@@ -8,17 +8,16 @@ from typing import List
 
 current_path = os.path.dirname(os.path.realpath(__file__))
 
-def run_command(cmd: list[str]):
-    print(f"\033[32m{' '.join(cmd)}\033[0m")
-    result = subprocess.run(cmd)
+def run_command(cmd: str):
+    print(f"\033[32m{cmd}\033[0m")
+    result = subprocess.run(cmd, shell=True)
     if result.returncode != 0:
         sys.exit(1)
 
 
 def make_protobuf():
     print("protobuf installing...")
-    run_command(["sudo", "apt-get", "install", "automake", "libtool", 
-                 "autoconf", "curl", "make", "g++", "unzip", "-y"])
+    run_command("sudo apt-get install automake libtool autoconf curl make g++ unzip -y")
     
     PROTOBUF = "protobuf-3.21.11"
     install_path = os.path.join(current_path)
@@ -37,12 +36,12 @@ def make_protobuf():
 
     configure = os.path.join(build_path, "configure")
 
-    run_command(["chmod", "+x", configure])
-    run_command([configure, f"--prefix={install_path}/protobuf"])
-    run_command(["make"])
-    # run_command(["make", "check"])
-    run_command(["make", "install"])
-
+    run_command(f"chmod +x {configure}")
+    run_command(f"{configure} --prefix={install_path}/protobuf")
+    run_command("make")
+    # run_command("make check")
+    run_command("make install")
+    run_command(f"echo 'export LD_LIBRARY_PATH={current_path}/protobuf/lib:$LD_LIBRARY_PATH' >> ~/.bashrc")
     print("protobuf completed")
 
 if __name__ == "__main__":
