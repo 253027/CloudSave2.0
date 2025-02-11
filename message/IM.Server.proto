@@ -5,10 +5,9 @@ option optimize_for = LITE_RUNTIME;
 message IMMsgServInfo
 {
 	//cmd id:	0x0709
-	required string ip1 = 1;
-	required string ip2 = 2;
-	required uint32 port = 3;
-	required uint32 max_conn_cnt = 4;
-	required uint32 cur_conn_cnt = 5;
-	required string host_name = 6;
+	required string ip = 1;
+	required uint32 port = 2;
+	required uint32 max_conn_cnt = 3;
+	required uint32 cur_conn_cnt = 4;
+	required string host_name = 5;
 }

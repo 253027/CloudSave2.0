@@ -3,7 +3,11 @@
 #include "../src/base/log.h"
 #include "../src/base/tcp-packet-parser.h"
 #include "../src/protocal/IM.BaseDefine.pb.h"
+#include "../src/protocal/IM.Server.pb.h"
 #include "../src/protocal/imPduBase.h"
+
+static std::unordered_map<std::string, std::unique_ptr<struct MessageServerInfo>> _messageServeList;
+static uint32_t _total_online_user = 0;
 
 void ConnectionManger::addConnection(mg::TcpConnectionPointer &link, int type)
 {
@@ -162,6 +166,8 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_MSG_SERV_INFO:
         {
+            auto pbMessage = message->getPBmessage();
+            this->handleMessageServerInfo(pbMessage.retrieveAllAsString());
             break;
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_USER_CNT_UPDATE:
@@ -176,6 +182,7 @@ void MessageServerConnection::connectionChangeCallback(const mg::TcpConnectionPo
 {
     if (!link->connected())
     {
+        _messageServeList.erase(link->name());
         LOG_DEBUG("{} disconnected", link->name());
     }
 }
@@ -183,4 +190,26 @@ void MessageServerConnection::connectionChangeCallback(const mg::TcpConnectionPo
 void MessageServerConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)
 {
     ;
+}
+
+void MessageServerConnection::handleMessageServerInfo(const std::string &data)
+{
+    IM::Server::IMMsgServInfo message;
+    if (!message.ParseFromString(data))
+    {
+        LOG_ERROR("{} parse protobuf message error", this->name());
+        return;
+    }
+
+    std::unique_ptr<MessageServerInfo> server(new MessageServerInfo());
+    server->ip = std::move(message.ip());
+    server->port = message.port();
+    server->max_conn_cnt = message.max_conn_cnt();
+    server->cur_conn_cnt = message.cur_conn_cnt();
+    server->hostname = std::move(message.host_name());
+
+    _total_online_user += server->cur_conn_cnt;
+    LOG_INFO("MessageInfo ip[{}] port[{}] max_conn_cnt[{}] cur_con_cnt[{}] hostname[{}]",
+             server->ip, server->port, server->max_conn_cnt, server->cur_conn_cnt, server->hostname);
+    _messageServeList[this->name()] = std::move(server);
 }

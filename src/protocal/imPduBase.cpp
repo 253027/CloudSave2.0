@@ -43,6 +43,18 @@ bool PduMessage::setPBMessage(const google::protobuf::MessageLite *message)
 
 bool PduMessage::parse(std::string &data)
 {
+    if (data.size() < sizeof(this->_head))
+        return false;
+
+    this->_buffer.append(std::move(data));
+    this->_head.length = this->_buffer.readInt32();
+    this->_head.version = this->_buffer.readUInt16();
+    this->_head.flag = this->_buffer.readUInt16();
+    this->_head.service_id = this->_buffer.readUInt16();
+    this->_head.command_id = this->_buffer.readUInt16();
+    this->_head.sequence_number = this->_buffer.readUInt16();
+    this->_head.reversed = this->_buffer.readUInt16();
+
     return true;
 }
 

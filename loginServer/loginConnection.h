@@ -98,6 +98,21 @@ private:
     void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
 };
 
+struct MessageServerInfo
+{
+    MessageServerInfo() : ip(), port(0), max_conn_cnt(0),
+                          cur_conn_cnt(0), hostname()
+    {
+        ;
+    }
+
+    std::string ip;
+    uint16_t port;
+    uint32_t max_conn_cnt;
+    uint32_t cur_conn_cnt;
+    std::string hostname;
+};
+
 class MessageServerConnection : public ConnectionBase
 {
 public:
@@ -110,6 +125,8 @@ private:
     void connectionChangeCallback(const mg::TcpConnectionPointer &link) override;
 
     void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
+
+    void handleMessageServerInfo(const std::string &data);
 };
 
 #endif //__LOGIN_CONNECTION_H__
