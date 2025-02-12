@@ -4,8 +4,9 @@ option optimize_for = LITE_RUNTIME;
 
 enum ServiceID
 {
-    SERVER_ID_LOGIN = 0x0001;
-    SERVER_ID_BUDDY_LIST = 0x0002;
+    SERVER_ID_LOGIN         = 0x0001;
+    SERVER_ID_BUDDY_LIST    = 0x0002;    
+    SERVER_ID_OTHER         = 0x0007;
 }
 
 enum OtherCmdID
