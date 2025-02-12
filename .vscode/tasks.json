@@ -17,11 +17,11 @@
             ]
         },
         {
-            "label": "Test",
+            "label": "messageServer",
             "type": "shell",
             "command": "make",
             "options": {
-                "cwd": "${workspaceFolder}/test" // 指定当前工作目录
+                "cwd": "${workspaceFolder}"
             },
             "group": {
                 "kind": "build",

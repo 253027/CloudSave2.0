@@ -63,10 +63,10 @@
             "preLaunchTask": "loginServer"
         },
         {
-            "name": "GateWay-Attach",
+            "name": "messageServer-Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/GatewayServer/server",
+            "program": "${workspaceFolder}/messageServer/messageServer",
             "processId": "${command:pickProcess}",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
@@ -91,14 +91,19 @@
             }
         },
         {
-            "name": "Test-Start",
+            "name": "messageServer-Start",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/test/server",
+            "program": "${workspaceFolder}/messageServer/messageServer",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/protobuf/lib:${env:LD_LIBRARY_PATH}"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -113,7 +118,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Test"
+            "preLaunchTask": "messageServer"
         },
         {
             "name": "FileServer-Attach",
