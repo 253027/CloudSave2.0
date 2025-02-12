@@ -7,6 +7,7 @@
 
 #include <set>
 #include <utility>
+#include <atomic>
 
 namespace mg
 {
