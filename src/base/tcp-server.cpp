@@ -51,6 +51,16 @@ std::string mg::TcpServer::getIpPort()
     return _address.toIpPort();
 }
 
+std::string mg::TcpServer::getIp()
+{
+    return _address.toIp();
+}
+
+uint16_t mg::TcpServer::getPort()
+{
+    return _address.port();
+}
+
 void mg::TcpServer::setThreadNums(int nums)
 {
     this->_threadPool->setThreadNums(nums);

@@ -12,7 +12,7 @@
 
 using json = nlohmann::json;
 
-MessageServer::MessageServer()
+MessageServer::MessageServer() : _maxConnection(0)
 {
     ;
 }
@@ -52,6 +52,7 @@ bool MessageServer::initial(const std::string &configPath)
 
     std::string &&ip = config["listenIp"];
     uint16_t port = config["listenPort"];
+    this->_maxConnection = config["maxConnection"];
     this->_server.reset(new mg::TcpServer(this->_loop.get(), mg::InternetAddress(ip, port), "MessageServer"));
     return true;
 }
@@ -68,4 +69,19 @@ bool MessageServer::start()
 void MessageServer::quit()
 {
     ;
+}
+
+std::string MessageServer::getIp()
+{
+    return this->_server->getIp();
+}
+
+uint16_t MessageServer::getPort()
+{
+    return this->_server->getPort();
+}
+
+uint16_t MessageServer::getMaxConnection()
+{
+    return this->_maxConnection;
 }

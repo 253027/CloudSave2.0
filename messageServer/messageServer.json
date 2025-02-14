@@ -1,6 +1,7 @@
 {
     "listenIp": "0.0.0.0",
     "listenPort": 8000,
+    "maxConnection": 100,
     "LoginServer": [
         {
             "ip": "0.0.0.0",

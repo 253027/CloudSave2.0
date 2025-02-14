@@ -1,4 +1,5 @@
 #include "loginServerClient.h"
+#include "messageServer.h"
 #include "../src/base/tcp-client.h"
 #include "../src/base/tcp-connection.h"
 #include "../src/base/log.h"
@@ -31,10 +32,10 @@ void LoginServerClient::onConnectionStateChange(const mg::TcpConnectionPointer &
         IM::Server::IMMsgServInfo message;
         char hostname[256] = {0};
         ::gethostname(hostname, 256);
-        message.set_ip("127.0.0.1");
-        message.set_port(9190);
-        message.set_max_conn_cnt(10);
-        message.set_cur_conn_cnt(0);
+        message.set_ip(MessageServer::get().getIp());
+        message.set_port(MessageServer::get().getPort());
+        message.set_max_conn_cnt(MessageServer::get().getMaxConnection());
+        message.set_cur_conn_cnt(0); // FIXME: 需要发送真实用户数
         message.set_host_name(hostname);
 
         PduMessage pdu;

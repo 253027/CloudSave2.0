@@ -66,6 +66,16 @@ namespace mg
          */
         std::string getIpPort();
 
+        /**
+         * @brief 得到本机监听IP
+         */
+        std::string getIp();
+
+        /**
+         * @brief 得到本机监听端口
+         */
+        uint16_t getPort();
+
     private:
         /**
          * @brief acceptor类需要的回调函数

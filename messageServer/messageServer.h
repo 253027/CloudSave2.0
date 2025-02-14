@@ -25,10 +25,17 @@ public:
 
     void quit();
 
+    std::string getIp();
+
+    uint16_t getPort();
+
+    uint16_t getMaxConnection();
+
 private:
     std::shared_ptr<mg::EventLoop> _loop;
     std::unique_ptr<mg::TcpServer> _server;
     std::vector<std::unique_ptr<LoginServerClient>> _loginClientList;
+    uint16_t _maxConnection;
 };
 
 #endif //__MESSAGE_SERVER_H__
