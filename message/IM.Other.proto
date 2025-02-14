@@ -1,0 +1,9 @@
+syntax = "proto2";
+package IM.Other;
+option optimize_for = LITE_RUNTIME;
+
+// BaseCommand 0x0701;
+message IMHeartBeat
+{
+    ;
+}

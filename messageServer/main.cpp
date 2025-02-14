@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
             return 0;
     }
 
-    mg::LogConfig logConfig("debug", "./log", "MessageServer.log");
+    mg::LogConfig logConfig("debug", "./log", "messageServer.log");
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------MessageServer started-----------------------------------");
 

@@ -5,6 +5,7 @@
 #include "../src/protocal/IM.BaseDefine.pb.h"
 #include "../src/protocal/IM.Server.pb.h"
 #include "../src/protocal/imPduBase.h"
+#include "../src/protocal/IM.Other.pb.h"
 
 static std::unordered_map<std::string, std::unique_ptr<struct MessageServerInfo>> _messageServeList;
 static uint32_t _total_online_user = 0;
@@ -27,13 +28,13 @@ void ConnectionManger::Timer()
     std::unordered_map<std::string, std::pair<mg::TcpConnectionPointer, int>> timeout;
     for (auto &x : this->_connections)
     {
-        const auto link = std::dynamic_pointer_cast<ConnectionBase>(x.second.first);
         const auto type = x.second.second;
         switch (type)
         {
         case CONNECTION_HTTP_CLIENT:
         {
-            if (curTime > mg::TimeStamp(link->getLastReceiveTime().getMircoSecond() + HTTP_CONN_TIMEOUT))
+            const auto link = std::dynamic_pointer_cast<HttpClientConnection>(x.second.first);
+            if (curTime > link->getNextReceiveTime())
             {
                 timeout[x.first] = x.second;
                 LOG_DEBUG("{} httpClient Timeout", link->name());
@@ -42,23 +43,30 @@ void ConnectionManger::Timer()
         }
         case CONNECTION_MESSAGE_SERVER:
         {
-            if (curTime > mg::TimeStamp(link->getLastReceiveTime().getMircoSecond() + SERVER_TIMEOUT))
+            const auto link = std::dynamic_pointer_cast<MessageServerConnection>(x.second.first);
+            if (curTime > link->getNextReceiveTime())
             {
                 timeout[x.first] = x.second;
                 LOG_DEBUG("{} messageServer Timeout", link->name());
             }
 
-            if (curTime > mg::TimeStamp(link->getLastSendTime().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL))
+            if (curTime > link->getNextSendTime())
             {
-                // TODO: send heart beat data
-                IM::BaseDefine::ServiceID::SERVER_ID_LOGIN;
+                IM::Other::IMHeartBeat message;
+                PduMessage pdu;
+                pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
+                pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT);
+                pdu.setPBMessage(&message);
+                link->setNextSendTime(mg::TimeStamp(curTime.getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+                mg::TcpPacketParser::get().send(link, pdu.dump());
             }
 
             break;
         }
         case CONNECTION_CLIENT:
         {
-            if (curTime > mg::TimeStamp(link->getLastReceiveTime().getMircoSecond() + CLIENT_TIMEOUT))
+            const auto link = std::dynamic_pointer_cast<ClientConnection>(x.second.first);
+            if (curTime > link->getNextReceiveTime())
             {
                 timeout[x.first] = x.second;
                 LOG_DEBUG("{} messageServer Timeout", link->name());
@@ -72,17 +80,9 @@ void ConnectionManger::Timer()
         x.second.first->forceClose();
 }
 
-ConnectionBase::ConnectionBase(mg::EventLoop *loop, const std::string &name, int sockfd,
-                               const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
-    : mg::TcpConnection(loop, name, sockfd, localAddress, peerAddress), _lastReceiveTime(mg::TimeStamp::now()),
-      _lastSendTime(mg::TimeStamp::now())
-{
-    ;
-}
-
 HttpClientConnection::HttpClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                            const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
-    : ConnectionBase(loop, name, sockfd, localAddress, peerAddress)
+    : mg::TcpConnection(loop, name, sockfd, localAddress, peerAddress)
 {
     this->setConnectionCallback(std::bind(&HttpClientConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setMessageCallback(std::bind(&HttpClientConnection::messageCallback, this,
@@ -109,7 +109,7 @@ void HttpClientConnection::writeCompleteCallback(const mg::TcpConnectionPointer 
 
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
-    : ConnectionBase(loop, name, sockfd, localAddress, peerAddress)
+    : mg::TcpConnection(loop, name, sockfd, localAddress, peerAddress)
 {
     this->setConnectionCallback(std::bind(&ClientConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setMessageCallback(std::bind(&ClientConnection::messageCallback, this,
@@ -136,7 +136,7 @@ void ClientConnection::writeCompleteCallback(const mg::TcpConnectionPointer &lin
 
 MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                                  const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
-    : ConnectionBase(loop, name, sockfd, localAddress, peerAddress)
+    : mg::TcpConnection(loop, name, sockfd, localAddress, peerAddress)
 {
     this->setConnectionCallback(std::bind(&MessageServerConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setMessageCallback(std::bind(&MessageServerConnection::messageCallback, this,
@@ -162,6 +162,8 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
         {
+            this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+            LOG_DEBUG("{} heart beat message", link->name());
             break;
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_MSG_SERV_INFO:
@@ -182,9 +184,16 @@ void MessageServerConnection::connectionChangeCallback(const mg::TcpConnectionPo
 {
     if (!link->connected())
     {
-        _messageServeList.erase(link->name());
+        auto it = _messageServeList.find(link->name());
+        if (it != _messageServeList.end())
+        {
+            _total_online_user -= it->second->cur_conn_cnt;
+            _messageServeList.erase(it);
+        }
         LOG_DEBUG("{} disconnected", link->name());
     }
+    else
+        this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
 }
 
 void MessageServerConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)

@@ -5,18 +5,11 @@
 #include "../src/base/inet-address.h"
 #include "../src/base/singleton.h"
 #include "../src/base/time-stamp.h"
+#include "../src/common/common.h"
 
 #include <memory>
 #include <string>
 #include <unordered_map>
-
-// 时间间隔单位都是微秒
-#define SERVER_HEARTBEAT_INTERVAL 5000000
-#define SERVER_TIMEOUT 30000000
-#define CLIENT_HEARTBEAT_INTERVAL 30000000
-#define CLIENT_TIMEOUT 120000000
-#define MOBILE_CLIENT_TIMEOUT 60000000 * 5
-#define HTTP_CONN_TIMEOUT 60000000
 
 enum
 {
@@ -44,33 +37,7 @@ private:
     std::unordered_map<std::string, std::pair<mg::TcpConnectionPointer, int>> _connections;
 };
 
-class ConnectionBase : public mg::TcpConnection
-{
-public:
-    ConnectionBase(mg::EventLoop *loop, const std::string &name, int sockfd,
-                   const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress);
-
-    inline const mg::TimeStamp &getLastReceiveTime() const { return this->_lastReceiveTime; };
-
-    inline const mg::TimeStamp &getLastSendTime() const { return this->_lastSendTime; };
-
-    inline void setLastSendTime(mg::TimeStamp curTime) { this->_lastSendTime = curTime; };
-
-    inline void setLastReceiveTime(mg::TimeStamp curTime) { this->_lastReceiveTime = curTime; };
-
-protected:
-    virtual void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) {};
-
-    virtual void connectionChangeCallback(const mg::TcpConnectionPointer &link) {};
-
-    virtual void writeCompleteCallback(const mg::TcpConnectionPointer &link) {};
-
-private:
-    mg::TimeStamp _lastSendTime;
-    mg::TimeStamp _lastReceiveTime;
-};
-
-class HttpClientConnection : public ConnectionBase
+class HttpClientConnection : public ConnectionBase, public mg::TcpConnection
 {
 public:
     HttpClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
@@ -84,7 +51,7 @@ private:
     void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
 };
 
-class ClientConnection : public ConnectionBase
+class ClientConnection : public ConnectionBase, public mg::TcpConnection
 {
 public:
     ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
@@ -113,7 +80,7 @@ struct MessageServerInfo
     std::string hostname;
 };
 
-class MessageServerConnection : public ConnectionBase
+class MessageServerConnection : public ConnectionBase, public mg::TcpConnection
 {
 public:
     MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,

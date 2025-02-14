@@ -4,14 +4,17 @@
 #include "../src/base/function-callbacks.h"
 #include "../src/base/event-loop.h"
 #include "../src/base/inet-address.h"
+#include "../src/common/common.h"
+#include "../src/base/singleton.h"
 
 #include <memory>
+
 namespace mg
 {
     class TcpClient;
 }
 
-class LoginServerClient
+class LoginServerClient : public ConnectionBase
 {
 public:
     LoginServerClient(int domain, int type, mg::EventLoop *loop,
@@ -19,7 +22,14 @@ public:
 
     void connect();
 
-    void onConnectionStateChange(const mg::TcpConnectionPointer &link);
+    void onConnectionStateChange(const mg::TcpConnectionPointer &link, mg::EventLoop *loop);
+
+    void onMessage(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time);
+
+    void heartBeatMessage(const mg::TcpConnectionPointer &link);
+
+private:
+    void send(const mg::TcpConnectionPointer &link, const std::string &data);
 
 private:
     std::unique_ptr<mg::TcpClient> _client;
