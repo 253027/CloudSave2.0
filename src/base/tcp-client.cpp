@@ -97,6 +97,11 @@ void mg::TcpClient::setWriteCompleteCallback(WriteCompleteCallback callback)
     _writeCompleteCallback = std::move(callback);
 }
 
+bool mg::TcpClient::connected()
+{
+    return _connection && _connection->connected();
+}
+
 void mg::TcpClient::newConnection(int sockfd)
 {
     assert(_loop->isInOwnerThread());

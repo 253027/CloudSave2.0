@@ -59,6 +59,11 @@ namespace mg
          */
         void setWriteCompleteCallback(WriteCompleteCallback callback);
 
+        /**
+         * @brief 返回链接是否可用
+         */
+        bool connected();
+
     private:
         /**
          * @brief 新连接建立时执行的函数
