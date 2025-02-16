@@ -1,0 +1,12 @@
+syntax = "proto2";
+package IM.Login;
+import "IM.BaseDefine.proto";
+option optimize_for = LITE_RUNTIME;
+
+message IMLoginRequest
+{
+    required string user_name = 1;
+    required string password = 2;
+    required IM.BaseDefine.ClientType client_type = 3;
+    required IM.BaseDefine.UserStatusType status_type = 4;
+}

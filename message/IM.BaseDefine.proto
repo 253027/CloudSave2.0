@@ -33,3 +33,22 @@ enum OtherCmdID
     COMMAND_ID_OTHER_FILE_SERVER_IP_REQ            = 0x0733;
     COMMAND_ID_OTHER_FILE_SERVER_IP_RSP            = 0x0734;
 }
+
+enum RefuseType
+{
+    REFUSE_REASON_NONE = 0;
+    REFUSE_REASON_NO_LOGIN_SERVER = 1;
+    REFUST_REASON_NO_ROUTE_SERVER = 2;
+}
+
+enum ClientType
+{
+    CLIENT_TYPE_WINDOWS = 0x01;
+}
+
+enum UserStatusType
+{
+    USER_STATUS_ONLINE = 1;
+    USER_STATUS_OFFLINE = 2;
+    USER_STATUS_LEAVE = 3;
+}

@@ -106,3 +106,8 @@ void LoginServerClient::send(const mg::TcpConnectionPointer &link, const std::st
     this->setNextSendTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
     mg::TcpPacketParser::get().send(link, std::move(data));
 }
+
+bool LoginServerClient::connected()
+{
+    return this->_client->connected();
+}

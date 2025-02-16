@@ -28,6 +28,8 @@ public:
 
     void heartBeatMessage(const mg::TcpConnectionPointer &link);
 
+    bool connected();
+
 private:
     void send(const mg::TcpConnectionPointer &link, const std::string &data);
 

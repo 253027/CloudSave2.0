@@ -31,6 +31,8 @@ public:
 
     uint16_t getMaxConnection();
 
+    bool loginServerAvaiable();
+
 private:
     std::shared_ptr<mg::EventLoop> _loop;
     std::unique_ptr<mg::TcpServer> _server;

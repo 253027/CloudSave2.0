@@ -44,7 +44,7 @@ public:
 
     uint16_t getCommandId();
 
-    const mg::Buffer &getPBmessage() const;
+    mg::Buffer getPBmessage();
 
     std::string dump();
 

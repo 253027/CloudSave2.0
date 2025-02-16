@@ -78,7 +78,7 @@ uint16_t PduMessage::getCommandId()
     return this->_head.command_id;
 }
 
-const mg::Buffer &PduMessage::getPBmessage() const
+mg::Buffer PduMessage::getPBmessage()
 {
     return this->_buffer;
 }

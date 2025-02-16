@@ -85,3 +85,14 @@ uint16_t MessageServer::getMaxConnection()
 {
     return this->_maxConnection;
 }
+
+bool MessageServer::loginServerAvaiable()
+{
+    for (auto &con : this->_loginClientList)
+    {
+        if (!con->connected())
+            continue;
+        return true;
+    }
+    return false;
+}

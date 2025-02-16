@@ -1,0 +1,54 @@
+#include "messageUser.h"
+
+bool MessageUserManger::addUserByUserName(std::string loginName, std::shared_ptr<MessageUser> user)
+{
+    if (this->_userMemoByName.count(loginName))
+        return false;
+    this->_userMemoByName[loginName] = std::move(user);
+    return true;
+}
+
+void MessageUserManger::removeUserByUserName(std::string loginName)
+{
+    this->_userMemoByName.erase(loginName);
+}
+
+bool MessageUserManger::addUserByUserId(uint32_t uid, std::shared_ptr<MessageUser> user)
+{
+    if (this->_userMemoById.count(uid))
+        return false;
+    this->_userMemoById[uid] = std::move(user);
+    return true;
+}
+
+void MessageUserManger::removeUserByUserId(uint32_t uid)
+{
+    this->_userMemoById.erase(uid);
+}
+
+std::shared_ptr<MessageUser> MessageUserManger::getUserByUserName(std::string username)
+{
+    auto it = this->_userMemoByName.find(username);
+    if (it == this->_userMemoByName.end())
+        return std::shared_ptr<MessageUser>();
+    return it->second;
+}
+
+std::shared_ptr<MessageUser> MessageUserManger::getUserByUserId(uint32_t uid)
+{
+    auto it = this->_userMemoById.find(uid);
+    if (it == this->_userMemoById.end())
+        return std::shared_ptr<MessageUser>();
+    return it->second;
+}
+
+MessageUser::MessageUser(const std::string &loginName)
+    : _loginName(loginName)
+{
+    ;
+}
+
+void MessageUser::addUnValidConnection(std::string name, std::weak_ptr<ClientConnection> connection)
+{
+    this->_unvalid[std::move(name)] = std::move(connection);
+}
