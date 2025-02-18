@@ -14,8 +14,8 @@ LoginServerClient::LoginServerClient(int domain, int type, mg::EventLoop *loop,
                                      const mg::InternetAddress &address, const std::string &name)
     : _client(new mg::TcpClient(domain, type, loop, address, name))
 {
-    _client->setConnectionCallback(std::bind(&LoginServerClient::onConnectionStateChange, this, std::placeholders::_1, loop));
-    _client->setMessageCallback(std::bind(&LoginServerClient::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    _client->setConnectionCallback(std::bind(&LoginServerClient::connectionChangeCallback, this, std::placeholders::_1, loop));
+    _client->setMessageCallback(std::bind(&LoginServerClient::messageCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _client->enableRetry();
 }
 
@@ -24,7 +24,7 @@ void LoginServerClient::connect()
     this->_client->connect();
 }
 
-void LoginServerClient::onConnectionStateChange(const mg::TcpConnectionPointer &link, mg::EventLoop *loop)
+void LoginServerClient::connectionChangeCallback(const mg::TcpConnectionPointer &link, mg::EventLoop *loop)
 {
     if (link->connected())
     {
@@ -54,7 +54,7 @@ void LoginServerClient::onConnectionStateChange(const mg::TcpConnectionPointer &
     }
 }
 
-void LoginServerClient::onMessage(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
+void LoginServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
 {
     while (1)
     {

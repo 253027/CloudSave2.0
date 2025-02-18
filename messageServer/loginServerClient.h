@@ -22,9 +22,9 @@ public:
 
     void connect();
 
-    void onConnectionStateChange(const mg::TcpConnectionPointer &link, mg::EventLoop *loop);
+    void connectionChangeCallback(const mg::TcpConnectionPointer &link, mg::EventLoop *loop);
 
-    void onMessage(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time);
+    void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
     void heartBeatMessage(const mg::TcpConnectionPointer &link);
 

@@ -1,7 +1,10 @@
 #include "clientConnection.h"
 #include "messageServer.h"
 #include "messageUser.h"
+#include "proxyServerClient.h"
+#include "../src/base/tcp-packet-parser.h"
 #include "../src/base/log.h"
+#include "../src/base/time-stamp.h"
 #include "../src/protocal/IM.BaseDefine.pb.h"
 #include "../src/protocal/IM.Login.pb.h"
 
@@ -23,14 +26,27 @@ void ClientConnection::handleLoginRequest(PduMessage *message)
 
     uint32_t result = 0;
     std::string resultString = "Server abnormality";
-    // TODO: get databases connection handle
 
-    if (!MessageServer::get().loginServerAvaiable())
+    auto connection = ProxyServerClientManger::get().getHandle();
+    if (!connection || !connection->connected())
+        result = IM::BaseDefine::REFUSE_REASON_NO_PROXY_SERVER;
+    else if (!MessageServer::get().loginServerAvaiable())
         result = IM::BaseDefine::REFUSE_REASON_NO_LOGIN_SERVER;
-    if (result)
-        return;
 
-    IM::Login::IMLoginRequest request;
+    if (result) // error occur
+    {
+        PduMessage message;
+        IM::Login::LoginResponse response;
+        response.set_server_time(mg::TimeStamp::now().getSeconds());
+        response.set_result_string(resultString);
+        message.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
+        message.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
+        message.setPBMessage(&response);
+        mg::TcpPacketParser::get().send(shared_from_this(), message.dump());
+        return;
+    }
+
+    IM::Login::LoginRequest request;
     if (!request.ParseFromString(message->getPBmessage().retrieveAllAsString()))
     {
         LOG_ERROR("{} parse message error", this->name());
