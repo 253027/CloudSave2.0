@@ -4,7 +4,7 @@ import os
 import signal
 from typing import List
 
-procress = ["FileServer/server"]
+procress = ["loginServer/loginServer", "messageServer/messageServer"]
 
 def stop(procress: List[str]) -> bool:
     for name in procress:

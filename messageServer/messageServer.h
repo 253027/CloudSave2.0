@@ -1,18 +1,12 @@
 #ifndef __MESSAGE_SERVER_H__
 #define __MESSAGE_SERVER_H__
 
+#include "loginServerClient.h"
 #include "../src/base/singleton.h"
+#include "../src/base/tcp-server.h"
 
 #include <vector>
 #include <memory>
-
-namespace mg
-{
-    class EventLoop;
-    class TcpServer;
-};
-
-class LoginServerClient;
 
 class MessageServer : public Singleton<MessageServer>
 {

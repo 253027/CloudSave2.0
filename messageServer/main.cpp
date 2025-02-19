@@ -1,7 +1,22 @@
 #include "messageServer.h"
+#include "loginServerClient.h"
 #include "../src/base/log.h"
+#include "../src/base/tcp-server.h"
 
 #include <iostream>
+#include <unistd.h>
+#include <csignal>
+
+void sighandle(int sig)
+{
+    if (sig != SIGINT && sig != SIGTERM)
+        return;
+    MessageServer::get().quit();
+    MessageServer::destroyInstance();
+    ::sleep(1);
+    LOG_DEBUG("\r----------------------MessageServer exited-----------------------------------");
+    ::exit(0);
+}
 
 int main(int argc, char *argv[])
 {
@@ -10,6 +25,8 @@ int main(int argc, char *argv[])
         if (::daemon(1, 1) == -1)
             return 0;
     }
+    signal(SIGINT, sighandle);
+    signal(SIGTERM, sighandle);
 
     mg::LogConfig logConfig("debug", "./log", "messageServer.log");
     INITLOG(logConfig);

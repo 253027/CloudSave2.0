@@ -2,6 +2,19 @@
 #include "../src/base/log.h"
 
 #include <iostream>
+#include <unistd.h>
+#include <csignal>
+
+void sighandle(int sig)
+{
+    if (sig != SIGINT && sig != SIGTERM)
+        return;
+    LoginServer::get().quit();
+    LoginServer::destroyInstance();
+    ::sleep(1);
+    LOG_DEBUG("\r----------------------LoginServer exited-----------------------------------");
+    ::exit(0);
+}
 
 int main(int argc, char *argv[])
 {
@@ -10,6 +23,8 @@ int main(int argc, char *argv[])
         if (::daemon(1, 1) == -1)
             return 0;
     }
+    signal(SIGINT, sighandle);
+    signal(SIGTERM, sighandle);
 
     mg::LogConfig logConfig("debug", "./log", "loginServer.log");
     INITLOG(logConfig);

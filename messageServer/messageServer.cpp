@@ -1,10 +1,8 @@
 #include "messageServer.h"
-#include "loginServerClient.h"
 #include "../src/base/tcp-client.h"
 #include "../src/base/json.hpp"
 #include "../src/base/log.h"
 #include "../src/base/connector.h"
-#include "../src/base/tcp-server.h"
 #include "../src/base/inet-address.h"
 
 #include <fstream>
@@ -68,7 +66,8 @@ bool MessageServer::start()
 
 void MessageServer::quit()
 {
-    ;
+    this->_loop->quit();
+    this->_server.reset();
 }
 
 std::string MessageServer::getIp()

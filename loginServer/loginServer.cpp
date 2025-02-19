@@ -82,7 +82,8 @@ bool LoginServer::start()
 
 void LoginServer::quit()
 {
-    ;
+    this->_loop->quit();
+    this->_start = false;
 }
 
 void LoginServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddress, int state)

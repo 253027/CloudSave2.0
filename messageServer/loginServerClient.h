@@ -6,6 +6,7 @@
 #include "../src/base/inet-address.h"
 #include "../src/common/common.h"
 #include "../src/base/singleton.h"
+#include "../src/base/tcp-client.h"
 
 #include <memory>
 

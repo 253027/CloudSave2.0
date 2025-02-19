@@ -1,6 +1,5 @@
 #include "loginServerClient.h"
 #include "messageServer.h"
-#include "../src/base/tcp-client.h"
 #include "../src/base/tcp-connection.h"
 #include "../src/base/log.h"
 #include "../src/base/tcp-packet-parser.h"
