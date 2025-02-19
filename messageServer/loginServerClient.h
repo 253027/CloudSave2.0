@@ -26,14 +26,9 @@ public:
 
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
-    void heartBeatMessage(const mg::TcpConnectionPointer &link);
-
     bool connected();
 
     mg::TcpConnectionPointer connection();
-
-private:
-    void send(const mg::TcpConnectionPointer &link, const std::string &data);
 
 private:
     std::unique_ptr<mg::TcpClient> _client;

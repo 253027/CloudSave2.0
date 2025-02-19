@@ -12,6 +12,14 @@
 #include "../base/tcp-connection.h"
 #include "../base/inet-address.h"
 #include "../base/time-stamp.h"
+#include "../base/tcp-packet-parser.h"
+#include "../base/log.h"
+#include "../base/time-stamp.h"
+#include "../protocal/IM.BaseDefine.pb.h"
+#include "../protocal/IM.Login.pb.h"
+#include "../protocal/IM.Server.pb.h"
+#include "../protocal/imPduBase.h"
+#include "../protocal/IM.Other.pb.h"
 
 class ConnectionBase
 {
@@ -25,6 +33,32 @@ public:
     inline void setNextSendTime(mg::TimeStamp curTime) { this->_lastSendTime = curTime; };
 
     inline void setNextReceiveTime(mg::TimeStamp curTime) { this->_lastReceiveTime = curTime; };
+
+    inline void send(const mg::TcpConnectionPointer &link, const std::string &data)
+    {
+        this->setNextSendTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+        mg::TcpPacketParser::get().send(link, std::move(data));
+    }
+
+    inline void heartBeatMessage(const mg::TcpConnectionPointer &link)
+    {
+        mg::TimeStamp curTime = mg::TimeStamp::now();
+
+        if (curTime > this->getNextSendTime())
+        {
+            IM::Other::IMHeartBeat message;
+            PduMessage pdu;
+            pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
+            pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT);
+            pdu.setPBMessage(&message);
+            this->send(link, pdu.dump());
+        }
+
+        if (curTime > this->getNextReceiveTime())
+        {
+            link->forceClose();
+        }
+    }
 
 protected:
     virtual void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) {};

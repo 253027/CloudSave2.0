@@ -81,32 +81,6 @@ void LoginServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
     }
 }
 
-void LoginServerClient::heartBeatMessage(const mg::TcpConnectionPointer &link)
-{
-    mg::TimeStamp curTime = mg::TimeStamp::now();
-
-    if (curTime > this->getNextSendTime())
-    {
-        IM::Other::IMHeartBeat message;
-        PduMessage pdu;
-        pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
-        pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT);
-        pdu.setPBMessage(&message);
-        this->send(link, pdu.dump());
-    }
-
-    if (curTime > this->getNextReceiveTime())
-    {
-        link->forceClose();
-    }
-}
-
-void LoginServerClient::send(const mg::TcpConnectionPointer &link, const std::string &data)
-{
-    this->setNextSendTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
-    mg::TcpPacketParser::get().send(link, std::move(data));
-}
-
 bool LoginServerClient::connected()
 {
     return this->_client->connected();

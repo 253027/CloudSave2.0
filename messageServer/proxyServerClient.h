@@ -1,6 +1,7 @@
 #ifndef __PROXY_SERVER_CLIENT__
 #define __PROXY_SERVER_CLIENT__
 
+#include "../src/base/function-callbacks.h"
 #include "../src/base/singleton.h"
 #include "../src/common/common.h"
 
@@ -11,6 +12,7 @@ namespace mg
 {
     class TcpClient;
 };
+class PduMessage;
 
 class ProxyServerClient : public ConnectionBase
 {
@@ -20,6 +22,11 @@ public:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
     bool connected();
+
+    mg::TcpConnectionPointer connection();
+
+private:
+    void _handleVerifyDataResponse(const std::string &data);
 
 private:
     std::unique_ptr<mg::TcpClient> _client;

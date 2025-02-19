@@ -2,11 +2,6 @@
 #include "messageServer.h"
 #include "messageUser.h"
 #include "proxyServerClient.h"
-#include "../src/base/tcp-packet-parser.h"
-#include "../src/base/log.h"
-#include "../src/base/time-stamp.h"
-#include "../src/protocal/IM.BaseDefine.pb.h"
-#include "../src/protocal/IM.Login.pb.h"
 
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
@@ -70,4 +65,14 @@ void ClientConnection::handleLoginRequest(PduMessage *message)
         MessageUserManger::get().addUserByUserName(request.user_name(), user);
     }
     user->addUnValidConnection(request.user_name(), std::dynamic_pointer_cast<ClientConnection>(shared_from_this()));
+
+    PduMessage messagePdu;
+    messagePdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
+    messagePdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ);
+    IM::Server::VerifyDataRequest proxyRequest;
+    proxyRequest.set_user_name(request.user_name());
+    proxyRequest.set_password(request.password());
+    proxyRequest.set_attach_data(this->name());
+    messagePdu.setPBMessage(&proxyRequest);
+    mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump());
 }
