@@ -64,6 +64,11 @@ namespace mg
          */
         bool connected();
 
+        /**
+         * @brief 获得连接实例
+         */
+        TcpConnectionPointer connection();
+
     private:
         /**
          * @brief 新连接建立时执行的函数

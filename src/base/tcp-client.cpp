@@ -102,6 +102,12 @@ bool mg::TcpClient::connected()
     return _connection && _connection->connected();
 }
 
+mg::TcpConnectionPointer mg::TcpClient::connection()
+{
+    std::lock_guard<std::mutex> guard(_mutex);
+    return this->_connection;
+}
+
 void mg::TcpClient::newConnection(int sockfd)
 {
     assert(_loop->isInOwnerThread());

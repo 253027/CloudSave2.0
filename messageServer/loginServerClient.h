@@ -30,6 +30,8 @@ public:
 
     bool connected();
 
+    mg::TcpConnectionPointer connection();
+
 private:
     void send(const mg::TcpConnectionPointer &link, const std::string &data);
 

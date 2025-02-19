@@ -111,3 +111,8 @@ bool LoginServerClient::connected()
 {
     return this->_client->connected();
 }
+
+mg::TcpConnectionPointer LoginServerClient::connection()
+{
+    return this->_client->connection();
+}
