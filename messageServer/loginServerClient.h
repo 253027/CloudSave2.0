@@ -31,6 +31,8 @@ public:
 
     mg::TcpConnectionPointer connection();
 
+    void disableRetry();
+
 private:
     std::unique_ptr<mg::TcpClient> _client;
 };

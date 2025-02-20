@@ -13,6 +13,8 @@ class MessageServer : public Singleton<MessageServer>
 public:
     MessageServer();
 
+    ~MessageServer();
+
     bool initial(const std::string &configPath);
 
     bool start();
@@ -27,10 +29,13 @@ public:
 
     bool loginServerAvaiable();
 
+    void addTimerID(mg::TimerId id);
+
 private:
     std::shared_ptr<mg::EventLoop> _loop;
     std::unique_ptr<mg::TcpServer> _server;
     std::vector<std::unique_ptr<LoginServerClient>> _loginClientList;
+    std::vector<mg::TimerId> _timerMemo;
     uint16_t _maxConnection;
 };
 

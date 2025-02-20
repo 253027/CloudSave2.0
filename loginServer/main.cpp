@@ -11,8 +11,8 @@ void sighandle(int sig)
         return;
     LoginServer::get().quit();
     LoginServer::destroyInstance();
-    ::sleep(1);
     LOG_DEBUG("\r----------------------LoginServer exited-----------------------------------");
+    SHUTDOWNLOG();
     ::exit(0);
 }
 

@@ -1,5 +1,6 @@
 #include "messageServer.h"
-#include "loginServerClient.h"
+#include "proxyServerClient.h"
+#include "messageUser.h"
 #include "../src/base/log.h"
 #include "../src/base/tcp-server.h"
 
@@ -13,8 +14,10 @@ void sighandle(int sig)
         return;
     MessageServer::get().quit();
     MessageServer::destroyInstance();
-    ::sleep(1);
+    ProxyServerClientManger::destroyInstance();
+    MessageUserManger::destroyInstance();
     LOG_DEBUG("\r----------------------MessageServer exited-----------------------------------");
+    SHUTDOWNLOG();
     ::exit(0);
 }
 
