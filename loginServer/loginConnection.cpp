@@ -162,7 +162,7 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
         {
-            this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+            this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_TIMEOUT));
             LOG_DEBUG("{} heart beat message", link->name());
             break;
         }
@@ -192,7 +192,7 @@ void MessageServerConnection::connectionChangeCallback(const mg::TcpConnectionPo
         LOG_DEBUG("{} disconnected", link->name());
     }
     else
-        this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+        this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT));
 }
 
 void MessageServerConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)

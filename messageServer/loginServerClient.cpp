@@ -43,7 +43,7 @@ void LoginServerClient::connectionChangeCallback(const mg::TcpConnectionPointer 
         pdu.setPBMessage(&message);
         this->send(link, pdu.dump());
 
-        this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+        this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT));
         loop->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&LoginServerClient::heartBeatMessage, this, link));
         LOG_INFO("{} success connected to {}", link->name(), link->peerAddress().toIpPort());
     }
@@ -72,7 +72,7 @@ void LoginServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
         {
-            this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
+            this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_TIMEOUT));
             LOG_DEBUG("{} heart beat message", link->name());
             break;
         }
