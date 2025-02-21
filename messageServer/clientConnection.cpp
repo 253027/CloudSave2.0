@@ -2,6 +2,7 @@
 #include "messageServer.h"
 #include "messageUser.h"
 #include "proxyServerClient.h"
+#include "../src/base/log.h"
 
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
@@ -9,6 +10,19 @@ ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name,
       _loginName(), _userId(0), _clientType(0)
 {
     ;
+}
+
+void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &link)
+{
+    if (link->connected())
+    {
+        ClientConnectionManger::get().addConnection(link->name(), link);
+        LOG_INFO("new client connection:{}", link->name());
+    }
+    else
+    {
+        ClientConnectionManger::get().removeConnection(link->name());
+    }
 }
 
 void ClientConnection::handleLoginRequest(PduMessage *message)
@@ -75,4 +89,27 @@ void ClientConnection::handleLoginRequest(PduMessage *message)
     proxyRequest.set_attach_data(this->name());
     messagePdu.setPBMessage(&proxyRequest);
     mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump());
+}
+
+void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)
+{
+    this->_memo[name] = connection;
+}
+
+void ClientConnectionManger::removeConnection(const std::string &name)
+{
+    this->_memo.erase(name);
+}
+
+std::shared_ptr<ClientConnection> ClientConnectionManger::getConnctionByName(const std::string &name)
+{
+    auto it = this->_memo.find(name);
+    if (it == this->_memo.end())
+        return std::shared_ptr<ClientConnection>();
+
+    auto connection = it->second.lock();
+    if (!connection)
+        return std::shared_ptr<ClientConnection>();
+
+    return std::dynamic_pointer_cast<ClientConnection>(connection);
 }

@@ -1,5 +1,8 @@
 #include "proxyServerClient.h"
+#include "clientConnection.h"
 #include "../src/base/tcp-client.h"
+#include "../src/base/log.h"
+#include "../src/protocal/IM.Login.pb.h"
 
 ProxyServerClient::ProxyServerClient()
 {
@@ -54,6 +57,31 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     if (!message.ParseFromString(data))
     {
         LOG_ERROR("{} parse protobuf message error", this->_client->connection()->name());
+        return;
+    }
+
+    std::string loginName = message.user_name();
+    uint32_t result = message.result_code();
+    std::string resultString = message.result_string();
+
+    std::shared_ptr<ClientConnection> connection = ClientConnectionManger::get().getConnctionByName(message.attach_data());
+    if (!connection)
+    {
+        LOG_ERROR("client not exist {}", connection->name());
+        return;
+    }
+    if (!result)
+    {
+        IM::Login::LoginResponse response;
+        response.set_server_time(mg::TimeStamp::now().getSeconds());
+        response.set_result_string(resultString);
+
+        PduMessage pdu;
+        pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
+        pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
+        pdu.setPBMessage(&response);
+        mg::TcpPacketParser::get().send(connection, pdu.dump());
+        // FIXME: need remove connetion
         return;
     }
 }

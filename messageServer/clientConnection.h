@@ -19,6 +19,8 @@ public:
 
     inline void setUserId(uint32_t id) { this->_userId = id; }
 
+    void connectionChangeCallback(const mg::TcpConnectionPointer &link) override;
+
 private:
     void handleLoginRequest(PduMessage *message);
 
@@ -26,6 +28,21 @@ private:
     std::string _loginName; // 登录名
     uint32_t _userId;       // 登录ID
     uint32_t _clientType;   // 登录平台
+};
+
+class ClientConnectionManger : public Singleton<ClientConnectionManger>
+{
+public:
+    // ClientConnectionManger();
+
+    void addConnection(const std::string &name, const mg::TcpConnectionPointer &connection); // FIXME: no thread safe
+
+    void removeConnection(const std::string &name); // FIXME: no thread safe
+
+    std::shared_ptr<ClientConnection> getConnctionByName(const std::string &name);
+
+private:
+    std::unordered_map<std::string, std::weak_ptr<mg::TcpConnection>> _memo;
 };
 
 #endif //__CLIENT_CONNECTION_H__
