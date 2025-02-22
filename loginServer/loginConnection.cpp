@@ -6,6 +6,7 @@
 #include "../src/protocal/IM.Server.pb.h"
 #include "../src/protocal/imPduBase.h"
 #include "../src/protocal/IM.Other.pb.h"
+#include "../src/common/common-macro.h"
 
 static std::unordered_map<std::string, std::unique_ptr<struct MessageServerInfo>> _messageServeList;
 static uint32_t _total_online_user = 0;
@@ -118,7 +119,31 @@ ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name,
 
 void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
 {
-    ;
+    while (1)
+    {
+        std::string data;
+        if (!mg::TcpPacketParser::get().reveive(link, data))
+            break;
+
+        std::unique_ptr<PduMessage> message(new PduMessage());
+        if (!message->parse(data))
+        {
+            LOG_ERROR("{} wrong message", link->name());
+            continue;
+        }
+
+        data = message->getPBmessage().retrieveAllAsString();
+        switch (message->getCommandId())
+        {
+        case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
+            break;
+        case IM::BaseDefine::COMMAND_LOGIN_REQ_MESSAGE_SERVER_INFO:
+        {
+            this->handleMessageServerInfoRequest(data);
+            break;
+        }
+        }
+    }
 }
 
 void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &link)
@@ -132,6 +157,11 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
 void ClientConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)
 {
     ;
+}
+
+void ClientConnection::handleMessageServerInfoRequest(const std::string &data)
+{
+    PARSE_PROTOBUF_MESSAGE(IM::Login::MessageServerInfoRequest, message, data);
 }
 
 MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
@@ -202,13 +232,7 @@ void MessageServerConnection::writeCompleteCallback(const mg::TcpConnectionPoint
 
 void MessageServerConnection::handleMessageServerInfo(const std::string &data)
 {
-    IM::Server::IMMsgServInfo message;
-    if (!message.ParseFromString(data))
-    {
-        LOG_ERROR("{} parse protobuf message error", this->name());
-        return;
-    }
-
+    PARSE_PROTOBUF_MESSAGE(IM::Server::IMMsgServInfo, message, data);
     std::unique_ptr<MessageServerInfo> server(new MessageServerInfo());
     server->ip = std::move(message.ip());
     server->port = message.port();

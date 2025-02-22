@@ -17,3 +17,9 @@ message LoginResponse
     optional string result_string = 3;
     required IM.BaseDefine.UserStatusType status_type = 4;
 }
+
+// command base id: 0x0101
+message MessageServerInfoRequest
+{
+    
+}

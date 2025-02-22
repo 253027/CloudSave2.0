@@ -63,6 +63,8 @@ private:
     void connectionChangeCallback(const mg::TcpConnectionPointer &link) override;
 
     void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
+
+    void handleMessageServerInfoRequest(const std::string &data);
 };
 
 struct MessageServerInfo
