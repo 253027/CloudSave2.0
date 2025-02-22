@@ -80,8 +80,8 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
         pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
         pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
         pdu.setPBMessage(&response);
+        connection->setUserConnectionState(1); // close connection state
         mg::TcpPacketParser::get().send(connection, pdu.dump());
-        // FIXME: need remove connetion
         return;
     }
 }

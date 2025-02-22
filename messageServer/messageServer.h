@@ -32,8 +32,13 @@ public:
     void addTimerID(mg::TimerId id);
 
 private:
+    void acceptorCallback(int fd, const mg::InternetAddress &peerAddress);
+
+private:
+    std::string _ip;
+    uint16_t _port;
     std::shared_ptr<mg::EventLoop> _loop;
-    std::unique_ptr<mg::TcpServer> _server;
+    std::unique_ptr<mg::Acceptor> _acceptor;
     std::vector<std::unique_ptr<LoginServerClient>> _loginClientList;
     std::vector<mg::TimerId> _timerMemo;
     uint16_t _maxConnection;

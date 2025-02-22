@@ -1,16 +1,18 @@
 #include "messageServer.h"
+#include "clientConnection.h"
 #include "../src/base/tcp-client.h"
 #include "../src/base/json.hpp"
 #include "../src/base/log.h"
 #include "../src/base/connector.h"
 #include "../src/base/inet-address.h"
+#include "../src/base/acceptor.h"
 
 #include <fstream>
 #include <sstream>
 
 using json = nlohmann::json;
 
-MessageServer::MessageServer() : _maxConnection(0)
+MessageServer::MessageServer() : _ip(), _port(0), _maxConnection(0)
 {
     ;
 }
@@ -62,10 +64,11 @@ bool MessageServer::initial(const std::string &configPath)
         }
     }
 
-    std::string &&ip = config["listenIp"];
-    uint16_t port = config["listenPort"];
+    this->_ip = config["listenIp"];
+    this->_port = config["listenPort"];
     this->_maxConnection = config["maxConnection"];
-    this->_server.reset(new mg::TcpServer(this->_loop.get(), mg::InternetAddress(ip, port), "MessageServer"));
+    this->_acceptor.reset(new mg::Acceptor(mg::IPV4_DOMAIN, mg::TCP_SOCKET, this->_loop.get(), mg::InternetAddress(this->_ip, this->_port), true));
+    this->_acceptor->setNewConnectionCallBack(std::bind(&MessageServer::acceptorCallback, this, std::placeholders::_1, std::placeholders::_2));
     return true;
 }
 
@@ -73,7 +76,7 @@ bool MessageServer::start()
 {
     for (auto &client : _loginClientList)
         client->connect();
-    this->_server->start();
+    this->_acceptor->listen();
     this->_loop->loop();
     return true;
 }
@@ -81,17 +84,16 @@ bool MessageServer::start()
 void MessageServer::quit()
 {
     this->_loop->quit();
-    this->_server.reset();
 }
 
 std::string MessageServer::getIp()
 {
-    return this->_server->getIp();
+    return this->_ip;
 }
 
 uint16_t MessageServer::getPort()
 {
-    return this->_server->getPort();
+    return this->_port;
 }
 
 uint16_t MessageServer::getMaxConnection()
@@ -113,4 +115,32 @@ bool MessageServer::loginServerAvaiable()
 void MessageServer::addTimerID(mg::TimerId id)
 {
     this->_timerMemo.emplace_back(std::move(id));
+}
+
+void MessageServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddress)
+{
+    mg::EventLoop *loop = this->_loop.get();
+    sockaddr_in local;
+    ::memset(&local, 0, sizeof(local));
+    socklen_t addresslen = sizeof(local);
+    if (::getsockname(fd, (sockaddr *)&local, &addresslen) < 0)
+    {
+        LOG_ERROR("get local address failed");
+        return;
+    }
+
+    mg::InternetAddress localAddress(local);
+    std::shared_ptr<ClientConnection> connect = std::make_shared<ClientConnection>(loop, peerAddress.toIpPort(), fd, localAddress, peerAddress);
+
+    auto removeConnection = [](const mg::TcpConnectionPointer &link)
+    {
+        ClientConnectionManger::get().removeConnection(link->name());
+        mg::EventLoop *loop = link->getLoop();
+        loop->push(std::bind(&mg::TcpConnection::connectionDestoryed, std::move(link)));
+    };
+
+    ClientConnectionManger::get().addConnection(connect->name(), connect);
+    connect->setCloseCallback(std::bind(removeConnection, std::placeholders::_1));
+    loop->run(std::bind(&mg::TcpConnection::connectionEstablished, connect.get()));
+    LOG_INFO("new connection:[{}] socketFd:[{}]", peerAddress.toIpPort(), fd);
 }

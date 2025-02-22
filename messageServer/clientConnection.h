@@ -21,6 +21,10 @@ public:
 
     void connectionChangeCallback(const mg::TcpConnectionPointer &link) override;
 
+    void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
+
+    void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
+
 private:
     void handleLoginRequest(PduMessage *message);
 

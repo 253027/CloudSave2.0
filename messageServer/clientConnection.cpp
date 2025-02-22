@@ -9,7 +9,9 @@ ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name,
     : ConnectionBase(), TcpConnection(loop, name, sockfd, localAddress, peerAddress),
       _loginName(), _userId(0), _clientType(0)
 {
-    ;
+    this->setConnectionCallback(std::bind(&ClientConnection::connectionChangeCallback, this, std::placeholders::_1));
+    this->setWriteCompleteCallback(std::bind(&ClientConnection::writeCompleteCallback, this, std::placeholders::_1));
+    this->setMessageCallback(std::bind(&ClientConnection::messageCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &link)
@@ -22,6 +24,48 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
     else
     {
         ClientConnectionManger::get().removeConnection(link->name());
+    }
+}
+
+void ClientConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)
+{
+    LOG_DEBUG("{} write complete", link->name());
+    if (link->getUserConnectionState())
+    {
+        link->forceClose();
+        LOG_INFO("{} wirte complete and force close", link->name());
+    }
+}
+
+void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
+{
+    while (1)
+    {
+        std::string data;
+        if (!mg::TcpPacketParser::get().reveive(link, data))
+            break;
+
+        std::unique_ptr<PduMessage> message(new PduMessage());
+        if (!message->parse(data))
+        {
+            LOG_ERROR("{} wrong message", link->name());
+            continue;
+        }
+
+        switch (message->getCommandId())
+        {
+        case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
+        {
+            this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_TIMEOUT));
+            LOG_DEBUG("{} heart beat message", link->name());
+            break;
+        }
+        case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:
+        {
+            this->handleLoginRequest(message.get());
+            break;
+        }
+        }
     }
 }
 
@@ -88,7 +132,7 @@ void ClientConnection::handleLoginRequest(PduMessage *message)
     proxyRequest.set_password(request.password());
     proxyRequest.set_attach_data(this->name());
     messagePdu.setPBMessage(&proxyRequest);
-    mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump());
+    mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump()); // send to proxy server valid this user
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)
