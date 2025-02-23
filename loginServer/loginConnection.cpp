@@ -115,6 +115,7 @@ ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name,
     this->setConnectionCallback(std::bind(&ClientConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setMessageCallback(std::bind(&ClientConnection::messageCallback, this,
                                        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    this->setWriteCompleteCallback(std::bind(&ClientConnection::writeCompleteCallback, this, std::placeholders::_1));
 }
 
 void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
@@ -156,12 +157,31 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
 
 void ClientConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)
 {
-    ;
+    if (link->getUserConnectionState())
+    {
+        link->forceClose();
+        LOG_INFO("{} write complete and close", link->name());
+    }
 }
 
 void ClientConnection::handleMessageServerInfoRequest(const std::string &data)
 {
     PARSE_PROTOBUF_MESSAGE(IM::Login::MessageServerInfoRequest, message, data);
+
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
+    IM::Login::MessageServerInfoResponse response;
+    auto connection = shared_from_this();
+    connection->setUserConnectionState(1); // after write message, close the connection
+
+    if (_messageServeList.empty())
+    {
+        pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_MESSAGE_SERVER_INFO);
+        response.set_result_code(IM::BaseDefine::REFUST_REASON_NO_MESSAGE_SERVER);
+        pdu.setPBMessage(&response);
+        mg::TcpPacketParser::get().send(connection, pdu.dump());
+        return;
+    }
 }
 
 MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,

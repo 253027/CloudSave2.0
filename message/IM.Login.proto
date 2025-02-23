@@ -23,3 +23,12 @@ message MessageServerInfoRequest
 {
     
 }
+
+// command base id: 0x0102
+message MessageServerInfoResponse
+{
+    required IM.BaseDefine.RefuseType result_code = 1;
+    optional string priority_ip = 2;
+    optional string backup_ip = 3;
+    optional uint32 port = 4;
+}
