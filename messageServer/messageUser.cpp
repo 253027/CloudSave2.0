@@ -42,8 +42,16 @@ std::shared_ptr<MessageUser> MessageUserManger::getUserByUserId(uint32_t uid)
     return it->second;
 }
 
+uint16_t MessageUserManger::getUserConnectionCount()
+{
+    uint16_t ret = 0;
+    for (auto &x : this->_userMemoById)
+        ret += x.second->getValidConnectionCount();
+    return ret;
+}
+
 MessageUser::MessageUser(const std::string &loginName)
-    : _loginName(loginName)
+    : _isValid(false), _loginName(loginName)
 {
     ;
 }
@@ -51,4 +59,19 @@ MessageUser::MessageUser(const std::string &loginName)
 void MessageUser::addUnValidConnection(std::string name, std::weak_ptr<ClientConnection> connection)
 {
     this->_unvalid[std::move(name)] = std::move(connection);
+}
+
+void MessageUser::removeUnvalidConnection(std::string &name)
+{
+    this->_unvalid.erase(name);
+}
+
+void MessageUser::addValidConnection(std::string name, std::weak_ptr<ClientConnection> connection)
+{
+    this->_connectionMemo[std::move(name)] = connection;
+}
+
+void MessageUser::removeValidConnection(std::string &name)
+{
+    this->_connectionMemo.erase(name);
 }

@@ -17,9 +17,23 @@ public:
 
     void addUnValidConnection(std::string name, std::weak_ptr<ClientConnection> connection);
 
+    void removeUnvalidConnection(std::string &name);
+
+    void addValidConnection(std::string name, std::weak_ptr<ClientConnection> connection);
+
+    void removeValidConnection(std::string &name);
+
+    inline bool isValid() const { return this->_isValid; }
+
+    inline void setValid() { this->_isValid = true; }
+
+    inline uint16_t getValidConnectionCount() { return this->_connectionMemo.size(); }
+
 private:
+    bool _isValid;
     std::string _loginName;
     std::unordered_map<std::string, std::weak_ptr<ClientConnection>> _unvalid;
+    std::unordered_map<std::string, std::weak_ptr<ClientConnection>> _connectionMemo;
 };
 
 class MessageUserManger : public Singleton<MessageUserManger>
@@ -36,6 +50,8 @@ public:
     std::shared_ptr<MessageUser> getUserByUserName(std::string username);
 
     std::shared_ptr<MessageUser> getUserByUserId(uint32_t uid);
+
+    uint16_t getUserConnectionCount();
 
 private:
     std::unordered_map<uint32_t, std::shared_ptr<MessageUser>> _userMemoById;

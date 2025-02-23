@@ -1,5 +1,6 @@
 #include "loginServerClient.h"
 #include "messageServer.h"
+#include "messageUser.h"
 #include "../src/base/tcp-connection.h"
 #include "../src/base/log.h"
 #include "../src/base/tcp-packet-parser.h"
@@ -34,7 +35,7 @@ void LoginServerClient::connectionChangeCallback(const mg::TcpConnectionPointer 
         message.set_ip(MessageServer::get().getIp());
         message.set_port(MessageServer::get().getPort());
         message.set_max_conn_cnt(MessageServer::get().getMaxConnection());
-        message.set_cur_conn_cnt(0); // FIXME: 需要发送真实用户数
+        message.set_cur_conn_cnt(MessageUserManger::get().getUserConnectionCount());
         message.set_host_name(hostname);
 
         PduMessage pdu;
