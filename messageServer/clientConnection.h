@@ -26,7 +26,7 @@ public:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
 private:
-    void handleLoginRequest(PduMessage *message);
+    void handleLoginRequest(const std::string &data);
 
 private:
     std::string _loginName; // 登录名

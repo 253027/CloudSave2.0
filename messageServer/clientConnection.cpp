@@ -3,6 +3,7 @@
 #include "messageUser.h"
 #include "proxyServerClient.h"
 #include "../src/base/log.h"
+#include "../src/common/common-macro.h"
 
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
@@ -52,6 +53,7 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
             continue;
         }
 
+        data = message->getPBmessage().retrieveAllAsString();
         switch (message->getCommandId())
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
@@ -62,20 +64,22 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:
         {
-            this->handleLoginRequest(message.get());
+            this->handleLoginRequest(data);
             break;
         }
         }
     }
 }
 
-void ClientConnection::handleLoginRequest(PduMessage *message)
+void ClientConnection::handleLoginRequest(const std::string &data)
 {
     if (!this->_loginName.empty())
     {
         LOG_DEBUG("{} duplicate login request in same connection", this->name());
         return;
     }
+
+    PARSE_PROTOBUF_MESSAGE(IM::Login::LoginRequest, request, data);
 
     uint32_t result = 0;
     std::string resultString = "Server abnormality";
@@ -96,13 +100,6 @@ void ClientConnection::handleLoginRequest(PduMessage *message)
         message.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
         message.setPBMessage(&response);
         mg::TcpPacketParser::get().send(shared_from_this(), message.dump());
-        return;
-    }
-
-    IM::Login::LoginRequest request;
-    if (!request.ParseFromString(message->getPBmessage().retrieveAllAsString()))
-    {
-        LOG_ERROR("{} parse message error", this->name());
         return;
     }
 
