@@ -63,3 +63,14 @@ enum UserStatusType
     USER_STATUS_OFFLINE = 2;
     USER_STATUS_LEAVE = 3;
 }
+
+message UserInformation
+{
+    required uint32 user_id = 1;
+    required uint32 user_gender = 2;    //man:1 woman:2 neutral:3
+    required string user_nick_name = 3;
+    required string email = 4;
+    required string user_real_name = 5;
+    required string user_tel = 6;
+    required string avatar_url = 7;
+}

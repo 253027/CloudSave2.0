@@ -14,8 +14,10 @@ message LoginRequest
 message LoginResponse
 {
     required uint32 server_time = 1;
+    required IM.BaseDefine.RefuseType refuse_type = 2;
     optional string result_string = 3;
-    required IM.BaseDefine.UserStatusType status_type = 4;
+    optional IM.BaseDefine.UserStatusType status_type = 4;
+    optional IM.BaseDefine.UserInformation user_info = 5;
 }
 
 // command base id: 0x0101

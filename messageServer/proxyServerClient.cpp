@@ -1,5 +1,6 @@
 #include "proxyServerClient.h"
 #include "clientConnection.h"
+#include "messageUser.h"
 #include "../src/base/tcp-client.h"
 #include "../src/base/log.h"
 #include "../src/protocal/IM.Login.pb.h"
@@ -64,12 +65,21 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     uint32_t result = message.result_code();
     std::string resultString = message.result_string();
 
+    auto userByName = MessageUserManger::get().getUserByUserName(loginName);
+    if (!userByName)
+    {
+        LOG_ERROR("{} not exist", loginName);
+        return;
+    }
+
     std::shared_ptr<ClientConnection> connection = ClientConnectionManger::get().getConnctionByName(message.attach_data());
+    std::string connectionName = connection->name();
     if (!connection)
     {
         LOG_ERROR("client not exist {}", connection->name());
         return;
     }
+
     if (!result)
     {
         IM::Login::LoginResponse response;
@@ -84,6 +94,21 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
         mg::TcpPacketParser::get().send(connection, pdu.dump());
         return;
     }
+
+    result = IM::BaseDefine::REFUSE_REASON_PROXY_VALIDATE_FAILED;
+    IM::BaseDefine::UserInformation information = message.user_info();
+    auto userById = MessageUserManger::get().getUserByUserId(information.user_id());
+    if (userById)
+    {
+        userByName->removeUnvalidConnection(connectionName);
+    }
+    else
+        userById = userByName;
+    userById->setValid();
+    userById->addValidConnection(connectionName, connection);
+    userById->removeUnvalidConnection(connectionName);
+
+    // TODO: keep one facility online
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

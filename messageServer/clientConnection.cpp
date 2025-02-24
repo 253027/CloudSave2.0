@@ -119,7 +119,7 @@ void ClientConnection::handleLoginRequest(const std::string &data)
         user = std::make_shared<MessageUser>(request.user_name());
         MessageUserManger::get().addUserByUserName(request.user_name(), user);
     }
-    user->addUnValidConnection(request.user_name(), std::dynamic_pointer_cast<ClientConnection>(shared_from_this()));
+    user->addUnValidConnection(this->name(), std::dynamic_pointer_cast<ClientConnection>(shared_from_this()));
 
     PduMessage messagePdu;
     messagePdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
