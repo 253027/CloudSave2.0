@@ -170,18 +170,43 @@ void ClientConnection::handleMessageServerInfoRequest(const std::string &data)
 
     PduMessage pdu;
     pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_MESSAGE_SERVER_INFO);
     IM::Login::MessageServerInfoResponse response;
     auto connection = shared_from_this();
     connection->setUserConnectionState(1); // after write message, close the connection
 
     if (_messageServeList.empty())
     {
-        pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_MESSAGE_SERVER_INFO);
         response.set_result_code(IM::BaseDefine::REFUST_REASON_NO_MESSAGE_SERVER);
         pdu.setPBMessage(&response);
         mg::TcpPacketParser::get().send(connection, pdu.dump());
         return;
     }
+
+    uint32_t minCount = UINT_MAX;
+    std::string minServerName;
+    for (auto &server : _messageServeList)
+    {
+        if (server.second->cur_conn_cnt >= server.second->max_conn_cnt)
+            continue;
+        if (server.second->cur_conn_cnt >= minCount)
+            continue;
+        minCount = server.second->cur_conn_cnt;
+        minServerName = server.first;
+    }
+
+    if (minServerName.empty())
+        response.set_result_code(IM::BaseDefine::REFUSE_REASON_MESSAGE_SERVER_FULL);
+    else
+    {
+        auto &server = _messageServeList[minServerName];
+        response.set_result_code(IM::BaseDefine::REFUSE_REASON_NONE);
+        response.set_priority_ip(server->ip);
+        response.set_port(server->port);
+    }
+
+    pdu.setPBMessage(&response);
+    mg::TcpPacketParser::get().send(connection, pdu.dump());
 }
 
 MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
