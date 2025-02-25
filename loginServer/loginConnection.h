@@ -96,6 +96,8 @@ private:
     void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
 
     void handleMessageServerInfo(const std::string &data);
+
+    void updateMessageServerInfo(const std::string &data);
 };
 
 #endif //__LOGIN_CONNECTION_H__

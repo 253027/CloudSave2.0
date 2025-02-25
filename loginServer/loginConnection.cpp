@@ -9,7 +9,7 @@
 #include "../src/common/common-macro.h"
 
 static std::unordered_map<std::string, std::unique_ptr<struct MessageServerInfo>> _messageServeList;
-static uint32_t _total_online_user = 0;
+static uint32_t _total_online_user_connection = 0;
 
 void ConnectionManger::addConnection(mg::TcpConnectionPointer &link, int type)
 {
@@ -208,6 +208,7 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
             continue;
         }
 
+        data = message->getPBmessage().retrieveAllAsString();
         switch (message->getCommandId())
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
@@ -218,7 +219,7 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_MSG_SERV_INFO:
         {
-            this->handleMessageServerInfo(message->getPBmessage().retrieveAllAsString());
+            this->handleMessageServerInfo(data);
             break;
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_USER_CNT_UPDATE:
@@ -236,7 +237,7 @@ void MessageServerConnection::connectionChangeCallback(const mg::TcpConnectionPo
         auto it = _messageServeList.find(link->name());
         if (it != _messageServeList.end())
         {
-            _total_online_user -= it->second->cur_conn_cnt;
+            _total_online_user_connection -= it->second->cur_conn_cnt;
             _messageServeList.erase(it);
         }
         LOG_DEBUG("{} disconnected", link->name());
@@ -260,8 +261,30 @@ void MessageServerConnection::handleMessageServerInfo(const std::string &data)
     server->cur_conn_cnt = message.cur_conn_cnt();
     server->hostname = std::move(message.host_name());
 
-    _total_online_user += server->cur_conn_cnt;
+    _total_online_user_connection += server->cur_conn_cnt;
     LOG_INFO("MessageInfo ip[{}] port[{}] max_conn_cnt[{}] cur_con_cnt[{}] hostname[{}]",
              server->ip, server->port, server->max_conn_cnt, server->cur_conn_cnt, server->hostname);
     _messageServeList[this->name()] = std::move(server);
+}
+
+void MessageServerConnection::updateMessageServerInfo(const std::string &data)
+{
+    PARSE_PROTOBUF_MESSAGE(IM::Server::IMMsgServInfoUpdate, message, data);
+    auto it = _messageServeList.find(this->name());
+    if (it == _messageServeList.end())
+        return;
+    auto &server = it->second;
+    if (message.user_action() == 1)
+    {
+        ++server->cur_conn_cnt;
+        ++_total_online_user_connection;
+    }
+    else
+    {
+        --server->cur_conn_cnt;
+        --_total_online_user_connection;
+    }
+
+    LOG_INFO("{} update server info, current connction: {}, total connection: {}",
+             this->peerAddress().toIp(), server->cur_conn_cnt, _total_online_user_connection);
 }

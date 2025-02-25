@@ -3,14 +3,21 @@ package IM.Server;
 import "IM.BaseDefine.proto";
 option optimize_for = LITE_RUNTIME;
 
+// command base id: 0x0709
 message IMMsgServInfo
 {
-	//cmd id:	0x0709
 	required string ip = 1;
 	required uint32 port = 2;
 	required uint32 max_conn_cnt = 3;
 	required uint32 cur_conn_cnt = 4;
 	required string host_name = 5;
+}
+
+// command base id: 0x070b
+message IMMsgServInfoUpdate
+{
+	required uint32 user_action = 1; //1:increase 2:decrease
+	required uint32 user_id = 2;
 }
 
 message VerifyDataRequest
