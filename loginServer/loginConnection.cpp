@@ -249,6 +249,7 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_USER_CNT_UPDATE:
         {
+            this->updateMessageServerInfo(data);
             break;
         }
         }
