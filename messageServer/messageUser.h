@@ -29,6 +29,8 @@ public:
 
     inline uint16_t getValidConnectionCount() { return this->_connectionMemo.size(); }
 
+    inline uint16_t getUnvalidConnectionCount() { return this->_unvalid.size(); }
+
 private:
     bool _isValid;
     std::string _loginName;

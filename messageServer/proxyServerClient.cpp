@@ -95,18 +95,25 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
         return;
     }
 
+    userByName->removeUnvalidConnection(connectionName);
+    if (userByName->getUnvalidConnectionCount() == 0)
+        MessageUserManger::get().removeUserByUserName(loginName);
+
     result = IM::BaseDefine::REFUSE_REASON_PROXY_VALIDATE_FAILED;
     IM::BaseDefine::UserInformation information = message.user_info();
     auto userById = MessageUserManger::get().getUserByUserId(information.user_id());
-    if (userById)
+
+    if (!userById)
     {
-        userByName->removeUnvalidConnection(connectionName);
+        if (userByName->getUnvalidConnectionCount() == 0)
+            userById = std::move(userByName);
+        else
+            userById = std::make_shared<MessageUser>(loginName);
+        MessageUserManger::get().addUserByUserId(information.user_id(), userById);
     }
-    else
-        userById = userByName;
+
     userById->setValid();
     userById->addValidConnection(connectionName, connection);
-    userById->removeUnvalidConnection(connectionName);
 
     // TODO: keep one facility online
 }
