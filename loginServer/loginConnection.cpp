@@ -35,11 +35,13 @@ void ConnectionManger::Timer()
         case CONNECTION_HTTP_CLIENT:
         {
             const auto link = std::dynamic_pointer_cast<HttpClientConnection>(x.second.first);
+#ifndef _DEBUG
             if (curTime > link->getNextReceiveTime())
             {
                 timeout[x.first] = x.second;
                 LOG_DEBUG("{} httpClient Timeout", link->name());
             }
+#endif
             break;
         }
         case CONNECTION_MESSAGE_SERVER:
@@ -67,11 +69,13 @@ void ConnectionManger::Timer()
         case CONNECTION_CLIENT:
         {
             const auto link = std::dynamic_pointer_cast<ClientConnection>(x.second.first);
+#ifndef _DEBUG
             if (curTime > link->getNextReceiveTime())
             {
                 timeout[x.first] = x.second;
                 LOG_DEBUG("{} messageServer Timeout", link->name());
             }
+#endif
             break;
         }
         }
