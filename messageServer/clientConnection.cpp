@@ -24,7 +24,9 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
     }
     else
     {
+        mg::EventLoop *loop = link->getLoop();
         ClientConnectionManger::get().removeConnection(link->name());
+        loop->push(std::bind(&mg::TcpConnection::connectionDestoryed, link));
     }
 }
 
@@ -147,10 +149,5 @@ std::shared_ptr<ClientConnection> ClientConnectionManger::getConnctionByName(con
     auto it = this->_memo.find(name);
     if (it == this->_memo.end())
         return std::shared_ptr<ClientConnection>();
-
-    auto connection = it->second.lock();
-    if (!connection)
-        return std::shared_ptr<ClientConnection>();
-
-    return std::dynamic_pointer_cast<ClientConnection>(connection);
+    return std::dynamic_pointer_cast<ClientConnection>(it->second);
 }

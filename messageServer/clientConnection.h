@@ -46,7 +46,7 @@ public:
     std::shared_ptr<ClientConnection> getConnctionByName(const std::string &name);
 
 private:
-    std::unordered_map<std::string, std::weak_ptr<mg::TcpConnection>> _memo;
+    std::unordered_map<std::string, std::shared_ptr<mg::TcpConnection>> _memo;
 };
 
 #endif //__CLIENT_CONNECTION_H__
