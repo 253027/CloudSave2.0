@@ -17,7 +17,7 @@ bool mg::TcpPacketParser::reveive(const mg::TcpConnectionPointer con, std::strin
         return false;
 
     int len = con->_readBuffer.peekInt32();
-    if (con->_readBuffer.readableBytes() < headSize + len)
+    if (len < 0 || con->_readBuffer.readableBytes() < headSize + len) // FIXME: check the data maxsize
         return false;
 
     if (len != con->_readBuffer.readInt32())
