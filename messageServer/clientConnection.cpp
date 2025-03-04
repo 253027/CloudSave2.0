@@ -24,9 +24,7 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
     }
     else
     {
-        mg::EventLoop *loop = link->getLoop();
-        ClientConnectionManger::get().removeConnection(link->name());
-        loop->push(std::bind(&mg::TcpConnection::connectionDestoryed, link));
+        LOG_INFO("{} disconnected", link->name());
     }
 }
 
