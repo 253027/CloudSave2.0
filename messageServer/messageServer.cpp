@@ -69,6 +69,7 @@ bool MessageServer::initial(const std::string &configPath)
     this->_maxConnection = config["maxConnection"];
     this->_acceptor.reset(new mg::Acceptor(mg::IPV4_DOMAIN, mg::TCP_SOCKET, this->_loop.get(), mg::InternetAddress(this->_ip, this->_port), true));
     this->_acceptor->setNewConnectionCallBack(std::bind(&MessageServer::acceptorCallback, this, std::placeholders::_1, std::placeholders::_2));
+    this->_ip = config["ip"];
     return true;
 }
 
