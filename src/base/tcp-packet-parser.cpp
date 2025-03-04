@@ -7,6 +7,7 @@ bool mg::TcpPacketParser::send(const mg::TcpConnectionPointer con, const std::st
     mg::Buffer buf;
     buf.appendInt32(data.size());
     buf.append(data);
+    LOG_DEBUG("{} send: {} bytes", con->name(), buf.readableBytes());
     con->send(buf);
     return true;
 }
@@ -26,6 +27,7 @@ bool mg::TcpPacketParser::reveive(const mg::TcpConnectionPointer con, std::strin
         return false;
     }
 
+    LOG_DEBUG("{} receive: {} bytes", con->name(), len);
     data = con->_readBuffer.retrieveAsString(len);
     return true;
 }
