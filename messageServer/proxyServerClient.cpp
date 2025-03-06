@@ -80,15 +80,17 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
         return;
     }
 
-    if (!result)
-    {
-        IM::Login::LoginResponse response;
-        response.set_server_time(mg::TimeStamp::now().getSeconds());
-        response.set_result_string(resultString);
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
 
-        PduMessage pdu;
-        pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
-        pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
+    IM::Login::LoginResponse response;
+    response.set_server_time(mg::TimeStamp::now().getSeconds());
+    response.set_result_string(resultString);
+
+    if (result)
+    {
+        response.set_refuse_type(IM::BaseDefine::REFUSE_REASON_PROXY_VALIDATE_FAILED);
         pdu.setPBMessage(&response);
         connection->setUserConnectionState(1); // close connection state
         mg::TcpPacketParser::get().send(connection, pdu.dump());
@@ -99,7 +101,6 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     if (userByName->getUnvalidConnectionCount() == 0)
         MessageUserManger::get().removeUserByUserName(loginName);
 
-    result = IM::BaseDefine::REFUSE_REASON_PROXY_VALIDATE_FAILED;
     IM::BaseDefine::UserInformation information = message.user_info();
     auto userById = MessageUserManger::get().getUserByUserId(information.user_id());
 
@@ -113,9 +114,17 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     }
 
     userById->setValid();
+    userById->setUserId(information.user_id());
     userById->addValidConnection(connectionName, connection);
 
     // TODO: keep one facility online
+
+    LOG_INFO("{} {} login success", connection->name(), userById->getUserId());
+    response.set_refuse_type(IM::BaseDefine::REFUSE_REASON_NONE);
+    IM::BaseDefine::UserInformation *userInfo = response.mutable_user_info();
+    userInfo->Swap(&information);
+    pdu.setPBMessage(&response);
+    mg::TcpPacketParser::get().send(connection, pdu.dump());
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

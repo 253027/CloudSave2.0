@@ -31,11 +31,16 @@ public:
 
     inline uint16_t getUnvalidConnectionCount() { return this->_unvalid.size(); }
 
+    inline void setUserId(uint32_t uid) { this->_user_id = uid; }
+
+    inline uint32_t getUserId() { return this->_user_id; }
+
 private:
     bool _isValid;
     std::string _loginName;
     std::unordered_map<std::string, std::weak_ptr<ClientConnection>> _unvalid;
     std::unordered_map<std::string, std::weak_ptr<ClientConnection>> _connectionMemo;
+    uint32_t _user_id;
 };
 
 class MessageUserManger : public Singleton<MessageUserManger>

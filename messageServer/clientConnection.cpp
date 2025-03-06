@@ -95,6 +95,7 @@ void ClientConnection::handleLoginRequest(const std::string &data)
         PduMessage message;
         IM::Login::LoginResponse response;
         response.set_server_time(mg::TimeStamp::now().getSeconds());
+        response.set_refuse_type(static_cast<IM::BaseDefine::RefuseType>(result));
         response.set_result_string(resultString);
         message.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
         message.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
