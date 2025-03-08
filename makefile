@@ -17,7 +17,7 @@ export LDFLAGS
 export DEBUG
 
 .PHONY: all
-all: src loginServer messageServer
+all: src loginServer messageServer proxyServer
 
 .PHONY: src
 src:
@@ -30,6 +30,10 @@ loginServer: src
 .PHONY: messageServer
 messageServer: src
 	$(MAKE) -C messageServer
+
+.PHONY: proxyServer
+proxyServer: src
+	$(MAKE) -C proxyServer
 
 .PHONY: clean
 clean:
