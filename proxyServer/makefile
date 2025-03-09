@@ -15,7 +15,7 @@ CPPFLAGS := -I$(ROOT_DIR)/protobuf/include
 LDFLAGS := -L$(ROOT_DIR)/lib -L$(ROOT_DIR)/protobuf/lib
 LDLIBS := -lcrypt -lmysqlclient -lspdlog -lprotobuf
 
-proxyServer: $(OBJ) $(SDK_OBJ)
+server: $(OBJ) $(SDK_OBJ)
 	$(CC) $^ $(CXXFLAGS) $(CPPFLAGS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 $(OBJ_DIR)/%.o: %.cpp

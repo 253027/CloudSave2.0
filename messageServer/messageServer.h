@@ -2,6 +2,7 @@
 #define __MESSAGE_SERVER_H__
 
 #include "loginServerClient.h"
+#include "proxyServerClient.h"
 #include "../src/base/singleton.h"
 #include "../src/base/tcp-server.h"
 
@@ -40,6 +41,7 @@ private:
     std::shared_ptr<mg::EventLoop> _loop;
     std::unique_ptr<mg::Acceptor> _acceptor;
     std::vector<std::unique_ptr<LoginServerClient>> _loginClientList;
+    std::vector<std::unique_ptr<ProxyServerClient>> _proxyServertList;
     std::vector<mg::TimerId> _timerMemo;
     uint16_t _maxConnection;
 };

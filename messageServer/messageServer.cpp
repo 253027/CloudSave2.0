@@ -64,6 +64,17 @@ bool MessageServer::initial(const std::string &configPath)
         }
     }
 
+    // proxyServerClient
+    {
+        for (auto &server : config["proxyServer"])
+        {
+            std::string ip = server["ip"];
+            uint16_t port = server["port"];
+            _proxyServertList.emplace_back(std::unique_ptr<ProxyServerClient>(new ProxyServerClient(mg::IPV4_DOMAIN, mg::TCP_SOCKET, _loop.get(),
+                                                                                                    mg::InternetAddress(ip, port), ip)));
+        }
+    }
+
     this->_ip = config["listenIp"];
     this->_port = config["listenPort"];
     this->_maxConnection = config["maxConnection"];
@@ -76,6 +87,8 @@ bool MessageServer::initial(const std::string &configPath)
 bool MessageServer::start()
 {
     for (auto &client : _loginClientList)
+        client->connect();
+    for (auto &client : _proxyServertList)
         client->connect();
     this->_acceptor->listen();
     this->_loop->loop();

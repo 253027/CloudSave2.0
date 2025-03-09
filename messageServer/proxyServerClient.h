@@ -17,9 +17,14 @@ class PduMessage;
 class ProxyServerClient : public ConnectionBase
 {
 public:
-    ProxyServerClient();
+    ProxyServerClient(int domain, int type, mg::EventLoop *loop,
+                      const mg::InternetAddress &address, const std::string &name);
 
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
+
+    void connectionChangeCallback(const mg::TcpConnectionPointer &link);
+
+    void connect();
 
     bool connected();
 

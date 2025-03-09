@@ -1,6 +1,7 @@
 #include "proxyServer.h"
 #include "../src/base/log.h"
 #include "../src/base/tcp-server.h"
+#include "../src/base/threadpool.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -11,7 +12,6 @@ void sighandle(int sig)
     if (sig != SIGINT && sig != SIGTERM)
         return;
     ProxyServer::get().quit();
-    ProxyServer::destroyInstance();
     ProxyServer::destroyInstance();
     LOG_DEBUG("\r----------------------proxyServer exited-----------------------------------");
     SHUTDOWNLOG();

@@ -45,6 +45,21 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "ProxyServer",
+            "type": "shell",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}" // 指定当前工作目录
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }

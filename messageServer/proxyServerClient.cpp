@@ -5,9 +5,13 @@
 #include "../src/base/log.h"
 #include "../src/protocal/IM.Login.pb.h"
 
-ProxyServerClient::ProxyServerClient()
+ProxyServerClient::ProxyServerClient(int domain, int type, mg::EventLoop *loop,
+                                     const mg::InternetAddress &address, const std::string &name)
+    : _client(new mg::TcpClient(domain, type, loop, address, name))
 {
-    ;
+    _client->setConnectionCallback(std::bind(&ProxyServerClient::connectionChangeCallback, this, std::placeholders::_1));
+    _client->setMessageCallback(std::bind(&ProxyServerClient::messageCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    _client->enableRetry();
 }
 
 bool ProxyServerClient::connected()
@@ -18,6 +22,19 @@ bool ProxyServerClient::connected()
 mg::TcpConnectionPointer ProxyServerClient::connection()
 {
     return this->_client->connection();
+}
+
+void ProxyServerClient::connectionChangeCallback(const mg::TcpConnectionPointer &link)
+{
+    if (link->connected())
+        LOG_DEBUG("{} connected", link->name());
+    else
+        LOG_DEBUG("{} disconnected", link->name());
+}
+
+void ProxyServerClient::connect()
+{
+    this->_client->connect();
 }
 
 void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
