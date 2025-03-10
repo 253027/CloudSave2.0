@@ -51,6 +51,7 @@ void mg::EventLoop::quit()
 {
     this->_quit = true;
     this->wakeup();
+    this->_timeQueue->clear();
     LOG_DEBUG("EventLoop[{}] quit", this->_name.c_str());
 }
 

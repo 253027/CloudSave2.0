@@ -31,6 +31,11 @@ namespace mg
          */
         void cancel(TimerId timerId);
 
+        /**
+         * @brief 清除所有定时器
+         */
+        void clear();
+
     private:
         using Entry = std::pair<TimeStamp, Timer *>;
         using TimerList = std::set<Entry>;

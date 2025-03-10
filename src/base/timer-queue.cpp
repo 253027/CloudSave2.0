@@ -42,6 +42,15 @@ void mg::TimerQueue::cancel(TimerId timerId)
     _loop->run(std::bind(&TimerQueue::cancelInOwnerLoop, this, timerId));
 }
 
+void mg::TimerQueue::clear()
+{
+    std::vector<TimerId> memo;
+    for (auto &x : _list)
+        memo.push_back(TimerId(x.second, x.second->getTimerId()));
+    for (auto &x : memo)
+        this->cancel(x);
+}
+
 void mg::TimerQueue::addTimerInOwnerLoop(Timer *timer)
 {
     if (!_loop->isInOwnerThread())

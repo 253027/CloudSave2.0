@@ -22,10 +22,10 @@ mg::TcpClient::TcpClient(int domain, int type, EventLoop *loop, const InternetAd
 
 mg::TcpClient::~TcpClient()
 {
-    LOG_INFO("~TcpClient() called");
     if (!_connected)
         return;
 
+    LOG_DEBUG("{} called ~TcpClient()", this->_connector->getAddress().toIpPort());
     TcpConnectionPointer connection;
     bool unique = false;
     {
