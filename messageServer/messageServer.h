@@ -30,8 +30,6 @@ public:
 
     bool loginServerAvaiable();
 
-    void addTimerID(mg::TimerId id);
-
 private:
     void acceptorCallback(int fd, const mg::InternetAddress &peerAddress);
 
@@ -42,7 +40,6 @@ private:
     std::unique_ptr<mg::Acceptor> _acceptor;
     std::vector<std::unique_ptr<LoginServerClient>> _loginClientList;
     std::vector<std::unique_ptr<ProxyServerClient>> _proxyServertList;
-    std::vector<mg::TimerId> _timerMemo;
     uint16_t _maxConnection;
 };
 

@@ -11,7 +11,9 @@
 namespace mg
 {
     class TcpClient;
+    class EventLoop;
 };
+
 class PduMessage;
 
 class ProxyServerClient : public ConnectionBase
@@ -22,7 +24,7 @@ public:
 
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
-    void connectionChangeCallback(const mg::TcpConnectionPointer &link);
+    void connectionChangeCallback(const mg::TcpConnectionPointer &link, mg::EventLoop *loop);
 
     void connect();
 

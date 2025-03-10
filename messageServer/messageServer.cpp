@@ -19,9 +19,6 @@ MessageServer::MessageServer() : _ip(), _port(0), _maxConnection(0)
 
 MessageServer::~MessageServer()
 {
-    // 析构前需要将清除定时器队列，以防止有未关闭的TcpConnnection连接还在执行定时任务
-    for (auto &x : this->_timerMemo)
-        this->_loop->cancel(x);
     for (auto &client : this->_loginClientList)
     {
         client->disableRetry();
@@ -124,11 +121,6 @@ bool MessageServer::loginServerAvaiable()
         return true;
     }
     return false;
-}
-
-void MessageServer::addTimerID(mg::TimerId id)
-{
-    this->_timerMemo.emplace_back(std::move(id));
 }
 
 void MessageServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddress)

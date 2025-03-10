@@ -1,6 +1,7 @@
 #include "proxyServerClient.h"
 #include "clientConnection.h"
 #include "messageUser.h"
+#include "../src/base/event-loop.h"
 #include "../src/base/tcp-client.h"
 #include "../src/base/log.h"
 #include "../src/protocal/IM.Login.pb.h"
@@ -9,7 +10,7 @@ ProxyServerClient::ProxyServerClient(int domain, int type, mg::EventLoop *loop,
                                      const mg::InternetAddress &address, const std::string &name)
     : _client(new mg::TcpClient(domain, type, loop, address, name))
 {
-    _client->setConnectionCallback(std::bind(&ProxyServerClient::connectionChangeCallback, this, std::placeholders::_1));
+    _client->setConnectionCallback(std::bind(&ProxyServerClient::connectionChangeCallback, this, std::placeholders::_1, loop));
     _client->setMessageCallback(std::bind(&ProxyServerClient::messageCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _client->enableRetry();
 }
@@ -24,12 +25,18 @@ mg::TcpConnectionPointer ProxyServerClient::connection()
     return this->_client->connection();
 }
 
-void ProxyServerClient::connectionChangeCallback(const mg::TcpConnectionPointer &link)
+void ProxyServerClient::connectionChangeCallback(const mg::TcpConnectionPointer &link, mg::EventLoop *loop)
 {
     if (link->connected())
-        LOG_DEBUG("{} connected", link->name());
+    {
+        this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT));
+        loop->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&ProxyServerClient::heartBeatMessage, this, link));
+        LOG_INFO("{} success connected to {}", link->name(), link->peerAddress().toIpPort());
+    }
     else
-        LOG_DEBUG("{} disconnected", link->name());
+    {
+        LOG_INFO("{} disconnected from {}", link->name(), link->peerAddress().toIpPort());
+    }
 }
 
 void ProxyServerClient::connect()
