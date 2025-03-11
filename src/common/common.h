@@ -12,6 +12,8 @@
 #include "../base/tcp-connection.h"
 #include "../base/inet-address.h"
 #include "../base/time-stamp.h"
+#include "../base/timer-id.h"
+#include "../base/event-loop.h"
 #include "../base/tcp-packet-parser.h"
 #include "../base/log.h"
 #include "../base/time-stamp.h"
@@ -56,6 +58,7 @@ public:
 
         if (curTime > this->getNextReceiveTime())
         {
+            link->getLoop()->cancel(this->_id);
             link->forceClose();
         }
     }
@@ -66,6 +69,8 @@ protected:
     virtual void connectionChangeCallback(const mg::TcpConnectionPointer &link) {};
 
     virtual void writeCompleteCallback(const mg::TcpConnectionPointer &link) {};
+
+    mg::TimerId _id;
 
 private:
     mg::TimeStamp _lastSendTime;

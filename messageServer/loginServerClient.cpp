@@ -45,7 +45,7 @@ void LoginServerClient::connectionChangeCallback(const mg::TcpConnectionPointer 
         this->send(link, pdu.dump());
 
         this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT));
-        auto timer = loop->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&LoginServerClient::heartBeatMessage, this, link));
+        this->_id = loop->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&LoginServerClient::heartBeatMessage, this, link));
         LOG_INFO("{} success connected to {}", link->name(), link->peerAddress().toIpPort());
     }
     else
