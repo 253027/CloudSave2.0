@@ -71,6 +71,11 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
     }
 }
 
+void ClientConnection::send(const std::string &data)
+{
+    this->ConnectionBase::send(shared_from_this(), data);
+}
+
 void ClientConnection::handleLoginRequest(const std::string &data)
 {
     if (!this->_loginName.empty())

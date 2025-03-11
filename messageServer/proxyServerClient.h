@@ -32,6 +32,8 @@ public:
 
     mg::TcpConnectionPointer connection();
 
+    void send(const std::string &data);
+
 private:
     void _handleVerifyDataResponse(const std::string &data);
 

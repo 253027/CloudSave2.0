@@ -60,8 +60,7 @@ void ConnectionManger::Timer()
                 pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
                 pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT);
                 pdu.setPBMessage(&message);
-                link->setNextSendTime(mg::TimeStamp(curTime.getMircoSecond() + SERVER_HEARTBEAT_INTERVAL));
-                mg::TcpPacketParser::get().send(link, pdu.dump());
+                link->send(pdu.dump());
             }
 
             break;
@@ -122,6 +121,11 @@ ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name,
     this->setWriteCompleteCallback(std::bind(&ClientConnection::writeCompleteCallback, this, std::placeholders::_1));
 }
 
+void ClientConnection::send(const std::string &data)
+{
+    this->ConnectionBase::send(shared_from_this(), data);
+}
+
 void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)
 {
     while (1)
@@ -176,14 +180,13 @@ void ClientConnection::handleMessageServerInfoRequest(const std::string &data)
     pdu.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
     pdu.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_MESSAGE_SERVER_INFO);
     IM::Login::MessageServerInfoResponse response;
-    auto connection = shared_from_this();
-    connection->setUserConnectionState(1); // after write message, close the connection
+    shared_from_this()->setUserConnectionState(1); // after write message, close the connection
 
     if (_messageServeList.empty())
     {
         response.set_result_code(IM::BaseDefine::REFUST_REASON_NO_MESSAGE_SERVER);
         pdu.setPBMessage(&response);
-        mg::TcpPacketParser::get().send(connection, pdu.dump());
+        this->send(pdu.dump());
         return;
     }
 
@@ -210,7 +213,7 @@ void ClientConnection::handleMessageServerInfoRequest(const std::string &data)
     }
 
     pdu.setPBMessage(&response);
-    mg::TcpPacketParser::get().send(connection, pdu.dump());
+    this->send(pdu.dump());
 }
 
 MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
@@ -220,6 +223,11 @@ MessageServerConnection::MessageServerConnection(mg::EventLoop *loop, const std:
     this->setConnectionCallback(std::bind(&MessageServerConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setMessageCallback(std::bind(&MessageServerConnection::messageCallback, this,
                                        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+}
+
+void MessageServerConnection::send(const std::string &data)
+{
+    this->ConnectionBase::send(shared_from_this(), data);
 }
 
 void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time)

@@ -25,6 +25,11 @@ mg::TcpConnectionPointer ProxyServerClient::connection()
     return this->_client->connection();
 }
 
+void ProxyServerClient::send(const std::string &data)
+{
+    this->ConnectionBase::send(this->_client->connection(), data);
+}
+
 void ProxyServerClient::connectionChangeCallback(const mg::TcpConnectionPointer &link, mg::EventLoop *loop)
 {
     if (link->connected())
@@ -117,7 +122,7 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
         response.set_refuse_type(IM::BaseDefine::REFUSE_REASON_PROXY_VALIDATE_FAILED);
         pdu.setPBMessage(&response);
         connection->setUserConnectionState(1); // close connection state
-        mg::TcpPacketParser::get().send(connection, pdu.dump());
+        connection->send(pdu.dump());
         return;
     }
 
@@ -148,7 +153,7 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     IM::BaseDefine::UserInformation *userInfo = response.mutable_user_info();
     userInfo->Swap(&information);
     pdu.setPBMessage(&response);
-    mg::TcpPacketParser::get().send(connection, pdu.dump());
+    connection->send(pdu.dump());
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

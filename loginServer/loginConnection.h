@@ -43,6 +43,8 @@ public:
     HttpClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                          const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress);
 
+    void send(const std::string &data);
+
 private:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
@@ -56,6 +58,8 @@ class ClientConnection : public ConnectionBase, public mg::TcpConnection
 public:
     ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                      const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress);
+
+    void send(const std::string &data);
 
 private:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
@@ -87,6 +91,8 @@ class MessageServerConnection : public ConnectionBase, public mg::TcpConnection
 public:
     MessageServerConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                             const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress);
+
+    void send(const std::string &data);
 
 private:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;

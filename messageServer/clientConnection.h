@@ -25,6 +25,8 @@ public:
 
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
+    void send(const std::string &data);
+
 private:
     void handleLoginRequest(const std::string &data);
 
