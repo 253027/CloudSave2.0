@@ -92,6 +92,11 @@ namespace mg
          */
         TimerId runEvery(double interval, std::function<void()> callback);
 
+        /**
+         * @brief 定时回收无效定时器
+         */
+        void enableRecycleClear();
+
         friend class TcpPacketParser;
         friend class HttpPacketParser;
 
@@ -149,23 +154,28 @@ namespace mg
          */
         void clearTimer();
 
-        int _highWaterMark;                           // 高水位阈值
-        EventLoop *_loop;                             // 所属的事件循环
-        std::string _name;                            // 连接名称
-        std::unique_ptr<Socket> _socket;              // 使用的套接口
-        std::unique_ptr<Channel> _channel;            // 管理套口事件的Channel类
-        std::atomic<State> _state;                    // 连接状态
-        const InternetAddress _localAddress;          // 本端IP地址
-        const InternetAddress _peerAddress;           // 对端IP地址
-        TcpConnectionCallback _connectionCallback;    // 连接建立或者断开时的回调
-        MessageDataCallback _messageCallback;         // 有读写消息时的回调
-        WriteCompleteCallback _writeCompleteCallback; // 消息发送完毕时的回调
-        ConnectionClosedCallback _closeCallback;      // 连接关闭时的回调
-        HighWaterMarkCallback _highWaterCallback;     // 写缓冲区数据过多执行的回调
-        Buffer _sendBuffer;                           // 写缓冲区
-        Buffer _readBuffer;                           // 读缓冲区
-        std::atomic_int _userStat;                    // 用户自定义的Tcp连接状态
-        std::vector<mg::TimerId> _timerIds;           // 所有定时器集合
+        /**
+         * @brief 清除无效定时器
+         */
+        void recycleClear();
+
+        int _highWaterMark;                                           // 高水位阈值
+        EventLoop *_loop;                                             // 所属的事件循环
+        std::string _name;                                            // 连接名称
+        std::unique_ptr<Socket> _socket;                              // 使用的套接口
+        std::unique_ptr<Channel> _channel;                            // 管理套口事件的Channel类
+        std::atomic<State> _state;                                    // 连接状态
+        const InternetAddress _localAddress;                          // 本端IP地址
+        const InternetAddress _peerAddress;                           // 对端IP地址
+        TcpConnectionCallback _connectionCallback;                    // 连接建立或者断开时的回调
+        MessageDataCallback _messageCallback;                         // 有读写消息时的回调
+        WriteCompleteCallback _writeCompleteCallback;                 // 消息发送完毕时的回调
+        ConnectionClosedCallback _closeCallback;                      // 连接关闭时的回调
+        HighWaterMarkCallback _highWaterCallback;                     // 写缓冲区数据过多执行的回调
+        Buffer _sendBuffer;                                           // 写缓冲区
+        Buffer _readBuffer;                                           // 读缓冲区
+        std::atomic_int _userStat;                                    // 用户自定义的Tcp连接状态
+        std::vector<std::pair<mg::TimerId, mg::TimeStamp>> _timerIds; // 所有定时器集合
     };
 };
 

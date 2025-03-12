@@ -2,6 +2,8 @@
 #include "event-loop.h"
 #include "log.h"
 
+#define RECYCLE_INTERVAL 30
+
 mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int sockfd,
                                  const InternetAddress &localAddress, const InternetAddress &peerAddress)
     : _loop(loop), _name(name), _socket(new Socket(sockfd)), _channel(new Channel(loop, sockfd)),
@@ -134,20 +136,28 @@ int mg::TcpConnection::getUserConnectionState()
 
 mg::TimerId mg::TcpConnection::runAt(TimeStamp time, std::function<void()> callback)
 {
-    this->_timerIds.emplace_back(this->_loop->runAt(time, std::move(callback)));
-    return this->_timerIds.back();
+    mg::TimerId id = this->_loop->runAt(time, std::move(callback));
+    this->_timerIds.emplace_back(std::move(id), id._timer->expiration());
+    return this->_timerIds.back().first;
 }
 
 mg::TimerId mg::TcpConnection::runAfter(double delay, std::function<void()> callback)
 {
-    this->_timerIds.emplace_back(this->_loop->runAfter(delay, std::move(callback)));
-    return this->_timerIds.back();
+    mg::TimerId id = this->_loop->runAfter(delay, std::move(callback));
+    this->_timerIds.emplace_back(std::move(id), id._timer->expiration());
+    return this->_timerIds.back().first;
 }
 
 mg::TimerId mg::TcpConnection::runEvery(double interval, std::function<void()> callback)
 {
-    this->_timerIds.emplace_back(this->_loop->runEvery(interval, std::move(callback)));
-    return this->_timerIds.back();
+    mg::TimerId id = this->_loop->runEvery(interval, std::move(callback));
+    this->_timerIds.emplace_back(std::move(id), mg::TimeStamp());
+    return this->_timerIds.back().first;
+}
+
+void mg::TcpConnection::enableRecycleClear()
+{
+    this->runEvery(RECYCLE_INTERVAL, std::bind(&TcpConnection::recycleClear, this));
 }
 
 void mg::TcpConnection::setConnectionState(State state)
@@ -301,5 +311,21 @@ void mg::TcpConnection::forceCloseInOwnerloop(TcpConnectionPointer con)
 void mg::TcpConnection::clearTimer()
 {
     for (auto &x : this->_timerIds)
-        this->_loop->cancel(x);
+        this->_loop->cancel(x.first);
+}
+
+void mg::TcpConnection::recycleClear()
+{
+    int len = _timerIds.size() - 1;
+    mg::TimeStamp zero, now = mg::TimeStamp::now();
+    std::vector<int> memo;
+    for (int i = 0; i <= len; i++)
+    {
+        if (!this->_timerIds[i].second.getMircoSecond() || now < this->_timerIds[i].second)
+            continue;
+        memo.push_back(i);
+    }
+    for (int i = 0; i < memo.size(); i++, len--)
+        std::swap(this->_timerIds[len], this->_timerIds[memo[i]]);
+    this->_timerIds.resize(len + 1);
 }

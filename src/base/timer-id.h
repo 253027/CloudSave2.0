@@ -16,6 +16,7 @@ namespace mg
         TimerId(Timer *timer, int64_t seq);
 
         friend class TimerQueue;
+        friend class TcpConnection;
 
     private:
         Timer *_timer;
