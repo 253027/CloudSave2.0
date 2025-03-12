@@ -35,7 +35,7 @@ void ProxyServerClient::connectionChangeCallback(const mg::TcpConnectionPointer 
     if (link->connected())
     {
         this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT));
-        this->_id = loop->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&ProxyServerClient::heartBeatMessage, this, link));
+        link->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&ProxyServerClient::heartBeatMessage, this, link));
         LOG_INFO("{} success connected to {}", link->name(), link->peerAddress().toIpPort());
     }
     else
