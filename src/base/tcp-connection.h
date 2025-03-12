@@ -7,6 +7,7 @@
 #include "function-callbacks.h"
 #include "noncopyable.h"
 #include "buffer.h"
+#include "timer-id.h"
 
 #include <memory>
 #include <atomic>
@@ -72,6 +73,25 @@ namespace mg
          */
         int getUserConnectionState();
 
+        /**
+         * @brief 给定时间执行某个回调函数
+         * @param time 给定时间
+         * @param callback 待执行回调
+         */
+        TimerId runAt(TimeStamp time, std::function<void()> callback);
+
+        /**
+         * @brief 给定延迟time秒后执行回调
+         * @param time 延迟秒数
+         */
+        TimerId runAfter(double delay, std::function<void()> callback);
+
+        /**
+         * @brief 每delay延迟执行一次
+         * @param interval 循环执行时间
+         */
+        TimerId runEvery(double interval, std::function<void()> callback);
+
         friend class TcpPacketParser;
         friend class HttpPacketParser;
 
@@ -124,6 +144,11 @@ namespace mg
          */
         void forceCloseInOwnerloop(TcpConnectionPointer con);
 
+        /**
+         * @brief 清除定时器
+         */
+        void clearTimer();
+
         int _highWaterMark;                           // 高水位阈值
         EventLoop *_loop;                             // 所属的事件循环
         std::string _name;                            // 连接名称
@@ -140,6 +165,7 @@ namespace mg
         Buffer _sendBuffer;                           // 写缓冲区
         Buffer _readBuffer;                           // 读缓冲区
         std::atomic_int _userStat;                    // 用户自定义的Tcp连接状态
+        std::vector<mg::TimerId> _timerIds;           // 所有定时器集合
     };
 };
 

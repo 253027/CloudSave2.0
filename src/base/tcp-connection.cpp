@@ -132,6 +132,24 @@ int mg::TcpConnection::getUserConnectionState()
     return this->_userStat;
 }
 
+mg::TimerId mg::TcpConnection::runAt(TimeStamp time, std::function<void()> callback)
+{
+    this->_timerIds.emplace_back(this->_loop->runAt(time, std::move(callback)));
+    return this->_timerIds.back();
+}
+
+mg::TimerId mg::TcpConnection::runAfter(double delay, std::function<void()> callback)
+{
+    this->_timerIds.emplace_back(this->_loop->runAfter(delay, std::move(callback)));
+    return this->_timerIds.back();
+}
+
+mg::TimerId mg::TcpConnection::runEvery(double interval, std::function<void()> callback)
+{
+    this->_timerIds.emplace_back(this->_loop->runEvery(interval, std::move(callback)));
+    return this->_timerIds.back();
+}
+
 void mg::TcpConnection::setConnectionState(State state)
 {
     this->_state = state;
@@ -162,6 +180,7 @@ void mg::TcpConnection::handleClose()
 {
     this->setConnectionState(DISCONNECTED);
     this->_channel->disableAllEvents();
+    this->clearTimer();
     TcpConnectionPointer temp(shared_from_this());
     if (this->_connectionCallback)
         this->_connectionCallback(temp);
@@ -277,4 +296,10 @@ void mg::TcpConnection::forceCloseInOwnerloop(TcpConnectionPointer con)
     {
         handleClose();
     }
+}
+
+void mg::TcpConnection::clearTimer()
+{
+    for (auto &x : this->_timerIds)
+        this->_loop->cancel(x);
 }
