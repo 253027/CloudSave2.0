@@ -71,7 +71,7 @@ void mg::ThreadPool::threadTask()
             {
                 std::unique_lock<std::mutex> lock(this->_mutex);
                 this->_consumer.wait(lock, [&]()
-                                     { return !this->_taskQueue.empty() && this->_running; });
+                                     { return !this->_running || !this->_taskQueue.empty(); });
                 if (!this->_taskQueue.empty())
                 {
                     task = this->_taskQueue.front();
