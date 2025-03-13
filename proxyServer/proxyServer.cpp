@@ -9,6 +9,9 @@
 #include <fstream>
 
 using json = nlohmann::json;
+// 连接名-下次接受时间
+thread_local std::unordered_map<std::string, mg::TimeStamp> heartBeatManger;
+
 bool ProxyServer::initial(const std::string &configPath)
 {
     std::ifstream file(configPath);
@@ -34,6 +37,8 @@ bool ProxyServer::initial(const std::string &configPath)
                                           mg::InternetAddress(static_cast<std::string>(config["listenIp"]),
                                                               static_cast<uint16_t>(config["listenPort"])),
                                           "ProxyServer"));
+    this->_server->setConnectionCallback(std::bind(&ProxyServer::onConnectionState, this, std::placeholders::_1));
+    this->_server->setMessageCallback(std::bind(&ProxyServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     this->_server->setThreadNums(static_cast<int>(config["threadNums"]));
     this->_threadPool.reset(new mg::ThreadPool("ProxyServerThreadPool"));
     return true;
@@ -64,7 +69,32 @@ void ProxyServer::onMessage(const mg::TcpConnectionPointer &link, mg::Buffer *b,
         auto callback = HandlerMap::get().getCallBack(link, data);
         if (callback)
             this->_threadPool->append(std::move(callback));
-        else
-            LOG_ERROR("{} parse error", link->name());
     }
+}
+
+void ProxyServer::onConnectionState(const mg::TcpConnectionPointer &link)
+{
+    if (link->connected())
+    {
+        heartBeatManger[link->name()] = mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT);
+        link->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&ProxyServer::heartBeatMessage, this, link));
+        LOG_INFO("{} connected", link->name());
+    }
+    else
+    {
+        heartBeatManger.erase(link->name());
+        LOG_INFO("{} disconnected", link->name());
+    }
+}
+
+void ProxyServer::heartBeatMessage(const mg::TcpConnectionPointer &link)
+{
+    PduMessage pdu;
+    IM::Other::IMHeartBeat message;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT);
+    pdu.setPBMessage(&message);
+    mg::TcpPacketParser::get().send(link, pdu.dump());
+    if (mg::TimeStamp::now() > heartBeatManger[link->name()])
+        link->forceClose();
 }
