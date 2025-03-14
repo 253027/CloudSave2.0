@@ -34,12 +34,14 @@ void ProxyServerClient::connectionChangeCallback(const mg::TcpConnectionPointer 
 {
     if (link->connected())
     {
+        ProxyServerClientManger::get().addConnection(this);
         this->setNextReceiveTime(mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT));
         link->runEvery(SERVER_HEARTBEAT_INTERVAL / 1000000, std::bind(&ProxyServerClient::heartBeatMessage, this, link));
         LOG_INFO("{} success connected to {}", link->name(), link->peerAddress().toIpPort());
     }
     else
     {
+        ProxyServerClientManger::get().removeConnection(this);
         LOG_INFO("{} disconnected from {}", link->name(), link->peerAddress().toIpPort());
     }
 }
@@ -172,4 +174,16 @@ std::shared_ptr<ProxyServerClient> ProxyServerClientManger::getHandle()
                                                   { if (ptr) this->_clientMemo.push(ptr); });
     this->_clientMemo.pop();
     return connection;
+}
+
+void ProxyServerClientManger::removeConnection(ProxyServerClient *connection)
+{
+    while (!this->_clientMemo.empty())
+    {
+        auto top = this->_clientMemo.front();
+        this->_clientMemo.pop();
+        if (top == connection)
+            break;
+        this->_clientMemo.push(top);
+    }
 }

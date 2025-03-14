@@ -49,6 +49,8 @@ public:
 
     std::shared_ptr<ProxyServerClient> getHandle(); // FIXME: not thread safe
 
+    void removeConnection(ProxyServerClient *connection);
+
 private:
     std::queue<ProxyServerClient *> _clientMemo;
 };
