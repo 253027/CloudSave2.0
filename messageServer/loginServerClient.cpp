@@ -28,7 +28,6 @@ void LoginServerClient::connectionChangeCallback(const mg::TcpConnectionPointer 
 {
     if (link->connected())
     {
-        // this is a test message
         IM::Server::IMMsgServInfo message;
         char hostname[256] = {0};
         ::gethostname(hostname, 256);

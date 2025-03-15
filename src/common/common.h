@@ -21,6 +21,7 @@
 #include "../protocal/IM.Server.pb.h"
 #include "../protocal/imPduBase.h"
 #include "../protocal/IM.Other.pb.h"
+#include "common-macro.h"
 
 class ConnectionBase
 {

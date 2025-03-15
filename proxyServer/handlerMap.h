@@ -14,7 +14,7 @@ public:
     mg::Handler getCallBack(const mg::TcpConnectionPointer &link, std::string &data);
 
 private:
-    void login(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> &pdu);
+    void login(const mg::TcpConnectionPointer &link, const std::string &data);
 };
 
 #endif // __HANDLER_MAP_H__

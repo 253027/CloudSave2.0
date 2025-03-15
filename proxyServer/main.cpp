@@ -2,6 +2,7 @@
 #include "../src/base/log.h"
 #include "../src/base/tcp-server.h"
 #include "../src/base/threadpool.h"
+#include "../src/base/mysql-connection-pool.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -31,6 +32,11 @@ int main(int argc, char *argv[])
     mg::LogConfig logConfig("debug", "./log", "proxyServer.log");
     INITLOG(logConfig);
     LOG_DEBUG("\r----------------------proxyServer started-----------------------------------");
+
+    if (!mg::MysqlConnectionPool::get().initial("./proxyServer/proxyServer.json", "mysql"))
+        assert(0 && "mysql initial failed");
+    if (!mg::MysqlConnectionPool::get().start(180))
+        assert(0 && "mysql start failed");
 
     if (!ProxyServer::get().initial("./proxyServer/proxyServer.json"))
         assert(0 && "Initial proxyServer failed");
