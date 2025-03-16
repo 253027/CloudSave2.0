@@ -24,7 +24,25 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
     }
     else
     {
+        std::string name = link->name();
         this->updateUserStatus(IM::BaseDefine::USER_STATUS_OFFLINE);
+
+        auto userByName = MessageUserManger::get().getUserByUserName(this->getLoginName());
+        if (userByName)
+        {
+            userByName->removeUnvalidConnection(name);
+            if (userByName->getUnvalidConnectionCount() == 0)
+                MessageUserManger::get().removeUserByUserName(this->getLoginName());
+        }
+
+        auto userById = MessageUserManger::get().getUserByUserId(this->getUserId());
+        if (userById)
+        {
+            userById->removeValidConnection(name);
+            if (userById->getValidConnectionCount() == 0)
+                MessageUserManger::get().removeUserByUserId(this->getUserId());
+        }
+
         LOG_INFO("{} disconnected", link->name());
     }
 }
