@@ -300,7 +300,7 @@ void MessageServerConnection::handleMessageServerInfo(const std::string &data)
     server->hostname = std::move(message.host_name());
 
     _total_online_user_connection += server->cur_conn_cnt;
-    LOG_INFO("MessageInfo ip[{}] port[{}] max_conn_cnt[{}] cur_con_cnt[{}] hostname[{}]",
+    LOG_INFO("hostname:[{}] ip:[{}] port:[{}] max:[{}] current:[{}]",
              server->ip, server->port, server->max_conn_cnt, server->cur_conn_cnt, server->hostname);
     _messageServeList[this->name()] = std::move(server);
 }
@@ -323,6 +323,5 @@ void MessageServerConnection::updateMessageServerInfo(const std::string &data)
         --_total_online_user_connection;
     }
 
-    LOG_INFO("{} update server info, current connction: {}, total connection: {}",
-             this->peerAddress().toIp(), server->cur_conn_cnt, _total_online_user_connection);
+    LOG_INFO("{} update, current:[{}], total:[{}]", this->peerAddress().toIp(), server->cur_conn_cnt, _total_online_user_connection);
 }

@@ -28,12 +28,12 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
 
 void HandlerMap::login(const mg::TcpConnectionPointer &link, const std::string &data)
 {
-    IM::Server::VerifyDataRequest request;
     PduMessage message;
     message.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
     message.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_RSP);
     IM::Server::VerifyDataResponse response;
 
+    IM::Server::VerifyDataRequest request;
     if (request.ParseFromString(std::move(data)))
     {
         std::string userName = request.user_name();
