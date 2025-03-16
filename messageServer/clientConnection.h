@@ -15,6 +15,8 @@ public:
 
     inline const std::string &getLoginName() const { return this->_loginName; }
 
+    inline void setLoginName(const std::string &name) { this->_loginName = name; }
+
     inline uint32_t getUserId() { return this->_userId; }
 
     inline void setUserId(uint32_t id) { this->_userId = id; }
@@ -26,6 +28,11 @@ public:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
     void send(const std::string &data);
+
+    /**
+     * @brief 更新用户状态至loginServer
+     */
+    void updateUserStatus(uint32_t status);
 
 private:
     void handleLoginRequest(const std::string &data);

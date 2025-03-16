@@ -123,6 +123,14 @@ bool MessageServer::loginServerAvaiable()
     return false;
 }
 
+void MessageServer::boardcastLoginServer(const std::string &data)
+{
+    for (auto &client : this->_loginClientList)
+    {
+        mg::TcpPacketParser::get().send(client->connection(), data);
+    }
+}
+
 void MessageServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddress)
 {
     mg::EventLoop *loop = this->_loop.get();

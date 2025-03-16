@@ -301,7 +301,7 @@ void MessageServerConnection::handleMessageServerInfo(const std::string &data)
 
     _total_online_user_connection += server->cur_conn_cnt;
     LOG_INFO("hostname:[{}] ip:[{}] port:[{}] max:[{}] current:[{}]",
-             server->ip, server->port, server->max_conn_cnt, server->cur_conn_cnt, server->hostname);
+             server->hostname, server->ip, server->port, server->max_conn_cnt, server->cur_conn_cnt);
     _messageServeList[this->name()] = std::move(server);
 }
 

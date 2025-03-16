@@ -18,6 +18,7 @@ message IMMsgServInfoUpdate
 {
 	required uint32 user_action = 1; //1:increase 2:decrease
 	required uint32 user_id = 2;
+	optional IM.BaseDefine.ClientType client_type = 3;
 }
 
 message VerifyDataRequest

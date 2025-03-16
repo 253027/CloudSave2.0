@@ -30,6 +30,8 @@ public:
 
     bool loginServerAvaiable();
 
+    void boardcastLoginServer(const std::string &data);
+
 private:
     void acceptorCallback(int fd, const mg::InternetAddress &peerAddress);
 

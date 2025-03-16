@@ -24,6 +24,7 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
     }
     else
     {
+        this->updateUserStatus(IM::BaseDefine::USER_STATUS_OFFLINE);
         LOG_INFO("{} disconnected", link->name());
     }
 }
@@ -74,6 +75,39 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
 void ClientConnection::send(const std::string &data)
 {
     this->ConnectionBase::send(shared_from_this(), data);
+}
+
+void ClientConnection::updateUserStatus(uint32_t status)
+{
+    auto user = MessageUserManger::get().getUserByUserId(this->getUserId());
+    if (!user) // unvalid connection
+        return;
+    if (status != IM::BaseDefine::USER_STATUS_ONLINE && status != IM::BaseDefine::USER_STATUS_OFFLINE)
+        return;
+
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_USER_CNT_UPDATE);
+
+    IM::Server::IMMsgServInfoUpdate message;
+    message.set_user_id(this->getUserId());
+
+    switch (status)
+    {
+    case IM::BaseDefine::USER_STATUS_ONLINE:
+    {
+        message.set_user_action(1);
+        break;
+    }
+    case IM::BaseDefine::USER_STATUS_OFFLINE:
+    {
+        message.set_user_action(0);
+        break;
+    }
+    }
+
+    pdu.setPBMessage(&message);
+    MessageServer::get().boardcastLoginServer(pdu.dump());
 }
 
 void ClientConnection::handleLoginRequest(const std::string &data)
