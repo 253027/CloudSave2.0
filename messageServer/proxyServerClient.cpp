@@ -149,6 +149,7 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     userById->addValidConnection(connectionName, connection);
 
     // TODO: keep one facility online
+    connection->setValid();
     connection->setUserId(userById->getUserId());
     connection->setLoginName(loginName);
     connection->updateUserStatus(IM::BaseDefine::USER_STATUS_ONLINE);

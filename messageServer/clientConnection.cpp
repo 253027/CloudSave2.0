@@ -8,7 +8,7 @@
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
     : ConnectionBase(), TcpConnection(loop, name, sockfd, localAddress, peerAddress),
-      _loginName(), _userId(0), _clientType(0)
+      _loginName(), _userId(0), _clientType(0), _isValid(false)
 {
     this->setConnectionCallback(std::bind(&ClientConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setWriteCompleteCallback(std::bind(&ClientConnection::writeCompleteCallback, this, std::placeholders::_1));
@@ -69,6 +69,12 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         if (!message->parse(data))
         {
             LOG_ERROR("{} wrong message", link->name());
+            continue;
+        }
+
+        if (message->getCommandId() != IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ && !this->isValid())
+        {
+            LOG_ERROR("{} unvalid message", link->name());
             continue;
         }
 

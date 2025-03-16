@@ -21,11 +21,9 @@ public:
 
     inline void setUserId(uint32_t id) { this->_userId = id; }
 
-    void connectionChangeCallback(const mg::TcpConnectionPointer &link) override;
+    inline void setValid() { this->_isValid = true; }
 
-    void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
-
-    void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
+    inline bool isValid() const { return this->_isValid; }
 
     void send(const std::string &data);
 
@@ -35,12 +33,20 @@ public:
     void updateUserStatus(uint32_t status);
 
 private:
+    void connectionChangeCallback(const mg::TcpConnectionPointer &link) override;
+
+    void writeCompleteCallback(const mg::TcpConnectionPointer &link) override;
+
+    void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
+
+private:
     void handleLoginRequest(const std::string &data);
 
 private:
     std::string _loginName; // 登录名
     uint32_t _userId;       // 登录ID
     uint32_t _clientType;   // 登录平台
+    bool _isValid;          // 连接是否经过验证
 };
 
 class ClientConnectionManger : public Singleton<ClientConnectionManger>
