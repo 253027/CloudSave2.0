@@ -67,6 +67,8 @@ namespace mg
 
     class Mysql
     {
+        friend class MysqlConnectionPool;
+
     public:
         Mysql();
 

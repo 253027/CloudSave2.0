@@ -97,6 +97,7 @@ std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::getHandle()
     std::shared_ptr<Mysql> res(_queue.front(), [this](mg::Mysql *connection)
                                {
                                    std::lock_guard<std::mutex> guard(this->_mutex);
+                                   connection->freeResult();
                                    connection->refresh();
                                    this->_queue.push(connection);
                                    this->_condition.notify_one(); // 通知等待的线程有新连接可用
