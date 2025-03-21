@@ -5,7 +5,8 @@
 #include "log.h"
 
 mg::Mysql::Mysql() : _handle(mysql_init(nullptr)), _res(nullptr),
-                     _row(nullptr), _field(nullptr), _alvieTime(0)
+                     _row(nullptr), _field(nullptr), _alvieTime(0),
+                     _stmt(nullptr), _bind_param(nullptr)
 {
     mysql_set_character_set(_handle, "utf8");
     if (_handle == nullptr)
@@ -26,11 +27,6 @@ bool mg::Mysql::connect(const std::string &username, const std::string &password
     if (res == nullptr)
         LOG_ERROR("{}", mysql_error(_handle));
     return res != nullptr;
-}
-
-bool mg::Mysql::insert(const std::string &tablename, DataField *column, char *data)
-{
-    return parseUpdate(parseInsert(tablename, column, data));
 }
 
 bool mg::Mysql::insert(const std::string &sql)
@@ -106,45 +102,22 @@ mg::TimeStamp mg::Mysql::getVacantTime()
     return mg::TimeStamp::now() - _alvieTime;
 }
 
-std::string mg::Mysql::parseInsert(const std::string &name, DataField *column, char *data)
+std::string mg::Mysql::parseInsert(const std::string &name, std::vector<std::string> &column)
 {
-    int offset = 0;
     std::ostringstream sql;
-    sql << "insert into `" << name << "` (";
+    sql << "INSERT INTO `" << name << "` (";
     std::string field, value;
-    for (DataField *p = column; p->name; p++)
+    for (int i = 0; i < column.size(); i++)
     {
-        if (!::strlen(p->name))
+        if (column[i].empty())
             continue;
-        field += p->name, field += ", ";
-        int len = 0;
-        switch (p->type)
-        {
-        case DataType::DB_STRING:
-        {
-            len = ::strlen(data + offset);
-            if (p->size)
-                len = std::min(len, p->size);
-            std::string buf(len * 2 + 3, '\'');
-
-            len = mysql_real_escape_string(_handle, &(*(buf.begin() + 1)), data + offset, len);
-            buf.resize(len + 2);
-            buf.back() = '\'';
-            value += buf;
-            break;
-        }
-        case DataType::DB_INT32:
-        {
-            value += std::to_string(*((int *)(data + offset)));
-            break;
-        }
-        }
-        value += ", ";
-        offset += p->size ? p->size : len;
+        field += column[i];
+        field += ", ";
+        value += "?, ";
     }
     field = field.substr(0, field.size() - 2);
     value = value.substr(0, value.size() - 2);
-    sql << field << ") values (" << value << ")";
+    sql << field << ") VALUES (" << value << ")";
     return sql.str();
 }
 
@@ -155,10 +128,57 @@ bool mg::Mysql::parseUpdate(const std::string &sql)
 
 void mg::Mysql::freeResult()
 {
+    if (_stmt)
+        mysql_stmt_close(_stmt);
+    _stmt = nullptr;
+    SAFE_DELETE_ARRAY(_bind_param);
     if (_res == nullptr)
         return;
     mysql_free_result(_res);
     _res = nullptr;
     _field = nullptr;
     _row = nullptr;
+}
+
+bool mg::Mysql::prepareStatement(const std::string &sql)
+{
+    SAFE_DELETE_ARRAY(this->_bind_param);
+    if (this->_stmt)
+        mysql_stmt_close(this->_stmt);
+
+    this->_stmt = mysql_stmt_init(this->_handle);
+    if (!this->_stmt)
+    {
+        LOG_ERROR("mysql_stmt_init: {}", mysql_error(this->_handle));
+        return false;
+    }
+
+    if (mysql_stmt_prepare(this->_stmt, sql.c_str(), sql.size()))
+    {
+        LOG_ERROR("mysql_stmt_prepare: {}", mysql_stmt_error(this->_stmt));
+        return false;
+    }
+
+    int num = mysql_stmt_param_count(this->_stmt);
+    if (num > 0)
+        this->_bind_param = new MYSQL_BIND[num]();
+
+    return true;
+}
+
+template <>
+void mg::Mysql::bindHelper(std::string &data, size_t index)
+{
+    this->_bind_param[index].buffer_type = MYSQL_TYPE_STRING;
+    this->_bind_param[index].buffer = const_cast<char *>(data.c_str());
+    this->_bind_param[index].buffer_length = data.size();
+}
+
+template <>
+void mg::Mysql::bindHelper(std::vector<uint8_t> &data, size_t index)
+{
+    this->_bind_param[index].buffer_type = MYSQL_TYPE_BLOB;
+    this->_bind_param[index].buffer = data.data();
+    this->_bind_param[index].buffer_length = data.size();
+    this->_bind_param[index].length = &this->_bind_param[index].buffer_length;
 }
