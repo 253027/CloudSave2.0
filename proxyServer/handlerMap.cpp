@@ -86,13 +86,13 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::st
             return;
         }
 
-        uint32_t userSession = Session::getInstance()->getSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+        uint32_t userSession = Session::get().getSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
         if (!userSession)
-            userSession = Session::getInstance()->addSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+            userSession = Session::get().addSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
 
-        uint32_t peerSession = Session::getInstance()->getSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+        uint32_t peerSession = Session::get().getSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
         if (!peerSession)
-            peerSession = Session::getInstance()->addSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+            peerSession = Session::get().addSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
 
         if (!peerSession || !userSession)
         {
@@ -103,7 +103,14 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::st
         uint32_t relation = Session::getInstance()->getRelation(from, to, true);
         if (!relation)
             relation = Session::getInstance()->addRelation(from, to);
+        Session::get().saveMessage(relation, request);
         break;
     }
     }
+
+    PduMessage response;
+    response.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
+    response.setCommandId(IM::BaseDefine::COMMAND_MESSAGE_DATA);
+    response.setPBMessage(&request);
+    mg::TcpPacketParser::get().send(link, response.dump());
 }

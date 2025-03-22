@@ -16,25 +16,39 @@ CREATE TABLE `UserInformation` (
 
 DROP TABLE IF EXISTS `RelationShip`;
 CREATE TABLE `RelationShip` (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '关系ID',
-    `user` int NOT NULL DEFAULT '0' COMMENT '用户ID',
-    `peer` int NOT NULL DEFAULT '0' COMMENT '好友ID或群ID',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态',
-    `createTime` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `updateTime` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',  
+    `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '关系ID',
+    `user` INT(11) NOT NULL DEFAULT '0' COMMENT '用户ID',
+    `peer` INT(11) NOT NULL DEFAULT '0' COMMENT '好友ID或群ID',
+    `status` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '状态',
+    `createTime` INT(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `updateTime` INT(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',  
     PRIMARY KEY (`id`), 
     KEY `index_user_peer_status_updateTime` (`user`,`peer`,`status`,`updateTime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `Session`;
 CREATE TABLE `Session` (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '关系ID',
-    `user` int NOT NULL DEFAULT '0' COMMENT '用户ID',
-    `peer` int NOT NULL DEFAULT '0' COMMENT '好友ID或群ID',
-    `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '类型',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态',
-    `createTime` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `updateTime` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+    `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '关系ID',
+    `user` INT(11) NOT NULL DEFAULT '0' COMMENT '用户ID',
+    `peer` INT(11) NOT NULL DEFAULT '0' COMMENT '好友ID或群ID',
+    `type` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '类型',
+    `status` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '状态',
+    `createTime` INT(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `updateTime` INT(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY `index_user_peer_status_updateTime` (`user`,`peer`,`status`,`updateTime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP Table IF EXISTS `MessageContent_0`;
+CREATE TABLE `MessageContent_0` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `relation` INT(11) NOT NULL DEFAULT '0' COMMENT '关系ID',
+    `user` INT(11) NOT NULL DEFAULT '0' COMMENT '发送方',
+    `peer` INT(11) NOT NULL DEFAULT '0' COMMENT '接收方',
+    `type` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '消息类型',
+    `content` VARCHAR(4096) DEFAULT '' COMMENT '消息内容',
+    `status` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '0-正常 1-被删除',
+    `createTime` INT(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `index_from_to_status` (`user`,`peer`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

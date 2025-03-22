@@ -84,3 +84,15 @@ uint32_t Session::addRelation(uint32_t from, uint32_t to)
 
     return this->getRelation(from, to);
 }
+
+void Session::saveMessage(uint32_t relation, IM::Message::MessageData &message)
+{
+    auto sql = mg::MysqlConnectionPool::get().getHandle();
+    if (!sql)
+        return;
+
+    std::array<std::string, 7> columns = {"relation", "user", "peer", "type", "status", "createTime", "content"};
+    auto data = std::make_tuple(relation, message.from(), message.to(), static_cast<int>(message.message_type()),
+                                0, message.create_time(), std::ref(message.message_data()));
+    sql->insert("MessageContent_0", columns, data);
+}

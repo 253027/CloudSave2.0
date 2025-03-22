@@ -3,6 +3,7 @@
 
 #include "../src/base/singleton.h"
 #include "../src/protocal/IM.BaseDefine.pb.h"
+#include "../src/protocal/IM.Message.pb.h"
 
 #include <cstdint>
 
@@ -16,6 +17,8 @@ public:
     uint32_t getRelation(uint32_t from, uint32_t to, bool insert = false);
 
     uint32_t addRelation(uint32_t from, uint32_t to);
+
+    void saveMessage(uint32_t relation, IM::Message::MessageData &message);
 };
 
 #endif // __SESSION_H__
