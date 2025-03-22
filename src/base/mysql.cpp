@@ -134,6 +134,14 @@ void mg::Mysql::bindHelper(std::string &data, size_t index)
 }
 
 template <>
+void mg::Mysql::bindHelper(const std::string &data, size_t index)
+{
+    this->_bind_param[index].buffer_type = MYSQL_TYPE_STRING;
+    this->_bind_param[index].buffer = const_cast<char *>(data.c_str());
+    this->_bind_param[index].buffer_length = data.size();
+}
+
+template <>
 void mg::Mysql::bindHelper(const char *&data, size_t index)
 {
     this->_bind_param[index].buffer_type = MYSQL_TYPE_STRING;

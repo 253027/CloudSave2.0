@@ -187,6 +187,8 @@ namespace mg
     void Mysql::bindHelper(std::string &data, size_t index);
     template <>
     void Mysql::bindHelper(const char *&data, size_t index);
+    template <>
+    void Mysql::bindHelper(const std::string &data, size_t index);
     // 特化处理二进制
     template <>
     void Mysql::bindHelper(std::vector<uint8_t> &data, size_t index);
