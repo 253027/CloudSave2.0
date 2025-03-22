@@ -10,8 +10,10 @@
 #define __MG_MYSQL_H__
 
 #include "time-stamp.h"
+#include "log.h"
 
 #include <string>
+#include <sstream>
 #include <mysql/mysql.h>
 
 namespace mg
@@ -28,26 +30,23 @@ namespace mg
         bool connect(const std::string &username, const std::string &password,
                      const std::string &databasename, const std::string &ip, uint16_t port);
 
-        template <typename T>
-        bool insert(const std::string &tablename, std::vector<std::string> &column, T &data)
+        template <typename T, typename U>
+        bool insert(const std::string &tablename, U &column, T &data)
         {
+            static_assert(is_std_array<U>::value, "insert only support std::array");
+            static_assert(std::tuple_size<U>::value == std::tuple_size<T>::value,
+                          "column size must equal to data size");
             std::string sql = this->parseInsert(tablename, column);
-            if (!this->prepareStatement(sql))
-                return false;
-
-            this->bindParam(data);
-
-            if (mysql_stmt_bind_param(_stmt, _bind_param) != 0)
-                return false;
-
-            return mysql_stmt_execute(_stmt) == 0;
+            return this->doBindAndExec(sql, data);
         }
 
-        bool insert(const std::string &sql);
-
-        bool remove(const std::string &sql);
-
-        bool update(const std::string &sql);
+        template <typename T, typename U>
+        bool update(const std::string &tablename, U &set, const std::string &where, T &data)
+        {
+            static_assert(is_std_array<U>::value, "update set field only support std::array");
+            std::string sql = this->parseUpdate(tablename, set, where);
+            return this->doBindAndExec(sql, data);
+        }
 
         /**
          * @brief 查询操作
@@ -75,9 +74,34 @@ namespace mg
         TimeStamp getVacantTime();
 
     private:
-        std::string parseInsert(const std::string &tablename, std::vector<std::string> &column);
+        template <typename U>
+        std::string parseInsert(const std::string &tablename, U &column)
+        {
+            std::ostringstream sql;
+            sql << "INSERT INTO `" << tablename << "` (";
+            std::string field, value;
+            for (auto &x : column)
+                field += x, field += ", ", value += "?, ";
+            field = field.substr(0, field.size() - 2);
+            value = value.substr(0, value.size() - 2);
+            sql << field << ") VALUES (" << value << ")";
+            return sql.str();
+        }
 
-        bool parseUpdate(const std::string &sql);
+        template <typename U>
+        std::string parseUpdate(const std::string &tablename, U &set, const std::string &where)
+        {
+            std::ostringstream sql;
+            sql << "UPDATE `" << tablename << "` SET ";
+            std::string field1, filed2;
+            for (auto &value : set)
+                field1 += value, field1 += "=?, ";
+            sql << field1.substr(0, field1.size() - 2);
+            if (where.empty())
+                return sql.str();
+            sql << " WHERE " << where;
+            return sql.str();
+        }
 
         void freeResult();
 
@@ -93,6 +117,34 @@ namespace mg
     private:
         bool prepareStatement(const std::string &sql);
 
+        template <typename T>
+        struct is_std_array : std::false_type
+        {
+        };
+
+        template <typename T, std::size_t N>
+        struct is_std_array<std::array<T, N>> : std::true_type
+        {
+        };
+
+        template <typename T>
+        bool doBindAndExec(const std::string &sql, T &data)
+        {
+            if (!this->prepareStatement(sql))
+                return false;
+            this->bindParam(data);
+            if (mysql_stmt_bind_param(_stmt, _bind_param) != 0)
+                return false;
+            if (mysql_stmt_execute(_stmt))
+            {
+                LOG_ERROR("\nQuery: {}\nErrno: {}\nErrors: {}", sql,
+                          mysql_stmt_errno(_stmt), mysql_stmt_error(_stmt));
+                mysql_stmt_free_result(_stmt);
+                return false;
+            }
+            return true;
+        }
+
         template <typename Tuple, size_t Index = 0>
         typename std::enable_if<Index == std::tuple_size<Tuple>::value>::type
         bindParam(Tuple &t) {}
@@ -107,17 +159,7 @@ namespace mg
         template <typename T>
         void bindHelper(T &data, size_t index)
         {
-            if (std::is_same<T, int>::value)
-            {
-                this->_bind_param[index].buffer_type = MYSQL_TYPE_LONG;
-                this->_bind_param[index].buffer = &data;
-            }
-            else if (std::is_same<T, short>::value)
-            {
-                this->_bind_param[index].buffer_type = MYSQL_TYPE_SHORT;
-                this->_bind_param[index].buffer = &data;
-            }
-            else if (std::is_same<T, bool>::value)
+            if (std::is_same<T, bool>::value)
             {
                 this->_bind_param[index].buffer_type = MYSQL_TYPE_TINY;
                 this->_bind_param[index].buffer = &data;
@@ -131,6 +173,11 @@ namespace mg
             {
                 _bind_param[index].buffer_type = MYSQL_TYPE_DOUBLE;
                 _bind_param[index].buffer = &data;
+            }
+            if (std::is_integral<T>::value)
+            {
+                this->_bind_param[index].buffer_type = MYSQL_TYPE_LONG;
+                this->_bind_param[index].buffer = &data;
             }
         }
     };

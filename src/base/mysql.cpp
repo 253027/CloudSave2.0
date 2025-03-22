@@ -1,8 +1,6 @@
 #include "mysql.h"
-#include <sstream>
 #include <string.h>
 #include "macros.h"
-#include "log.h"
 
 mg::Mysql::Mysql() : _handle(mysql_init(nullptr)), _res(nullptr),
                      _row(nullptr), _field(nullptr), _alvieTime(0),
@@ -29,27 +27,12 @@ bool mg::Mysql::connect(const std::string &username, const std::string &password
     return res != nullptr;
 }
 
-bool mg::Mysql::insert(const std::string &sql)
-{
-    return parseUpdate(sql);
-}
-
-bool mg::Mysql::remove(const std::string &sql)
-{
-    return parseUpdate(sql);
-}
-
-bool mg::Mysql::update(const std::string &sql)
-{
-    return parseUpdate(sql);
-}
-
 bool mg::Mysql::query(const std::string &sql)
 {
     freeResult();
     if (mysql_real_query(_handle, sql.c_str(), sql.size()))
     {
-        LOG_ERROR("\nQuery: {}\nErrno:{}\nErrors: {}", sql, mysql_errno(_handle), mysql_error(_handle));
+        LOG_ERROR("\nQuery: {}\nErrno: {}\nErrors: {}", sql, mysql_errno(_handle), mysql_error(_handle));
         return false;
     }
     _res = mysql_store_result(_handle);
@@ -100,30 +83,6 @@ void mg::Mysql::refresh()
 mg::TimeStamp mg::Mysql::getVacantTime()
 {
     return mg::TimeStamp::now() - _alvieTime;
-}
-
-std::string mg::Mysql::parseInsert(const std::string &name, std::vector<std::string> &column)
-{
-    std::ostringstream sql;
-    sql << "INSERT INTO `" << name << "` (";
-    std::string field, value;
-    for (int i = 0; i < column.size(); i++)
-    {
-        if (column[i].empty())
-            continue;
-        field += column[i];
-        field += ", ";
-        value += "?, ";
-    }
-    field = field.substr(0, field.size() - 2);
-    value = value.substr(0, value.size() - 2);
-    sql << field << ") VALUES (" << value << ")";
-    return sql.str();
-}
-
-bool mg::Mysql::parseUpdate(const std::string &sql)
-{
-    return mysql_real_query(_handle, sql.c_str(), sql.size()) == 0;
 }
 
 void mg::Mysql::freeResult()
