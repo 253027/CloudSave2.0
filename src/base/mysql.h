@@ -174,7 +174,7 @@ namespace mg
                 _bind_param[index].buffer_type = MYSQL_TYPE_DOUBLE;
                 _bind_param[index].buffer = &data;
             }
-            if (std::is_integral<T>::value)
+            else if (std::is_integral<T>::value)
             {
                 this->_bind_param[index].buffer_type = MYSQL_TYPE_LONG;
                 this->_bind_param[index].buffer = &data;
@@ -185,6 +185,8 @@ namespace mg
     // 特化处理字符串
     template <>
     void Mysql::bindHelper(std::string &data, size_t index);
+    template <>
+    void Mysql::bindHelper(const char *&data, size_t index);
     // 特化处理二进制
     template <>
     void Mysql::bindHelper(std::vector<uint8_t> &data, size_t index);
