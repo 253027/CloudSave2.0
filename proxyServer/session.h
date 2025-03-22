@@ -1,0 +1,21 @@
+#ifndef __SESSION_H__
+#define __SESSION_H__
+
+#include "../src/base/singleton.h"
+#include "../src/protocal/IM.BaseDefine.pb.h"
+
+#include <cstdint>
+
+class Session : public Singleton<Session>
+{
+public:
+    uint32_t getSession(uint32_t from, uint32_t to, uint32_t type, bool tomb = false);
+
+    uint32_t addSession(uint32_t from, uint32_t to, uint32_t type);
+
+    uint32_t getRelation(uint32_t from, uint32_t to, bool insert = false);
+
+    uint32_t addRelation(uint32_t from, uint32_t to);
+};
+
+#endif // __SESSION_H__

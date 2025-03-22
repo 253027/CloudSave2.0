@@ -8,7 +8,7 @@
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
     : ConnectionBase(), TcpConnection(loop, name, sockfd, localAddress, peerAddress),
-      _loginName(), _userId(0), _clientType(0), _isValid(false)
+      _loginName(), _userId(0), _clientType(0), _isValid(false), _sendPerSeconds(0)
 {
     this->setConnectionCallback(std::bind(&ClientConnection::connectionChangeCallback, this, std::placeholders::_1));
     this->setWriteCompleteCallback(std::bind(&ClientConnection::writeCompleteCallback, this, std::placeholders::_1));
@@ -20,6 +20,8 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
     if (link->connected())
     {
         ClientConnectionManger::get().addConnection(link->name(), link);
+        link->runEvery(1.0, [this]()
+                       { this->_sendPerSeconds = 0; });
         LOG_INFO("new client connection:{}", link->name());
     }
     else
@@ -82,16 +84,15 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         switch (message->getCommandId())
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
-        {
             this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_TIMEOUT));
             LOG_DEBUG("{} heart beat message", link->name());
             break;
-        }
         case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:
-        {
             this->handleLoginRequest(data);
             break;
-        }
+        case IM::BaseDefine::COMMAND_MESSAGE_DATA:
+            this->handleSendMessage(data);
+            break;
         }
     }
 }
@@ -194,6 +195,33 @@ void ClientConnection::handleLoginRequest(const std::string &data)
     proxyRequest.set_attach_data(this->name());
     messagePdu.setPBMessage(&proxyRequest);
     mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump()); // send to proxy server valid this user
+}
+
+void ClientConnection::handleSendMessage(const std::string &data)
+{
+    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageData, message, data);
+    if (message.message_data().empty())
+        return;
+    if (++this->_sendPerSeconds > MAX_SEND_MESSAGE_PERSECOND)
+    {
+        LOG_INFO("{} send to much message per second {}", this->getLoginName(), this->_sendPerSeconds);
+        return;
+    }
+
+    auto proxyClient = ProxyServerClientManger::get().getHandle();
+    if (!proxyClient || !proxyClient->connected())
+    {
+        LOG_WARN("proxy server is not connected");
+        return;
+    }
+
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_MESSAGE_DATA);
+    message.set_from(this->getUserId());
+    message.set_create_time(mg::TimeStamp::now().getSeconds());
+    pdu.setPBMessage(&message);
+    mg::TcpPacketParser::get().send(proxyClient->connection(), pdu.dump());
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)

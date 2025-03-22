@@ -5,7 +5,8 @@ option optimize_for = LITE_RUNTIME;
 enum ServiceID
 {
     SERVER_ID_LOGIN         = 0x0001;
-    SERVER_ID_BUDDY_LIST    = 0x0002;    
+    SERVER_ID_BUDDY_LIST    = 0x0002;
+    SERVER_ID_MESSAGE       = 0x0003;
     SERVER_ID_OTHER         = 0x0007;
 }
 
@@ -15,6 +16,11 @@ enum LoginCmdID
     COMMAND_LOGIN_RES_MESSAGE_SERVER_INFO   = 0x0102;
     COMMAND_LOGIN_REQ_USER_LOGIN            = 0x0103;
     COMMAND_LOGIN_RES_USER_LOGIN            = 0x0104;
+}
+
+enum MessageCmdID
+{
+    COMMAND_MESSAGE_DATA = 0x0301;
 }
 
 enum OtherCmdID
@@ -74,4 +80,9 @@ message UserInformation
     optional string user_real_name = 5;
     required string user_tel = 6;
     required string avatar_url = 7;
+}
+
+enum MessageType
+{
+    MESSAGE_TYPE_SINGLE_TEXT = 1;
 }

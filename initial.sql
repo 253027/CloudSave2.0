@@ -13,3 +13,28 @@ CREATE TABLE `UserInformation` (
     `updateTime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`), KEY `index_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `RelationShip`;
+CREATE TABLE `RelationShip` (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '关系ID',
+    `user` int NOT NULL DEFAULT '0' COMMENT '用户ID',
+    `peer` int NOT NULL DEFAULT '0' COMMENT '好友ID或群ID',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态',
+    `createTime` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `updateTime` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',  
+    PRIMARY KEY (`id`), 
+    KEY `index_user_peer_status_updateTime` (`user`,`peer`,`status`,`updateTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `Session`;
+CREATE TABLE `Session` (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '关系ID',
+    `user` int NOT NULL DEFAULT '0' COMMENT '用户ID',
+    `peer` int NOT NULL DEFAULT '0' COMMENT '好友ID或群ID',
+    `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '类型',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态',
+    `createTime` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `updateTime` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `index_user_peer_status_updateTime` (`user`,`peer`,`status`,`updateTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

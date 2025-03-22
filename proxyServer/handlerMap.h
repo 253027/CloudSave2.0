@@ -15,6 +15,8 @@ public:
 
 private:
     void login(const mg::TcpConnectionPointer &link, const std::string &data);
+
+    void sendMessage(const mg::TcpConnectionPointer &link, const std::string &data);
 };
 
 #endif // __HANDLER_MAP_H__

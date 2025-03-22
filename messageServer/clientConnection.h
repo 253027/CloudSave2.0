@@ -42,11 +42,14 @@ private:
 private:
     void handleLoginRequest(const std::string &data);
 
+    void handleSendMessage(const std::string &data);
+
 private:
-    std::string _loginName; // 登录名
-    uint32_t _userId;       // 登录ID
-    uint32_t _clientType;   // 登录平台
-    bool _isValid;          // 连接是否经过验证
+    std::string _loginName;   // 登录名
+    uint32_t _userId;         // 登录ID
+    uint32_t _clientType;     // 登录平台
+    bool _isValid;            // 连接是否经过验证
+    uint16_t _sendPerSeconds; // 每秒钟发送次数
 };
 
 class ClientConnectionManger : public Singleton<ClientConnectionManger>

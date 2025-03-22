@@ -8,6 +8,7 @@
 #define CLIENT_TIMEOUT 120000000
 #define MOBILE_CLIENT_TIMEOUT 60000000 * 5
 #define HTTP_CONN_TIMEOUT 60000000
+#define MAX_SEND_MESSAGE_PERSECOND 10
 
 #include "../base/tcp-connection.h"
 #include "../base/inet-address.h"
@@ -21,6 +22,7 @@
 #include "../protocal/IM.Server.pb.h"
 #include "../protocal/imPduBase.h"
 #include "../protocal/IM.Other.pb.h"
+#include "../protocal/IM.Message.pb.h"
 #include "common-macro.h"
 
 class ConnectionBase

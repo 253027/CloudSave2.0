@@ -1,6 +1,7 @@
 #include "handlerMap.h"
 #include "proxyServer.h"
 #include "login.h"
+#include "session.h"
 #include "../src/common/common.h"
 #include "../src/base/log.h"
 
@@ -21,6 +22,8 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
     }
     case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:
         return std::bind(&HandlerMap::login, this, std::move(link), std::move(data));
+    case IM::BaseDefine::COMMAND_MESSAGE_DATA:
+        return std::bind(&HandlerMap::sendMessage, this, std::move(link), std::move(data));
     }
 
     return nullptr;
@@ -63,4 +66,44 @@ void HandlerMap::login(const mg::TcpConnectionPointer &link, const std::string &
 
     message.setPBMessage(&response);
     mg::TcpPacketParser::get().send(link, message.dump());
+}
+
+void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::string &data)
+{
+    IM::Message::MessageData request;
+    if (!request.ParseFromString(data))
+        return;
+
+    switch (request.message_type())
+    {
+    case IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT:
+    {
+        uint32_t from = request.from();
+        uint32_t to = request.to();
+        if (from == to)
+        {
+            LOG_INFO("{} send message to self", link->name());
+            return;
+        }
+
+        uint32_t userSession = Session::getInstance()->getSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+        if (!userSession)
+            userSession = Session::getInstance()->addSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+
+        uint32_t peerSession = Session::getInstance()->getSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+        if (!peerSession)
+            peerSession = Session::getInstance()->addSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+
+        if (!peerSession || !userSession)
+        {
+            LOG_ERROR("{} invalid session from[{}]: {} to[{}]: {}", link->name(), from, userSession, to, peerSession);
+            return;
+        }
+
+        uint32_t relation = Session::getInstance()->getRelation(from, to, true);
+        if (!relation)
+            relation = Session::getInstance()->addRelation(from, to);
+        break;
+    }
+    }
 }

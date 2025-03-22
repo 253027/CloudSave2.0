@@ -1,0 +1,14 @@
+syntax = "proto2";
+import "IM.BaseDefine.proto";
+package IM.Message;
+option optimize_for = LITE_RUNTIME;
+
+message MessageData
+{
+    required uint32 from = 1;
+    required uint32 to = 2;
+    required uint32 create_time = 3;
+    required IM.BaseDefine.MessageType message_type = 4;
+    required bytes message_data = 5;
+    optional bytes attach_data = 6;
+}
