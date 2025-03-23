@@ -1,4 +1,5 @@
 #include "messageUser.h"
+#include "clientConnection.h"
 
 bool MessageUserManger::addUserByUserName(std::string loginName, std::shared_ptr<MessageUser> user)
 {
@@ -42,6 +43,14 @@ std::shared_ptr<MessageUser> MessageUserManger::getUserByUserId(uint32_t uid)
     return it->second;
 }
 
+std::weak_ptr<ClientConnection> MessageUserManger::getConnectionByHandle(uint32_t uid, const std::string &name)
+{
+    auto it = this->_userMemoById.find(uid);
+    if (it == this->_userMemoById.end())
+        return std::weak_ptr<ClientConnection>();
+    return it->second->getValidConnectionByName(name);
+}
+
 uint16_t MessageUserManger::getUserConnectionCount()
 {
     uint16_t ret = 0;
@@ -74,4 +83,23 @@ void MessageUser::addValidConnection(std::string name, std::weak_ptr<ClientConne
 void MessageUser::removeValidConnection(std::string &name)
 {
     this->_connectionMemo.erase(name);
+}
+
+std::weak_ptr<ClientConnection> MessageUser::getValidConnectionByName(const std::string &name)
+{
+    auto it = this->_connectionMemo.find(name);
+    if (it == this->_connectionMemo.end())
+        return std::weak_ptr<ClientConnection>();
+    return it->second;
+}
+
+void MessageUser::boardcastData(const std::string &data)
+{
+    for (auto &connection : this->_connectionMemo)
+    {
+        auto link = connection.second.lock();
+        if (!link)
+            continue;
+        link->send(data);
+    }
 }

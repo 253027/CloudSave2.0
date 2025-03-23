@@ -66,6 +66,7 @@ void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
             continue;
         }
 
+        data = message->getPBmessage().retrieveAllAsString();
         switch (message->getCommandId())
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
@@ -76,7 +77,12 @@ void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_RSP:
         {
-            this->_handleVerifyDataResponse(message->getPBmessage().retrieveAllAsString());
+            this->_handleVerifyDataResponse(data);
+            break;
+        }
+        case IM::BaseDefine::COMMAND_MESSAGE_DATA:
+        {
+            this->_handleSendMessageResponse(data);
             break;
         }
         }
@@ -160,6 +166,49 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     userInfo->Swap(&information);
     pdu.setPBMessage(&response);
     connection->send(pdu.dump());
+}
+
+void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
+{
+    IM::Message::MessageData request;
+    if (!request.ParseFromString(data))
+        return;
+
+    {
+        uint32_t user = request.from();
+        uint32_t peer = request.to();
+        std::string name = request.attach_data();
+
+        auto userConnection = MessageUserManger::get().getConnectionByHandle(user, name).lock();
+        if (userConnection)
+        {
+            IM::Message::MessageDataAck response;
+            response.set_from(user);
+            response.set_to(peer);
+            response.set_session_type(IM::BaseDefine::SESSION_TYPE_SINGLE);
+
+            PduMessage pdu;
+            pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
+            pdu.setCommandId(IM::BaseDefine::COMMAND_MESSAGE_DATA_ACK);
+            pdu.setPBMessage(&response);
+            userConnection->send(pdu.dump());
+        }
+    }
+
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_MESSAGE_DATA);
+    request.clear_attach_data();
+    pdu.setPBMessage(&request);
+
+    std::string sendData = pdu.dump();
+    auto user = MessageUserManger::get().getUserByUserId(request.from());
+    if (user)
+        user->boardcastData(sendData);
+
+    auto peer = MessageUserManger::get().getUserByUserId(request.to());
+    if (peer)
+        peer->boardcastData(sendData);
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

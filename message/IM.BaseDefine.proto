@@ -20,7 +20,8 @@ enum LoginCmdID
 
 enum MessageCmdID
 {
-    COMMAND_MESSAGE_DATA = 0x0301;
+    COMMAND_MESSAGE_DATA        = 0x0301;
+    COMMAND_MESSAGE_DATA_ACK    = 0x0302;
 }
 
 enum OtherCmdID
@@ -85,4 +86,10 @@ message UserInformation
 enum MessageType
 {
     MESSAGE_TYPE_SINGLE_TEXT = 1;
+}
+
+enum SessionType
+{
+    SESSION_TYPE_SINGLE = 1;
+    SESSION_TYPE_GROUP = 2;
 }

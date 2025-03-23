@@ -220,6 +220,7 @@ void ClientConnection::handleSendMessage(const std::string &data)
     pdu.setCommandId(IM::BaseDefine::COMMAND_MESSAGE_DATA);
     message.set_from(this->getUserId());
     message.set_create_time(mg::TimeStamp::now().getSeconds());
+    message.set_attach_data(this->name());
     pdu.setPBMessage(&message);
     mg::TcpPacketParser::get().send(proxyClient->connection(), pdu.dump());
 }

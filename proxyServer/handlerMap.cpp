@@ -100,9 +100,9 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::st
             return;
         }
 
-        uint32_t relation = Session::getInstance()->getRelation(from, to, true);
+        uint32_t relation = Session::get().getRelation(from, to, true);
         if (!relation)
-            relation = Session::getInstance()->addRelation(from, to);
+            relation = Session::get().addRelation(from, to);
         Session::get().saveMessage(relation, request);
         break;
     }

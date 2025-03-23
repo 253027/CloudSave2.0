@@ -23,6 +23,8 @@ public:
 
     void removeValidConnection(std::string &name);
 
+    std::weak_ptr<ClientConnection> getValidConnectionByName(const std::string &name);
+
     inline bool isValid() const { return this->_isValid; }
 
     inline void setValid() { this->_isValid = true; }
@@ -34,6 +36,8 @@ public:
     inline void setUserId(uint32_t uid) { this->_user_id = uid; }
 
     inline uint32_t getUserId() { return this->_user_id; }
+
+    void boardcastData(const std::string &data);
 
 private:
     bool _isValid;
@@ -57,6 +61,8 @@ public:
     std::shared_ptr<MessageUser> getUserByUserName(std::string username);
 
     std::shared_ptr<MessageUser> getUserByUserId(uint32_t uid);
+
+    std::weak_ptr<ClientConnection> getConnectionByHandle(uint32_t uid, const std::string &name);
 
     uint16_t getUserConnectionCount();
 

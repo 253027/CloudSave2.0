@@ -12,3 +12,10 @@ message MessageData
     required bytes message_data = 5;
     optional bytes attach_data = 6;
 }
+
+message MessageDataAck
+{
+    required uint32 from = 1;
+    required uint32 to = 2;
+    required IM.BaseDefine.SessionType session_type = 4;
+}
