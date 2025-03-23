@@ -3,11 +3,13 @@
 #include "log.h"
 
 #define RECYCLE_INTERVAL 30
+const uint32_t maxBuffsize = 1024 * 1024 * 5;
 
 mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int sockfd,
                                  const InternetAddress &localAddress, const InternetAddress &peerAddress)
     : _loop(loop), _name(name), _socket(new Socket(sockfd)), _channel(new Channel(loop, sockfd)),
-      _state(CONNECTING), _localAddress(localAddress), _peerAddress(peerAddress), _userStat(0)
+      _state(CONNECTING), _localAddress(localAddress), _peerAddress(peerAddress),
+      _userStat(0), _isReading(true), _maxReadBufferSize(maxBuffsize)
 {
     this->_channel->setReadCallback(std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
     this->_channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
@@ -48,6 +50,11 @@ void mg::TcpConnection::setHighWaterMarkCallback(HighWaterMarkCallback callback,
 {
     this->_highWaterCallback = std::move(callback);
     this->_highWaterMark = len;
+}
+
+void mg::TcpConnection::setMaxReadBufferSize(uint32_t size)
+{
+    this->_maxReadBufferSize = size;
 }
 
 bool mg::TcpConnection::connected()
@@ -160,6 +167,26 @@ void mg::TcpConnection::enableRecycleClear()
     this->runEvery(RECYCLE_INTERVAL, std::bind(&TcpConnection::recycleClear, this));
 }
 
+void mg::TcpConnection::startReadInLoop()
+{
+    assert(_loop->isInOwnerThread());
+    if (!this->_isReading || !this->_channel->isReading())
+    {
+        this->_channel->enableReading();
+        this->_isReading = true;
+    }
+}
+
+void mg::TcpConnection::stopReadInLoop()
+{
+    assert(_loop->isInOwnerThread());
+    if (this->_isReading || this->_channel->isReading())
+    {
+        this->_channel->disableReading();
+        this->_isReading = false;
+    }
+}
+
 void mg::TcpConnection::setConnectionState(State state)
 {
     this->_state = state;
@@ -171,10 +198,16 @@ void mg::TcpConnection::handleRead(TimeStamp time)
     int len = this->_readBuffer.receive(this->_channel->fd(), saveErrno);
     if (len > 0)
     {
+        if (this->_readBuffer.readableBytes() > this->_maxReadBufferSize)
+            this->stopReadInLoop();
+
         if (this->_messageCallback)
             this->_messageCallback(shared_from_this(), &this->_readBuffer, time);
         else
             LOG_ERROR("{} _messageCallback not initialized", this->_name);
+
+        if (this->_readBuffer.readableBytes() < this->_maxReadBufferSize)
+            this->startReadInLoop();
     }
     else if (len == 0)
         this->handleClose();

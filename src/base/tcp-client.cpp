@@ -114,7 +114,7 @@ void mg::TcpClient::newConnection(int sockfd)
     InternetAddress localAddress(mg::Socket::getLocalAddress(sockfd));
     InternetAddress peerAddress(mg::Socket::getPeerAddress(sockfd));
     char buf[1024] = {0};
-    snprintf(buf, sizeof(buf), ":%s#%d", peerAddress.toIpPort().c_str(), ++_connectionID);
+    snprintf(buf, sizeof(buf), ":%s#%d", localAddress.toIpPort().c_str(), ++_connectionID);
     std::string connectionName = _name + buf;
 
     TcpConnectionPointer connection(new TcpConnection(_loop, connectionName, sockfd, localAddress, peerAddress));

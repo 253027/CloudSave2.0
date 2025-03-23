@@ -2,7 +2,7 @@
 #include "tcp-connection.h"
 #include "log.h"
 
-const int maxSize = 1024 * 1024 * 10;
+const int maxSize = 1024 * 1024;
 
 bool mg::TcpPacketParser::send(const mg::TcpConnectionPointer con, const std::string &data)
 {

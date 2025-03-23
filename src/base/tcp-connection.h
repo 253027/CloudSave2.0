@@ -41,6 +41,8 @@ namespace mg
 
         void setHighWaterMarkCallback(HighWaterMarkCallback callback, int len);
 
+        void setMaxReadBufferSize(uint32_t size);
+
         bool connected();
 
         void shutdown();
@@ -96,6 +98,12 @@ namespace mg
          * @brief 定时回收无效定时器
          */
         void enableRecycleClear();
+
+        /**
+         * @brief 启用或者关闭读事件
+         */
+        void startReadInLoop();
+        void stopReadInLoop();
 
         friend class TcpPacketParser;
         friend class HttpPacketParser;
@@ -176,6 +184,8 @@ namespace mg
         Buffer _readBuffer;                                           // 读缓冲区
         std::atomic_int _userStat;                                    // 用户自定义的Tcp连接状态
         std::vector<std::pair<mg::TimerId, mg::TimeStamp>> _timerIds; // 所有定时器集合
+        bool _isReading;                                              // 是否监听读事件
+        uint32_t _maxReadBufferSize;                                  // 缓冲区最大长度
     };
 };
 
