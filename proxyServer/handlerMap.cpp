@@ -17,7 +17,7 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
     case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
     {
         heartBeatManger[link->name()] = mg::TimeStamp(mg::TimeStamp::now().getMircoSecond() + SERVER_TIMEOUT);
-        LOG_DEBUG("{} heart beat", link->name());
+        LOG_TRACE("{} heart beat", link->name());
         break;
     }
     case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:

@@ -251,7 +251,7 @@ void MessageServerConnection::messageCallback(const mg::TcpConnectionPointer &li
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
         {
             this->setNextReceiveTime(mg::TimeStamp(time.getMircoSecond() + SERVER_TIMEOUT));
-            LOG_DEBUG("{} heart beat message", link->name());
+            LOG_TRACE("{} heart beat message", link->name());
             break;
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_MSG_SERV_INFO:
