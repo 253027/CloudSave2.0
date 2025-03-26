@@ -51,7 +51,7 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
 
 void ClientConnection::writeCompleteCallback(const mg::TcpConnectionPointer &link)
 {
-    LOG_DEBUG("{} write complete", link->name());
+    LOG_TRACE("{} write complete", link->name());
     if (link->getUserConnectionState())
     {
         link->forceClose();

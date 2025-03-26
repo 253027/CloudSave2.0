@@ -152,9 +152,9 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
 
     userById->setValid();
     userById->setUserId(information.user_id());
+    MessageUserManger::get().kickOutSameTypeUser(userById->getUserId(), connection->getClientType());
     userById->addValidConnection(connectionName, connection);
 
-    // TODO: keep one facility online
     connection->setValid();
     connection->setUserId(userById->getUserId());
     connection->setLoginName(loginName);

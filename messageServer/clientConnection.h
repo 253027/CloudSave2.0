@@ -25,6 +25,10 @@ public:
 
     inline bool isValid() const { return this->_isValid; }
 
+    inline void setClientType(uint32_t type) { this->_clientType = type; }
+
+    inline uint32_t getClientType() { return this->_clientType; }
+
     void send(const std::string &data);
 
     /**

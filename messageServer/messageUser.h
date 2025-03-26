@@ -23,6 +23,8 @@ public:
 
     void removeValidConnection(std::string &name);
 
+    void kickOutSameTypeUser(uint32_t type);
+
     std::weak_ptr<ClientConnection> getValidConnectionByName(const std::string &name);
 
     inline bool isValid() const { return this->_isValid; }
@@ -57,6 +59,8 @@ public:
     bool addUserByUserId(uint32_t uid, std::shared_ptr<MessageUser> user);
 
     void removeUserByUserId(uint32_t uid);
+
+    void kickOutSameTypeUser(uint32_t uid, uint32_t type);
 
     std::shared_ptr<MessageUser> getUserByUserName(std::string username);
 

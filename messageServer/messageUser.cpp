@@ -27,6 +27,14 @@ void MessageUserManger::removeUserByUserId(uint32_t uid)
     this->_userMemoById.erase(uid);
 }
 
+void MessageUserManger::kickOutSameTypeUser(uint32_t uid, uint32_t type)
+{
+    auto it = this->_userMemoById.find(uid);
+    if (it == this->_userMemoById.end())
+        return;
+    it->second->kickOutSameTypeUser(type);
+}
+
 std::shared_ptr<MessageUser> MessageUserManger::getUserByUserName(std::string username)
 {
     auto it = this->_userMemoByName.find(username);
@@ -83,6 +91,26 @@ void MessageUser::addValidConnection(std::string name, std::weak_ptr<ClientConne
 void MessageUser::removeValidConnection(std::string &name)
 {
     this->_connectionMemo.erase(name);
+}
+
+void MessageUser::kickOutSameTypeUser(uint32_t type)
+{
+    PduMessage pdu;
+    pdu.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_SERVER_KICK_USER);
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
+
+    for (auto it = this->_connectionMemo.begin(); it != this->_connectionMemo.end();)
+    {
+        auto connection = it->second.lock();
+        if (connection->getClientType() == type)
+        {
+            connection->setUserConnectionState(1);
+            connection->send(pdu.dump());
+            it = this->_connectionMemo.erase(it);
+        }
+        else
+            it++;
+    }
 }
 
 std::weak_ptr<ClientConnection> MessageUser::getValidConnectionByName(const std::string &name)
