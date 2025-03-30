@@ -38,11 +38,21 @@ def make_protobuf():
 
     run_command(f"chmod +x {configure}")
     run_command(f"{configure} --prefix={install_path}/protobuf")
-    run_command("make")
+    run_command("make -j10 && make install")
     # run_command("make check")
-    run_command("make install")
     run_command(f"echo 'export LD_LIBRARY_PATH={current_path}/protobuf/lib:$LD_LIBRARY_PATH' >> ~/.bashrc")
     print("protobuf completed")
 
+def make_spdlog():
+    run_command("tar -xzf spdlog-1.15.2.tar.gz && "
+                "cd spdlog-1.15.2 && "
+                "mkdir -p build && "
+                "cd build && "
+                "cmake .. && "
+                "make && "
+                "sudo make install && "
+                "sudo ldconfig")
+
 if __name__ == "__main__":
+    make_spdlog()
     make_protobuf()
