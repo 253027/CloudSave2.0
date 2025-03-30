@@ -1,3 +1,5 @@
+CREATE DATABASE `CloudSave`;
+USE `CloudSave`;
 DROP TABLE IF EXISTS `UserInformation`;
 CREATE TABLE `UserInformation` (
     `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
