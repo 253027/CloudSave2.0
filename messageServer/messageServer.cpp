@@ -127,6 +127,8 @@ void MessageServer::boardcastLoginServer(const std::string &data)
 {
     for (auto &client : this->_loginClientList)
     {
+        if (!client->connected())
+            continue;
         mg::TcpPacketParser::get().send(client->connection(), data);
     }
 }
