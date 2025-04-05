@@ -16,6 +16,8 @@ public:
 private:
     void login(const mg::TcpConnectionPointer &link, const std::string &data);
 
+    void getChangedFriendList(const mg::TcpConnectionPointer &link, const std::string &data);
+
     void sendMessage(const mg::TcpConnectionPointer &link, const std::string &data);
 };
 

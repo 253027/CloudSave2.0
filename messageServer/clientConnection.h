@@ -46,6 +46,8 @@ private:
 private:
     void handleLoginRequest(const std::string &data);
 
+    void handleGetLatestFriendList(const std::string &data);
+
     void handleSendMessage(const std::string &data);
 
 private:

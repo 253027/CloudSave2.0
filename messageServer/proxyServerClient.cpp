@@ -85,6 +85,11 @@ void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
             this->_handleSendMessageResponse(data);
             break;
         }
+        case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_RES:
+        {
+            this->_handleGetFriendsListResponse(data);
+            break;
+        }
         }
     }
 }
@@ -209,6 +214,26 @@ void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
     auto peer = MessageUserManger::get().getUserByUserId(request.to());
     if (peer)
         peer->boardcastData(sendData);
+}
+
+void ProxyServerClient::_handleGetFriendsListResponse(const std::string &data)
+{
+    IM::Buddy::IMGetFriendListResponse response;
+    if (!response.ParseFromString(data))
+        return;
+
+    uint32_t uid = response.user_id();
+    std::string name = response.attach_data();
+    auto userConnection = MessageUserManger::get().getConnectionByHandle(uid, name).lock();
+    if (!userConnection)
+        return;
+    response.clear_attach_data();
+
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_BUDDY_LIST);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_RES);
+    pdu.setPBMessage(&response);
+    userConnection->send(pdu.dump());
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

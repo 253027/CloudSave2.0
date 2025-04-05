@@ -39,6 +39,8 @@ private:
 
     void _handleSendMessageResponse(const std::string &data);
 
+    void _handleGetFriendsListResponse(const std::string &data);
+
 private:
     std::unique_ptr<mg::TcpClient> _client;
 };

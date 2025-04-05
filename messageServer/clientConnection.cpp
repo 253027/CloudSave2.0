@@ -93,6 +93,9 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         case IM::BaseDefine::COMMAND_MESSAGE_DATA:
             this->handleSendMessage(data);
             break;
+        case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ:
+            this->handleGetLatestFriendList(data);
+            break;
         }
     }
 }
@@ -195,6 +198,26 @@ void ClientConnection::handleLoginRequest(const std::string &data)
     proxyRequest.set_attach_data(this->name());
     messagePdu.setPBMessage(&proxyRequest);
     mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump()); // send to proxy server valid this user
+}
+
+void ClientConnection::handleGetLatestFriendList(const std::string &data)
+{
+    PARSE_PROTOBUF_MESSAGE(IM::Buddy::IMGetFriendListRequest, request, data);
+    uint32_t result = 0;
+    std::string resultString = "Server abnormality";
+    auto connection = ProxyServerClientManger::get().getHandle();
+    if (!connection || !connection->connected())
+    {
+        result = IM::BaseDefine::REFUSE_REASON_NO_PROXY_SERVER;
+        return;
+    }
+
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_BUDDY_LIST);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ);
+    request.set_attach_data(this->name());
+    pdu.setPBMessage(&request);
+    connection->send(pdu.dump());
 }
 
 void ClientConnection::handleSendMessage(const std::string &data)

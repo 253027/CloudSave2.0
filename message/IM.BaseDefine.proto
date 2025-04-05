@@ -18,6 +18,12 @@ enum LoginCmdID
     COMMAND_LOGIN_RES_USER_LOGIN            = 0x0104;
 }
 
+enum FriendListCmdID
+{
+    COMMAND_ID_FRIEND_LIST_FRIEND_REQ  = 0x0201; //请求好友列表
+    COMMAND_ID_FRIEND_LIST_FRIEND_RES  = 0X0202; //请求好友列表响应
+}
+
 enum MessageCmdID
 {
     COMMAND_MESSAGE_DATA        = 0x0301;

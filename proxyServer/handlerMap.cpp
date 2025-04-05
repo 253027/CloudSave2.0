@@ -2,6 +2,7 @@
 #include "proxyServer.h"
 #include "login.h"
 #include "session.h"
+#include "user.h"
 #include "../src/common/common.h"
 #include "../src/base/log.h"
 
@@ -24,6 +25,8 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
         return std::bind(&HandlerMap::login, this, std::move(link), std::move(data));
     case IM::BaseDefine::COMMAND_MESSAGE_DATA:
         return std::bind(&HandlerMap::sendMessage, this, std::move(link), std::move(data));
+    case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ:
+        return std::bind(&HandlerMap::getChangedFriendList, this, std::move(link), std::move(data));
     }
 
     return nullptr;
@@ -66,6 +69,35 @@ void HandlerMap::login(const mg::TcpConnectionPointer &link, const std::string &
 
     message.setPBMessage(&response);
     mg::TcpPacketParser::get().send(link, message.dump());
+}
+
+void HandlerMap::getChangedFriendList(const mg::TcpConnectionPointer &link, const std::string &data)
+{
+    IM::Buddy::IMGetFriendListRequest request;
+    if (!request.ParseFromString(data))
+        return;
+
+    IM::Buddy::IMGetFriendListResponse response;
+    response.set_user_id(request.user_id());
+    response.set_latest_update_time(mg::TimeStamp::now().getSeconds());
+    response.set_attach_data(request.attach_data());
+
+    std::vector<uint32_t> list;
+    User::get().getFriendsList(request.user_id(), list, request.last_update_time());
+
+    for (auto &id : list)
+    {
+        IM::BaseDefine::UserInformation info;
+        if (!User::get().getFriendsInfo(id, info))
+            continue;
+        response.add_user_list()->CopyFrom(info);
+    }
+
+    PduMessage pdu;
+    pdu.setCommandId(IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_RES);
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_BUDDY_LIST);
+    pdu.setPBMessage(&response);
+    mg::TcpPacketParser::get().send(link, pdu.dump());
 }
 
 void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::string &data)
