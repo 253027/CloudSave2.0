@@ -148,8 +148,9 @@ bool mg::Mysql::storeResult()
         MYSQL_BIND *bind = &this->_store_bind[i];
         bind->is_null = new bool();
         bind->length = new unsigned long();
-        bind->buffer = new char[64]();
-        bind->buffer_length = 64;
+        unsigned long length = std::max(64UL, this->_field[i].length);
+        bind->buffer = new char[length];
+        bind->buffer_length = length;
         bind->buffer_type = this->_field[i].type;
     }
     if (mysql_stmt_bind_result(_stmt, this->_store_bind))

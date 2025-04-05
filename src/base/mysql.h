@@ -142,7 +142,7 @@ namespace mg
         AnyType<T> getData(const std::string &fieldname);
 
         template <typename U, typename T = std::tuple<>>
-        bool select(const std::string &tablename, U &column, const std::string &where = "", T &data = std::tuple<>());
+        bool select(const std::string &tablename, U &column, const std::string &where = "", T &&data = std::tuple<>());
 
         template <typename T, typename U>
         bool insert(const std::string &tablename, U &column, T &data);
@@ -244,17 +244,6 @@ namespace mg
         }
 
         MYSQL_BIND *bind = this->_store_bind + index;
-        unsigned long length = *(bind->length);
-
-        if (length > bind->buffer_length)
-        {
-            char *buffer = static_cast<char *>(bind->buffer);
-            SAFE_DELETE_ARRAY(buffer);
-            bind->buffer = new char[length]();
-            bind->buffer_length = length;
-            mysql_stmt_fetch_column(_stmt, bind, index, 0);
-        }
-
         if (!bind->buffer)
         {
             LOG_ERROR("Buffer for column {} is null", fieldname);
@@ -268,11 +257,11 @@ namespace mg
     std::string Mysql::parseInsert(const std::string &tablename, U &column)
     {
         std::ostringstream sql;
-        sql << "INSERT INTO `" << tablename << "` (";
+        sql << "INSERT INTO `" << tablename << "` (`";
         std::string field, value;
         for (auto &x : column)
-            field += x, field += ", ", value += "?, ";
-        field = field.substr(0, field.size() - 2);
+            field += x, field += "`, `", value += "?, ";
+        field = field.substr(0, field.size() - 3);
         value = value.substr(0, value.size() - 2);
         sql << field << ") VALUES (" << value << ")";
         return sql.str();
@@ -282,11 +271,11 @@ namespace mg
     std::string Mysql::parseUpdate(const std::string &tablename, U &set, const std::string &where)
     {
         std::ostringstream sql;
-        sql << "UPDATE `" << tablename << "` SET ";
+        sql << "UPDATE `" << tablename << "` SET `";
         std::string field1, filed2;
         for (auto &value : set)
-            field1 += value, field1 += "=?, ";
-        sql << field1.substr(0, field1.size() - 2);
+            field1 += value, field1 += "`=?, `";
+        sql << field1.substr(0, field1.size() - 3);
         if (where.empty())
             return sql.str();
         sql << " WHERE " << where;
@@ -313,7 +302,7 @@ namespace mg
     }
 
     template <typename U, typename T>
-    bool Mysql::select(const std::string &tablename, U &column, const std::string &where, T &data)
+    bool Mysql::select(const std::string &tablename, U &column, const std::string &where, T &&data)
     {
         static_assert(is_std_array<U>::value, "select only support std::array");
         std::string sql = this->parseSelect(tablename, column, where);
