@@ -246,13 +246,22 @@ namespace mg
         MYSQL_BIND *bind = this->_store_bind + index;
         unsigned long length = *(bind->length);
 
+        if (length > bind->buffer_length)
+        {
+            char *buffer = static_cast<char *>(bind->buffer);
+            SAFE_DELETE_ARRAY(buffer);
+            bind->buffer = new char[length]();
+            bind->buffer_length = length;
+            mysql_stmt_fetch_column(_stmt, bind, index, 0);
+        }
+
         if (!bind->buffer)
         {
             LOG_ERROR("Buffer for column {} is null", fieldname);
             return AnyType<T>();
         }
 
-        return AnyType<T>(static_cast<char *>(bind->buffer), length);
+        return AnyType<T>(static_cast<char *>(bind->buffer), *(bind->length));
     }
 
     template <typename U>
