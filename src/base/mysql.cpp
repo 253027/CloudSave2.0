@@ -1,10 +1,9 @@
 #include "mysql.h"
 #include <string.h>
-#include "macros.h"
 
 mg::Mysql::Mysql() : _handle(mysql_init(nullptr)), _res(nullptr),
                      _row(nullptr), _field(nullptr), _alvieTime(0),
-                     _stmt(nullptr), _bind_param(nullptr)
+                     _stmt(nullptr), _bind_param(nullptr), _store_bind(nullptr)
 {
     mysql_set_character_set(_handle, "utf8");
     if (_handle == nullptr)
@@ -42,22 +41,14 @@ bool mg::Mysql::query(const std::string &sql)
 
 bool mg::Mysql::next()
 {
-    if (_res == nullptr)
+    if (!_stmt)
         return false;
-    _row = mysql_fetch_row(_res);
-    return _row != nullptr;
-}
-
-std::string mg::Mysql::getData(const std::string &fieldname)
-{
-    int colNums = mysql_num_fields(_res);
-    for (int i = 0; i < colNums; i++)
+    if (mysql_stmt_fetch(_stmt))
     {
-        if (::strcmp(fieldname.c_str(), _field[i].name))
-            continue;
-        return (_row[i] == nullptr) ? "" : _row[i];
+        this->freeResult();
+        return false;
     }
-    return "";
+    return true;
 }
 
 bool mg::Mysql::transaction()
@@ -88,23 +79,37 @@ mg::TimeStamp mg::Mysql::getVacantTime()
 void mg::Mysql::freeResult()
 {
     if (_stmt)
+    {
         mysql_stmt_close(_stmt);
-    _stmt = nullptr;
-    SAFE_DELETE_ARRAY(_bind_param);
-    if (_res == nullptr)
-        return;
-    mysql_free_result(_res);
-    _res = nullptr;
+        _stmt = nullptr;
+    }
+    int numsFields = 0;
+    if (_res)
+    {
+        numsFields = mysql_num_fields(_res);
+        mysql_free_result(_res);
+        _res = nullptr;
+    }
+    if (_store_bind)
+    {
+        for (int i = 0; i < numsFields; i++)
+        {
+            MYSQL_BIND *bind = &this->_store_bind[i];
+            SAFE_DELETE(bind->is_null);
+            SAFE_DELETE(bind->length);
+            char *buffer = static_cast<char *>(bind->buffer);
+            SAFE_DELETE_ARRAY(buffer);
+        }
+        SAFE_DELETE_ARRAY(_store_bind);
+    }
     _field = nullptr;
     _row = nullptr;
+    SAFE_DELETE_ARRAY(_bind_param);
 }
 
 bool mg::Mysql::prepareStatement(const std::string &sql)
 {
-    SAFE_DELETE_ARRAY(this->_bind_param);
-    if (this->_stmt)
-        mysql_stmt_close(this->_stmt);
-
+    this->freeResult();
     this->_stmt = mysql_stmt_init(this->_handle);
     if (!this->_stmt)
     {
@@ -122,6 +127,36 @@ bool mg::Mysql::prepareStatement(const std::string &sql)
     if (num > 0)
         this->_bind_param = new MYSQL_BIND[num]();
 
+    return true;
+}
+
+bool mg::Mysql::storeResult()
+{
+    if (this->_res)
+        mysql_free_result(this->_res);
+    this->_res = mysql_stmt_result_metadata(_stmt);
+    if (!_res)
+    {
+        LOG_ERROR("mysql_stmt_result_metadata: {}", mysql_stmt_error(_stmt));
+        return false;
+    }
+    int numsFields = mysql_num_fields(_res);
+    this->_field = mysql_fetch_fields(this->_res);
+    this->_store_bind = new MYSQL_BIND[numsFields]();
+    for (int i = 0; i < numsFields; i++)
+    {
+        MYSQL_BIND *bind = &this->_store_bind[i];
+        bind->is_null = new bool();
+        bind->length = new unsigned long();
+        bind->buffer = new char[10240]();
+        bind->buffer_length = 10240;
+        bind->buffer_type = this->_field[i].type;
+    }
+    if (mysql_stmt_bind_result(_stmt, this->_store_bind))
+    {
+        LOG_ERROR("mysql_stmt_bind_result: {}", mysql_stmt_error(_stmt));
+        return false;
+    }
     return true;
 }
 
