@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <stddef.h>
 #include <assert.h>
+#include <cstdint>
 
 namespace mg
 {

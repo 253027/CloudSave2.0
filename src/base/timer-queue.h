@@ -8,6 +8,7 @@
 #include <set>
 #include <utility>
 #include <atomic>
+#include <vector>
 
 namespace mg
 {
