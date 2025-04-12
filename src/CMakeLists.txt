@@ -12,10 +12,11 @@ message(STATUS "INCLUDE_PATH: ${INCLUDE_PATH}")
 
 # get all source file
 aux_source_directory(./base BASE_SRC)
-set(FRAME_SRC ${BASE_SRC} ${PROTOCAL_SRC})
+set(FRAME_SRC ${BASE_SRC})
 
 # set ouput lib path
 set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
+message(STATUS "LIBRARY_OUTPUT_PATH: ${LIBRARY_OUTPUT_PATH}")
 
 if(MGNET_BUILD_SHARED)
     message(STATUS "Building mgnet as a shared library")
@@ -25,5 +26,8 @@ else()
     add_library(mgnetframe STATIC ${FRAME_SRC})
 endif()
 
+target_link_libraries(mgnetframe PUBLIC spdlog mysqlclient)
+
+add_subdirectory(protocal)
 message(STATUS "================src done===============")
 message(STATUS "")

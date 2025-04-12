@@ -2,6 +2,6 @@
 
 ./loginServer/loginServer -daemon &
 ./messageServer/messageServer -daemon &
-./proxyServer/server -daemon &
+./proxyServer/proxyServer -daemon &
 
 wait
