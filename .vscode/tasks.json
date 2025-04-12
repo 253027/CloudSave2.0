@@ -4,7 +4,7 @@
         {
             "label": "loginServer",
             "type": "shell",
-            "command": "make",
+            "command": "make ./build",
             "options": {
                 "cwd": "${workspaceFolder}" // 指定当前工作目录
             },
@@ -14,12 +14,21 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false,
+                "close": true
+            }
         },
         {
             "label": "messageServer",
             "type": "shell",
-            "command": "make",
+            "command": "make ./build",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -29,12 +38,21 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true,
+                "close": true
+            }
         },
         {
             "label": "FileServer",
             "type": "shell",
-            "command": "make",
+            "command": "make ./build",
             "options": {
                 "cwd": "${workspaceFolder}" // 指定当前工作目录
             },
@@ -44,12 +62,21 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true,
+                "close": true
+            }
         },
         {
             "label": "ProxyServer",
             "type": "shell",
-            "command": "make",
+            "command": "make ./build",
             "options": {
                 "cwd": "${workspaceFolder}" // 指定当前工作目录
             },
@@ -59,7 +86,16 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true,
+                "close": true
+            }
         }
     ]
 }
