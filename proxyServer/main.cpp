@@ -14,7 +14,7 @@ void sighandle(int sig)
         return;
     ProxyServer::get().quit();
     ProxyServer::destroyInstance();
-    LOG_DEBUG("\r----------------------proxyServer exited-----------------------------------");
+    LOG_INFO("\r----------------------proxyServer exited-----------------------------------");
     SHUTDOWNLOG();
     ::exit(0);
 }
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     mg::LogConfig logConfig("debug", "./log", "proxyServer.log");
     INITLOG(logConfig);
-    LOG_DEBUG("\r----------------------proxyServer started-----------------------------------");
+    LOG_INFO("\r----------------------proxyServer started-----------------------------------");
 
     if (!mg::MysqlConnectionPool::get().initial("./proxyServer/proxyServer.json", "mysql"))
         assert(0 && "mysql initial failed");

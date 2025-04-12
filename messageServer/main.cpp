@@ -16,7 +16,7 @@ void sighandle(int sig)
     MessageServer::destroyInstance();
     ProxyServerClientManger::destroyInstance();
     MessageUserManger::destroyInstance();
-    LOG_DEBUG("\r----------------------MessageServer exited-----------------------------------");
+    LOG_INFO("\r----------------------MessageServer exited-----------------------------------");
     SHUTDOWNLOG();
     ::exit(0);
 }
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     mg::LogConfig logConfig("debug", "./log", "messageServer.log");
     INITLOG(logConfig);
-    LOG_DEBUG("\r----------------------MessageServer started-----------------------------------");
+    LOG_INFO("\r----------------------MessageServer started-----------------------------------");
 
     if (!MessageServer::get().initial("./messageServer/messageServer.json"))
         assert(0 && "Initial messageServer failed");

@@ -11,7 +11,7 @@ void sighandle(int sig)
         return;
     LoginServer::get().quit();
     LoginServer::destroyInstance();
-    LOG_DEBUG("\r----------------------LoginServer exited-----------------------------------");
+    LOG_INFO("\r----------------------LoginServer exited-----------------------------------");
     SHUTDOWNLOG();
     ::exit(0);
 }
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     mg::LogConfig logConfig("debug", "./log", "loginServer.log");
     INITLOG(logConfig);
-    LOG_DEBUG("\r----------------------LoginServer started-----------------------------------");
+    LOG_INFO("\r----------------------LoginServer started-----------------------------------");
 
     if (!LoginServer::get().initial("./loginServer/loginServer.json"))
         assert(0 && "Initial LoginServer failed");
