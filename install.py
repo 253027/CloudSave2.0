@@ -38,17 +38,27 @@ def make_protobuf():
 
     run_command(f"chmod +x {configure}")
     run_command(f"{configure} --prefix={install_path}/protobuf")
-    run_command("make -j10")
+    run_command("make -j10 && make install")
     print("protobuf completed")
 
 def make_spdlog():
+    print("spdlog installing...")
     run_command("tar -xzf spdlog-1.15.2.tar.gz && "
+                "mkdir -p lib && "
                 "cd spdlog-1.15.2 && "
                 "mkdir -p build && "
                 "cd build && "
                 "cmake -DSPDLOG_BUILD_SHARED=ON .. && "
                 "make && mv libspdlog* ../../lib")
+    print("spdlog completed")
+
+def make_protocal_message():
+    print("protocal message installing...")
+    os.chdir(current_path)
+    run_command("cd message && ./generate.sh")
+    print("protocal message completed")
 
 if __name__ == "__main__":
     make_spdlog()
     make_protobuf()
+    make_protocal_message()
