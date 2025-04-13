@@ -4,7 +4,7 @@ project(messageServer)
 aux_source_directory(. CUR_SRC)
 
 message(STATUS "======messageServer Configuring======")
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(TARGET messageServer)
 
 message(STATUS "EXECUTABLE_OUTPUT_PATH: ${EXECUTABLE_OUTPUT_PATH}")

@@ -4,7 +4,7 @@ project(proxyServer)
 aux_source_directory(. CUR_SRC)
 
 message(STATUS "======proxyServer Configuring======")
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(TARGET proxyServer)
 
 message(STATUS "EXECUTABLE_OUTPUT_PATH: ${EXECUTABLE_OUTPUT_PATH}")
