@@ -1,6 +1,6 @@
 #!/bin/bash
 
-processes=("loginServer/loginServer" "messageServer/messageServer" "./proxyServer/server")
+processes=("loginServer/loginServer" "messageServer/messageServer" "./proxyServer/proxyServer")
 
 stop_processes() {
     for proc in "${processes[@]}"; do
