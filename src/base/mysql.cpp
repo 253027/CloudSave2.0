@@ -43,10 +43,31 @@ bool mg::Mysql::next()
 {
     if (!_stmt)
         return false;
-    if (mysql_stmt_fetch(_stmt))
+    int ret = mysql_stmt_fetch(_stmt);
+    if (ret && ret != MYSQL_DATA_TRUNCATED)
     {
         this->freeResult();
         return false;
+    }
+    int numsFields = mysql_num_fields(_res);
+    for (int i = 0; i < numsFields; i++)
+    {
+        MYSQL_BIND *bind = &this->_store_bind[i];
+        uint32_t real_length = *bind->length;
+        if (real_length < 0)
+            return false;
+        if (bind->buffer == nullptr || (bind->buffer_length < real_length))
+        {
+            char *free_buffer = static_cast<char *>(bind->buffer);
+            SAFE_DELETE_ARRAY(free_buffer);
+            bind->buffer = new char[real_length]();
+            bind->buffer_length = real_length;
+            if (mysql_stmt_fetch_column(this->_stmt, bind, i, 0))
+            {
+                LOG_ERROR("mysql_stmt_fetch_column: {}", mysql_stmt_error(_stmt));
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -148,10 +169,28 @@ bool mg::Mysql::storeResult()
         MYSQL_BIND *bind = &this->_store_bind[i];
         bind->is_null = new bool();
         bind->length = new unsigned long();
-        unsigned long length = std::max(64UL, this->_field[i].length);
-        bind->buffer = new char[length];
-        bind->buffer_length = length;
         bind->buffer_type = this->_field[i].type;
+        switch (this->_field[i].type)
+        {
+        case MYSQL_TYPE_STRING:
+        case MYSQL_TYPE_VAR_STRING:
+        case MYSQL_TYPE_VARCHAR:
+        case MYSQL_TYPE_BLOB:
+        case MYSQL_TYPE_TINY_BLOB:
+        case MYSQL_TYPE_MEDIUM_BLOB:
+        case MYSQL_TYPE_LONG_BLOB:
+        {
+            bind->buffer = nullptr;
+            bind->buffer_length = 0;
+            break;
+        }
+        default:
+        {
+            bind->buffer = new char[64]();
+            bind->buffer_length = 64;
+            break;
+        }
+        }
     }
     if (mysql_stmt_bind_result(_stmt, this->_store_bind))
     {
