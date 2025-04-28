@@ -197,7 +197,7 @@ void ClientConnection::handleLoginRequest(const std::string &data)
     proxyRequest.set_password(request.password());
     proxyRequest.set_attach_data(this->name());
     messagePdu.setPBMessage(&proxyRequest);
-    mg::TcpPacketParser::get().send(connection->connection(), messagePdu.dump()); // send to proxy server valid this user
+    mg::TcpPacketParser::get().send(std::move(connection->connection()), messagePdu.dump()); // send to proxy server valid this user
 }
 
 void ClientConnection::handleGetLatestFriendList(const std::string &data)
@@ -245,7 +245,7 @@ void ClientConnection::handleSendMessage(const std::string &data)
     message.set_create_time(mg::TimeStamp::now().getSeconds());
     message.set_attach_data(this->name());
     pdu.setPBMessage(&message);
-    mg::TcpPacketParser::get().send(proxyClient->connection(), pdu.dump());
+    mg::TcpPacketParser::get().send(std::move(proxyClient->connection()), pdu.dump());
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)
