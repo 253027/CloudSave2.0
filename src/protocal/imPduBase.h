@@ -44,6 +44,8 @@ public:
 
     uint16_t getCommandId();
 
+    uint16_t getSequenceNumber();
+
     mg::Buffer getPBmessage();
 
     std::string dump();

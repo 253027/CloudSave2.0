@@ -14,11 +14,11 @@ public:
     mg::Handler getCallBack(const mg::TcpConnectionPointer &link, std::string &data);
 
 private:
-    void login(const mg::TcpConnectionPointer &link, const std::string &data);
+    void login(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
 
-    void getChangedFriendList(const mg::TcpConnectionPointer &link, const std::string &data);
+    void getChangedFriendList(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
 
-    void sendMessage(const mg::TcpConnectionPointer &link, const std::string &data);
+    void sendMessage(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
 };
 
 #endif // __HANDLER_MAP_H__

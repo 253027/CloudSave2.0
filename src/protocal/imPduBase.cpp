@@ -78,6 +78,11 @@ uint16_t PduMessage::getCommandId()
     return this->_head.command_id;
 }
 
+uint16_t PduMessage::getSequenceNumber()
+{
+    return this->_head.sequence_number;
+}
+
 mg::Buffer PduMessage::getPBmessage()
 {
     return this->_buffer;

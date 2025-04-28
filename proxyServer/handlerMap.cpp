@@ -12,7 +12,6 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
     if (!message->parse(data))
         return nullptr;
 
-    data = message->getPBmessage().retrieveAllAsString();
     switch (message->getCommandId())
     {
     case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
@@ -22,25 +21,26 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
         break;
     }
     case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:
-        return std::bind(&HandlerMap::login, this, std::move(link), std::move(data));
+        return std::bind(&HandlerMap::login, this, std::move(link), std::move(message));
     case IM::BaseDefine::COMMAND_MESSAGE_DATA:
-        return std::bind(&HandlerMap::sendMessage, this, std::move(link), std::move(data));
+        return std::bind(&HandlerMap::sendMessage, this, std::move(link), std::move(message));
     case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ:
-        return std::bind(&HandlerMap::getChangedFriendList, this, std::move(link), std::move(data));
+        return std::bind(&HandlerMap::getChangedFriendList, this, std::move(link), std::move(message));
     }
 
     return nullptr;
 }
 
-void HandlerMap::login(const mg::TcpConnectionPointer &link, const std::string &data)
+void HandlerMap::login(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data)
 {
     PduMessage message;
+    message.setSequenceNumber(data->getSequenceNumber());
     message.setServiceId(IM::BaseDefine::SERVER_ID_OTHER);
     message.setCommandId(IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_RSP);
     IM::Server::VerifyDataResponse response;
 
     IM::Server::VerifyDataRequest request;
-    if (request.ParseFromString(std::move(data)))
+    if (request.ParseFromString(data->getPBmessage().retrieveAllAsString()))
     {
         std::string userName = request.user_name();
         std::string password = request.password();
@@ -71,10 +71,10 @@ void HandlerMap::login(const mg::TcpConnectionPointer &link, const std::string &
     mg::TcpPacketParser::get().send(link, message.dump());
 }
 
-void HandlerMap::getChangedFriendList(const mg::TcpConnectionPointer &link, const std::string &data)
+void HandlerMap::getChangedFriendList(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data)
 {
     IM::Buddy::IMGetFriendListRequest request;
-    if (!request.ParseFromString(data))
+    if (!request.ParseFromString(data->getPBmessage().retrieveAllAsString()))
         return;
 
     IM::Buddy::IMGetFriendListResponse response;
@@ -96,14 +96,15 @@ void HandlerMap::getChangedFriendList(const mg::TcpConnectionPointer &link, cons
     PduMessage pdu;
     pdu.setCommandId(IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_RES);
     pdu.setServiceId(IM::BaseDefine::SERVER_ID_BUDDY_LIST);
+    pdu.setSequenceNumber(data->getSequenceNumber());
     pdu.setPBMessage(&response);
     mg::TcpPacketParser::get().send(link, pdu.dump());
 }
 
-void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::string &data)
+void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data)
 {
     IM::Message::MessageData request;
-    if (!request.ParseFromString(data))
+    if (!request.ParseFromString(data->getPBmessage().retrieveAllAsString()))
         return;
 
     switch (request.message_type())
@@ -143,6 +144,7 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, const std::st
     PduMessage response;
     response.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
     response.setCommandId(IM::BaseDefine::COMMAND_MESSAGE_DATA);
+    response.setSequenceNumber(data->getSequenceNumber());
     response.setPBMessage(&request);
     mg::TcpPacketParser::get().send(link, response.dump());
 }
