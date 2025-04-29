@@ -80,8 +80,21 @@ def make_redis():
         file.seek(0)
         file.write(content)
         file.truncate()
-
     print("redis completed")
+
+
+def make_hiredis():
+    print("hiredis installing...")
+    os.chdir(current_path)
+    run_command(
+        "tar -xvzf hiredis-1.3.0.tar.gz && "
+        "mkdir -p hiredis && "
+        "cd hiredis-1.3.0 && "
+        "mkdir -p build && "
+        "cd build && cmake .. && "
+        "make && mv libhiredis* ../../lib"
+    )
+    print("hiredis completed")
 
 
 if __name__ == "__main__":
@@ -89,3 +102,4 @@ if __name__ == "__main__":
     make_protobuf()
     make_protocal_message()
     make_redis()
+    make_hiredis()

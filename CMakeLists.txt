@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(CloudSave2.0)
 
 set(CMAKE_CXX_STANDARD 11)
-set(SRC src spdlog-1.15.2/include protobuf/include)
+set(SRC src spdlog-1.15.2/include protobuf/include hiredis-1.3.0/)
 set(LIB_PATH ${PROJECT_SOURCE_DIR}/lib)
 set(LIB_INCLUDE_PATH ${LIB_PATH} ${PROJECT_SOURCE_DIR}/protobuf/lib)
 set(ENABLE_DEBUG_MODE ON)
