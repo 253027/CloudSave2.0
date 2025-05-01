@@ -10,7 +10,7 @@ set(TARGET loginServer)
 message(STATUS "EXECUTABLE_OUTPUT_PATH: ${EXECUTABLE_OUTPUT_PATH}")
 
 add_executable(${TARGET} ${CUR_SRC})
-target_link_libraries(${TARGET} spdlog protobuf mgnetframe protocal)
+target_link_libraries(${TARGET} mgnetframe protocal)
 
 message(STATUS "=========loginServer done==========")
 message(STATUS "")

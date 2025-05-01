@@ -26,7 +26,7 @@ else()
     add_library(mgnetframe STATIC ${FRAME_SRC})
 endif()
 
-target_link_libraries(mgnetframe PUBLIC spdlog mysqlclient)
+target_link_libraries(mgnetframe PUBLIC spdlog mysqlclient protobuf hiredis)
 
 add_subdirectory(protocal)
 message(STATUS "================src done===============")
