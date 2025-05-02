@@ -4,6 +4,7 @@
 #include "singleton.h"
 #include "redis.h"
 #include "json_fwd.hpp"
+#include "eventloop-thread.h"
 
 #include <string>
 #include <memory>
