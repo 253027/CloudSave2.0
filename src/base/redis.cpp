@@ -73,7 +73,7 @@ bool mg::RedisConnection::SET(const std::string &key, const std::string &value)
     return this->parseReply(_temp);
 }
 
-bool mg::RedisConnection::MGET(std::initializer_list<std::string> &&keys, std::vector<RedisResult> &values)
+bool mg::RedisConnection::MGET(std::initializer_list<std::string> &&keys, RedisResult &values)
 {
     return this->MGET(std::vector<std::string>(keys), values);
 }
@@ -137,10 +137,17 @@ bool mg::RedisConnection::parseReply(RedisResult &result)
     }
     case REDIS_REPLY_TYPE_ARRAY:
     {
-        for (int i = 0; i < this->_reply->elements; i++)
+        int count = this->_reply->elements;
+        for (int i = 0; i < count; i++)
         {
             auto &reply = this->_reply->element[i];
-            result.array.emplace_back(this->_reply->str, this->_reply->len);
+            if (reply->str)
+                result.array.emplace_back(reply->str, reply->len);
+            else
+            {
+                LOG_WARN("value is null: {}", i);
+                result.array.emplace_back("");
+            }
         }
         break;
     }

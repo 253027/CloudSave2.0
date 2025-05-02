@@ -29,7 +29,7 @@ namespace mg
     {
         RedisReplyType type;
         std::string str;
-        size_t value;
+        long long value;
         std::vector<std::string> array;
 
         RedisValue() : type(REDIS_REPLY_TYPE_UNKNOWN), value(0) {}
@@ -78,6 +78,14 @@ namespace mg
                 throw std::runtime_error("RedisValue::operator std::vector<std::string>()");
             return array;
         }
+
+        inline void reset()
+        {
+            this->type = REDIS_REPLY_TYPE_UNKNOWN;
+            this->str.clear();
+            this->value = 0;
+            this->array.clear();
+        }
     };
 
     using RedisResult = RedisValue;
@@ -107,9 +115,9 @@ namespace mg
          * @param return true if success
          * @param return false if failed
          */
-        bool MGET(std::initializer_list<std::string> &&keys, std::vector<RedisResult> &values);
+        bool MGET(std::initializer_list<std::string> &&keys, RedisResult &values);
         template <typename T>
-        bool MGET(T &&keys, std::vector<RedisResult> &values);
+        bool MGET(T &&keys, RedisResult &values);
 
         /**
          * @brief Set values in bulk
@@ -120,6 +128,15 @@ namespace mg
 
         template <typename T = RedisResult>
         bool INCR(const std::string &key, T &&result = T());
+
+        template <typename T = RedisResult>
+        bool INCRBY(const std::string &key, int64_t value, T &&result = T());
+
+        template <typename T = RedisResult>
+        bool DECR(const std::string &key, T &&result = T());
+
+        template <typename T = RedisResult>
+        bool DECRBY(const std::string &key, int64_t value, T &&result = T());
 
         bool DEL(const std::string &key);
 
@@ -145,25 +162,13 @@ namespace mg
     };
 
     template <typename T>
-    inline bool RedisConnection::MGET(T &&keys, std::vector<RedisResult> &values)
+    inline bool RedisConnection::MGET(T &&keys, RedisResult &values)
     {
         std::vector<std::string> _keys = {"MGET"};
         _keys.insert(_keys.end(), keys.begin(), keys.end());
         if (!this->execByParams(_keys))
             return false;
-        int count = this->_reply->elements;
-        for (int i = 0; i < count; i++)
-        {
-            auto &reply = this->_reply->element[i];
-            if (reply->str)
-                values.emplace_back(reply->str, reply->len);
-            else
-            {
-                LOG_WARN("value is null: {}", _keys[i + 1]);
-                values.emplace_back("");
-            }
-        }
-        return true;
+        return this->parseReply(values);
     }
 
     template <typename T>
@@ -188,6 +193,38 @@ namespace mg
                       "RedisConnection::INCR() only support RedisResult");
         this->freeReply();
         this->_reply = static_cast<redisReply *>(redisCommand(this->_context, "INCR %s", key.c_str()));
+        return this->parseReply(result);
+    }
+
+    template <typename T>
+    inline bool RedisConnection::INCRBY(const std::string &key, int64_t value, T &&result)
+    {
+        static_assert(std::is_same<typename std::remove_reference<T>::type, RedisResult>::value,
+                      "RedisConnection::INCRBY() only support RedisResult");
+        this->freeReply();
+        this->_reply = static_cast<redisReply *>(redisCommand(this->_context,
+                                                              "INCRBY %s %lld", key.c_str(), value));
+        return this->parseReply(result);
+    }
+
+    template <typename T>
+    inline bool RedisConnection::DECR(const std::string &key, T &&result)
+    {
+        static_assert(std::is_same<typename std::remove_reference<T>::type, RedisResult>::value,
+                      "RedisConnection::INCR() only support RedisResult");
+        this->freeReply();
+        this->_reply = static_cast<redisReply *>(redisCommand(this->_context, "DECR %s", key.c_str()));
+        return this->parseReply(result);
+    }
+
+    template <typename T>
+    inline bool RedisConnection::DECRBY(const std::string &key, int64_t value, T &&result)
+    {
+        static_assert(std::is_same<typename std::remove_reference<T>::type, RedisResult>::value,
+                      "RedisConnection::DECRBY() only support RedisResult");
+        this->freeReply();
+        this->_reply = static_cast<redisReply *>(redisCommand(this->_context,
+                                                              "DECRBY %s %lld", key.c_str(), value));
         return this->parseReply(result);
     }
 };
