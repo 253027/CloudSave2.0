@@ -2,13 +2,15 @@
     "listenIp": "0.0.0.0",
     "listenPort": 12600,
     "threadNums": 4,
-    "ip": "localhost",
-    "port": 3306,
-    "username": "aa",
-    "password": "1234",
-    "databasename": "CloudSave",
-    "maxsize": 32,
-    "minsize": 16,
-    "timeout": 3,
-    "idletimeout": 60
+    "mysql": {
+        "ip": "localhost",
+        "port": 3306,
+        "username": "mogaitesheng",
+        "password": "277736",
+        "databasename": "CloudSave",
+        "maxsize": 32,
+        "minsize": 16,
+        "timeout": 3,
+        "idletimeout": 60
+    }
 }

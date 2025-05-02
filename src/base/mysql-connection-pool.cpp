@@ -5,6 +5,8 @@
 #include "eventloop-thread.h"
 #include "log.h"
 #include "macros.h"
+#include "../common/common-macro.h"
+
 #include <fstream>
 
 using json = nlohmann::json;
@@ -33,23 +35,12 @@ mg::MysqlConnectionPool::~MysqlConnectionPool()
 
 bool mg::MysqlConnectionPool::initial(const std::string &configPath, const std::string &name)
 {
-    json js;
-    std::ifstream file(configPath);
-    if (!file.is_open())
-    {
-        LOG_ERROR("{} open file faild", name);
-        return false;
-    }
-    try
-    {
-        file >> js;
-    }
-    catch (const json::parse_error &e)
-    {
-        LOG_ERROR("{} json parse error: {}", e.what());
-    }
-    file.close();
+    PARSE_JSON_FILE(js, configPath);
+    return this->initial(js, name);
+}
 
+bool mg::MysqlConnectionPool::initial(nlohmann::json &js, const std::string &name)
+{
     _host = js.value("ip", "localhost");
     _port = js.value("port", 0);
     _password = js.value("password", "");

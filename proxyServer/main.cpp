@@ -3,7 +3,11 @@
 #include "../src/base/tcp-server.h"
 #include "../src/base/threadpool.h"
 #include "../src/base/mysql-connection-pool.h"
+#include "../src/base/json.hpp"
 
+#include "../src/common/common-macro.h"
+
+#include <fstream>
 #include <iostream>
 #include <unistd.h>
 #include <csignal>
@@ -33,7 +37,8 @@ int main(int argc, char *argv[])
     INITLOG(logConfig);
     LOG_INFO("\r----------------------proxyServer started-----------------------------------");
 
-    if (!mg::MysqlConnectionPool::get().initial("./proxyServer/proxyServer.json", "mysql"))
+    PARSE_JSON_FILE(js, "./proxyServer/proxyServer.json");
+    if (!mg::MysqlConnectionPool::get().initial(js["mysql"], "mysql"))
         assert(0 && "mysql initial failed");
     if (!mg::MysqlConnectionPool::get().start(180))
         assert(0 && "mysql start failed");

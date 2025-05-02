@@ -32,6 +32,7 @@ namespace mg
          * @return true 初始化成功 false 初始化失败
          */
         bool initial(const std::string &configPath, const std::string &name = "");
+        bool initial(nlohmann::json &config, const std::string &name = "");
 
         /**
          * @param keeplive 是否定时发送心跳包（单位秒）
