@@ -3,6 +3,7 @@
 #include "../src/base/tcp-server.h"
 #include "../src/base/threadpool.h"
 #include "../src/base/mysql-connection-pool.h"
+#include "../src/base/redis-connection-pool.h"
 #include "../src/base/json.hpp"
 
 #include "../src/common/common-macro.h"
@@ -20,6 +21,7 @@ void sighandle(int sig)
     ProxyServer::destroyInstance();
     mg::MysqlConnectionPool::get().quit();
     mg::MysqlConnectionPool::destroyInstance();
+    mg::RedisPoolManager::destroyInstance();
     LOG_INFO("\r----------------------proxyServer exited-----------------------------------");
     SHUTDOWNLOG();
     ::exit(0);
@@ -44,6 +46,9 @@ int main(int argc, char *argv[])
         assert(0 && "mysql initial failed");
     if (!mg::MysqlConnectionPool::get().start(180))
         assert(0 && "mysql start failed");
+
+    if (!mg::RedisPoolManager::get().initial(js["redis"]))
+        assert(0 && "redis initial failed");
 
     if (!ProxyServer::get().initial("./proxyServer/proxyServer.json"))
         assert(0 && "Initial proxyServer failed");

@@ -157,25 +157,20 @@ void mg::RedisConnectionPool::remove()
     }
 }
 
-mg::RedisPoolManager::RedisPoolManager(EventLoop *loop)
-    : _loop(loop)
-{
-    ;
-}
-
 mg::RedisPoolManager::~RedisPoolManager()
 {
-    ;
+    this->quit();
 }
 
-bool mg::RedisPoolManager::initial(const std::string &configPath)
+bool mg::RedisPoolManager::initial(const std::string &configPath, EventLoop *loop)
 {
     PARSE_JSON_FILE(config, configPath);
-    return this->initial(config);
+    return this->initial(config, loop);
 }
 
-bool mg::RedisPoolManager::initial(nlohmann::json &config)
+bool mg::RedisPoolManager::initial(nlohmann::json &config, EventLoop *loop)
 {
+    this->_loop = loop;
     if (this->_loop == nullptr)
     {
         _thread.reset(new mg::EventLoopThread("RedisPoolManager"));

@@ -86,12 +86,10 @@ namespace mg
     class RedisPoolManager : public Singleton<RedisPoolManager>
     {
     public:
-        RedisPoolManager(EventLoop *loop = nullptr);
-
         ~RedisPoolManager();
 
-        bool initial(const std::string &configPath);
-        bool initial(nlohmann::json &config);
+        bool initial(const std::string &configPath, EventLoop *loop = nullptr);
+        bool initial(nlohmann::json &config, EventLoop *loop = nullptr);
 
         void quit();
 
