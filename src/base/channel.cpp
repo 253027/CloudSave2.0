@@ -120,7 +120,8 @@ bool mg::Channel::isReading() const
 
 void mg::Channel::disableAllEvents()
 {
-    LOG_TRACE("[{}] disableAllEvents", this->_fd);
+    LOG_TRACE("EventLoop[{}] Channel {} disableAllEvents",
+              this->_loop->getLoopName(), this->_fd);
     this->_events = 0;
     this->update();
 }
@@ -145,7 +146,8 @@ void mg::Channel::update()
 {
     if (!this->_loop)
     {
-        LOG_ERROR("[{}] call update error is nullptr", this->_fd);
+        LOG_ERROR("EventLoop[{}] Channel {} call update error is nullptr",
+                  this->_loop->getLoopName(), this->_fd);
         return;
     }
     this->_loop->updateChannel(this);
@@ -157,18 +159,16 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     // 对方关闭连接会触发EPOLLHUP
     if ((this->_activeEvents & EPOLLHUP) && !(this->_activeEvents & EPOLLIN))
     {
-#ifdef _DEBUG
-        LOG_TRACE("[{}] closed event 0x{:x}", this->_fd, this->_activeEvents);
-#endif
+        LOG_TRACE("EventLoop[{}] Channel {} closed event 0x{:x}",
+                  this->_loop->getLoopName(), this->_fd, this->_activeEvents);
         if (_closeCallback)
             _closeCallback();
     }
 
     if (this->_activeEvents & EPOLLERR)
     {
-#ifdef _DEBUG
-        LOG_TRACE("[{}] error event 0x{:x}", this->_fd, this->_activeEvents);
-#endif
+        LOG_TRACE("EventLoop[{}] Channel {} error event 0x{:x}",
+                  this->_loop->getLoopName(), this->_fd, this->_activeEvents);
         if (_errorCallback)
             _errorCallback();
     }
@@ -176,9 +176,8 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     // EPOLLIN表示普通数据和优先数据可读，EPOLLPRI表示高优先数据可读，EPOLLRDHUP表示TCP连接对方关闭或者对方关闭写端
     if (this->_activeEvents & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
     {
-#ifdef _DEBUG
-        LOG_TRACE("[{}] read event 0x{:x}", this->_fd, this->_activeEvents);
-#endif
+        LOG_TRACE("EventLoop[{}] Channel {} read event 0x{:x}",
+                  this->_loop->getLoopName(), this->_fd, this->_activeEvents);
         if (_readCallback)
             _readCallback(time);
     }
@@ -186,9 +185,8 @@ void mg::Channel::handleEventWithGuard(TimeStamp time)
     // 写事件发生，处理可写事件
     if (this->_activeEvents & EPOLLOUT)
     {
-#ifdef _DEBUG
-        LOG_TRACE("[{}] write event 0x{:x}", this->_fd, this->_activeEvents);
-#endif
+        LOG_TRACE("EventLoop[{}] Channel {} write event 0x{:x}",
+                  this->_loop->getLoopName(), this->_fd, this->_activeEvents);
         if (_writeCallback)
             _writeCallback();
     }

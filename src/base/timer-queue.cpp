@@ -38,7 +38,7 @@ mg::TimerId mg::TimerQueue::addTimer(std::function<void()> callback, TimeStamp t
 
 void mg::TimerQueue::cancel(TimerId timerId)
 {
-    LOG_DEBUG("[{}] cancled", timerId._sequence);
+    LOG_DEBUG("EventLoop[{}] cancle {}", this->_loop->getLoopName(), timerId._sequence);
     _loop->run(std::bind(&TimerQueue::cancelInOwnerLoop, this, timerId));
 }
 
@@ -142,9 +142,9 @@ void mg::TimerQueue::cancelInOwnerLoop(TimerId id)
 static int createTimerFd()
 {
     int timeFd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-    LOG_DEBUG("New TimerFd[{}]", timeFd);
+    LOG_DEBUG("create new TimerFd {}", timeFd);
     if (timeFd < 0)
-        LOG_ERROR("New TimerFd failed {}", ::strerror(errno));
+        LOG_ERROR("create new TimerFd failed {}", ::strerror(errno));
     return timeFd;
 }
 
@@ -153,7 +153,7 @@ static void readTimerFd(int fd)
     uint64_t option = 0;
     int len = ::read(fd, &option, sizeof(option));
     if (len != sizeof(option))
-        LOG_ERROR("Timer[{}] readTimerFd failed", fd);
+        LOG_ERROR("read TimerFd {} failed", fd);
 }
 
 static void resetTimerFd(int timefd, mg::TimeStamp expiration)
@@ -171,5 +171,5 @@ static void resetTimerFd(int timefd, mg::TimeStamp expiration)
     ts.tv_nsec = static_cast<long>((diff % mg::TimeStamp::_mircoSecondsPerSecond) * 1000);
     newValue.it_value = ts;
     if (::timerfd_settime(timefd, 0, &newValue, &oldValue) < 0)
-        LOG_ERROR("Timer[{}] {}", timefd, ::strerror(errno));
+        LOG_ERROR("Timer {} has error {}", timefd, ::strerror(errno));
 }

@@ -49,7 +49,7 @@ void mg::Connector::startInLoop()
     if (this->_connect)
         connect();
     else
-        LOG_DEBUG("{} do not connect", (void *)this->_loop);
+        LOG_DEBUG("EventLoop[{}] Connector do not connect", this->_loop->getLoopName());
 }
 
 void mg::Connector::stopInLoop()
@@ -142,10 +142,13 @@ void mg::Connector::resetChannel()
 void mg::Connector::handleWrite()
 {
     int state = _state;
-    LOG_TRACE("handle write state: {}", state);
+    LOG_TRACE("EventLoop[{}] handle write state: {}",
+              this->_loop->getLoopName(), state);
     if (_state == Connecting)
     {
-        int sockfd = removeAndResetChannel(); // 这里这样做的目的是将连接成功的socket从当前channel中移除，加入TcpConnection中的channel进行维护
+        // 这里这样做的目的是将连接成功的socket从当前channel中移除，
+        // 加入TcpConnection中的channel进行维护
+        int sockfd = removeAndResetChannel();
         int error = 0;
         socklen_t len = sizeof(error);
         ::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
@@ -154,7 +157,8 @@ void mg::Connector::handleWrite()
         else
         {
             this->setState(Connected);
-            LOG_DEBUG("connected to {}", _address.toIpPort());
+            LOG_DEBUG("EventLoop[{}] connected to {}",
+                      this->_loop->getLoopName(), _address.toIpPort());
             if (this->_connect && _callback)
                 _callback(_socket.fd());
             else if (!this->_connect)
@@ -168,13 +172,15 @@ void mg::Connector::handleWrite()
 void mg::Connector::handleError()
 {
     int state = _state;
-    LOG_ERROR("handel error state: {}", state);
+    LOG_ERROR("EventLoop[{}] handel error state: {}",
+              this->_loop->getLoopName(), state);
     if (_state == Connecting)
     {
         int error = 0;
         socklen_t len = sizeof(error);
         ::getsockopt(removeAndResetChannel(), SOL_SOCKET, SO_ERROR, &error, &len);
-        LOG_TRACE("SO_ERROR = {}", strerror(error));
+        LOG_TRACE("EventLoop[{}] SO_ERROR = {}",
+                  this->_loop->getLoopName(), strerror(error));
         retry();
     }
 }
@@ -185,12 +191,13 @@ void mg::Connector::retry()
     this->setState(DisConnected);
     if (this->_connect)
     {
-        LOG_INFO("retry connnect to {}, next retrytime: {} seconds", _address.toIpPort(), _retryMileSeconds / 1000.0);
+        LOG_INFO("EventLoop[{}] retry connnect to {}, next retrytime: {} seconds",
+                 this->_loop->getLoopName(), _address.toIpPort(), _retryMileSeconds / 1000.0);
         _loop->runAfter(_retryMileSeconds / 1000.0, std::bind(&Connector::startInLoop, shared_from_this()));
         _retryMileSeconds = std::min(_retryMileSeconds * 2, Connector::_maxRetryDelayMileSeconds);
     }
     else
-        LOG_DEBUG("do not connect");
+        LOG_DEBUG("EventLoop[{}] do not connect", this->_loop->getLoopName());
 }
 
 int mg::Connector::createNonBlockScoket(int domain, int type)

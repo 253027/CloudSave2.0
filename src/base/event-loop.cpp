@@ -15,10 +15,9 @@ mg::EventLoop::EventLoop(const std::string &name) : _name(name), _epoller(this),
                                                     _threadId(currentThread::tid()), _timeQueue(new TimerQueue(this))
 {
     if (t_loopInThisThread)
-        LOG_ERROR("[{}] eventLoop existed, repeated create", _name);
+        LOG_ERROR("EventLoop[{}] existed, repeated create", _name);
     else
         t_loopInThisThread = this;
-    LOG_INFO("EventLoop[{}] created", this->_name.c_str());
     _wakeupChannel->setReadCallback(std::bind(&EventLoop::handleReadCallBack, this));
     _wakeupChannel->enableReading();
 }
@@ -124,8 +123,11 @@ int mg::EventLoop::createEventFd()
 {
     int ret = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if (ret < 0)
-        LOG_ERROR("eventFd error: {}", errno);
-    LOG_INFO("New wakeup fd[{}]", ret);
+    {
+        LOG_ERROR("EventLoop[{}] eventFd error: {}", this->_name, strerror(errno));
+        return ret;
+    }
+    LOG_INFO("EventLoop[{}] New wakeup fd {}", this->_name, ret);
     return ret;
 }
 
@@ -134,7 +136,7 @@ void mg::EventLoop::handleReadCallBack()
     uint64_t one = 1;
     ssize_t len = ::read(this->_wakeupFd, &one, sizeof(one));
     if (len != sizeof(len))
-        LOG_ERROR("EventLoop[{}] handleReadCallbak error", this->_name.c_str());
+        LOG_ERROR("EventLoop[{}] handleReadCallbak error", this->_name);
 }
 
 void mg::EventLoop::doPendingFunctions()

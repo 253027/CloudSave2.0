@@ -96,6 +96,11 @@ namespace mg
          */
         void cancel(TimerId timerId);
 
+        /**
+         * @brief 得到当前事件循环的名称
+         */
+        inline const std::string &getLoopName() const { return this->_name; }
+
     private:
         // 申请_wakeupFd实例
         int createEventFd();
