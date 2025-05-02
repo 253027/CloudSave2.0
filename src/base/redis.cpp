@@ -9,17 +9,24 @@ mg::RedisConnection::~RedisConnection()
     this->freeReply();
 }
 
-bool mg::RedisConnection::connect(const std::string &ip, uint16_t port, const std::string &password, int db)
+bool mg::RedisConnection::connect(const std::string &ip, uint16_t port, const std::string &password,
+                                  int db, int timeout)
 {
     this->_ip = ip;
     this->_port = port;
     this->_password = password;
     this->_db = db;
 
-    this->_context = redisConnect(this->_ip.c_str(), this->_port);
+    if (timeout)
+    {
+        struct timeval time = {timeout, 0};
+        this->_context = redisConnectWithTimeout(this->_ip.c_str(), this->_port, time);
+    }
+    else
+        this->_context = redisConnect(this->_ip.c_str(), this->_port);
     if (this->_context->err)
     {
-        LOG_ERROR("redis connect error: %s", this->_context->errstr);
+        LOG_ERROR("redis connect error: {}", this->_context->errstr);
         return false;
     }
 

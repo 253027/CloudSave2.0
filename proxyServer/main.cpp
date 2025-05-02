@@ -18,6 +18,8 @@ void sighandle(int sig)
         return;
     ProxyServer::get().quit();
     ProxyServer::destroyInstance();
+    mg::MysqlConnectionPool::get().quit();
+    mg::MysqlConnectionPool::destroyInstance();
     LOG_INFO("\r----------------------proxyServer exited-----------------------------------");
     SHUTDOWNLOG();
     ::exit(0);

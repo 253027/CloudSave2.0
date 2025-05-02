@@ -73,7 +73,8 @@ bool mg::MysqlConnectionPool::start(int keeplive)
 
 void mg::MysqlConnectionPool::quit()
 {
-    _loop->quit();
+    if (this->_thread)
+        _loop->quit();
 }
 
 std::shared_ptr<mg::Mysql> mg::MysqlConnectionPool::getHandle()

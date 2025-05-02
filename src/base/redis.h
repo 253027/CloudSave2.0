@@ -3,6 +3,7 @@
 
 #include "singleton.h"
 #include "log.h"
+#include "time-stamp.h"
 #include "../../hiredis-1.3.0/hiredis.h"
 
 #include <stddef.h>
@@ -92,10 +93,13 @@ namespace mg
 
     class RedisConnection
     {
+        friend class RedisConnectionPool;
+
     public:
         ~RedisConnection();
 
-        bool connect(const std::string &ip, uint16_t port, const std::string &password, int db = 0);
+        bool connect(const std::string &ip, uint16_t port, const std::string &password,
+                     int db = 0, int timeout = 0);
 
         bool execute(const std::string &command, RedisResult &result);
 
@@ -151,6 +155,16 @@ namespace mg
 
         bool execByParams(std::vector<std::string> &params);
 
+        inline TimeStamp getVacantTime()
+        {
+            return mg::TimeStamp::now() - this->_lastExecTime;
+        }
+
+        inline void refresh()
+        {
+            this->_lastExecTime = mg::TimeStamp::now();
+        }
+
     private:
         std::string _ip;
         uint16_t _port;
@@ -159,6 +173,7 @@ namespace mg
         redisContext *_context;
         redisReply *_reply;
         RedisResult _temp;
+        TimeStamp _lastExecTime;
     };
 
     template <typename T>
