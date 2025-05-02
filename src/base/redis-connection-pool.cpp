@@ -8,8 +8,8 @@
 #include "json.hpp"
 #include <fstream>
 
-mg::RedisConnectionPool::RedisConnectionPool(mg::EventLoop *loop)
-    : _loop(loop), _db(0), _port(0), _maxsize(0), _minsize(0),
+mg::RedisConnectionPool::RedisConnectionPool(mg::EventLoop *loop, const std::string &name)
+    : _loop(loop), _name(name), _db(0), _port(0), _maxsize(0), _minsize(0),
       _totalsize(0), _timeout(0), _idletimeout(), _keepalive(false)
 {
     ;
@@ -65,9 +65,9 @@ bool mg::RedisConnectionPool::start()
 
     if (this->_keepalive)
     {
-        this->_loop->runEvery(this->_timeout, [this]()
+        this->_loop->runEvery(this->_idletimeout, [this]()
                               {
-                                  std::lock_guard<std::mutex> guard(_mutex);
+                                  std::lock_guard<std::mutex> guard(this->_mutex);
                                   mg::RedisResult result;
                                   int size = this->_queue.size();
                                   for (int i = 0; i < size; i++)
@@ -81,13 +81,14 @@ bool mg::RedisConnectionPool::start()
                                       if (resultStr == "PONG")
                                       {
                                           con->refresh();
-                                          LOG_TRACE("redis keepalive {}", (void *)con);
+                                          LOG_TRACE("redis {} keepalive {}", this->_name, (void *)con);
                                       }
                                       else
-                                          LOG_ERROR("redis keepalive error {}", (void *)con);
+                                          LOG_ERROR("redis {} keepalive error {}", this->_name, (void *)con);
                                   } //
                               });
     }
+    LOG_INFO("redis pool {} start success", this->_name);
     return true;
 }
 
@@ -132,7 +133,7 @@ bool mg::RedisConnectionPool::addInitial()
 
 void mg::RedisConnectionPool::add()
 {
-    LOG_TRACE("redis add called");
+    LOG_TRACE("redis {} add called", this->_name);
     std::lock_guard<std::mutex> guard(_mutex);
     if (!_queue.empty() || this->_totalsize > this->_maxsize)
         return;
@@ -142,7 +143,7 @@ void mg::RedisConnectionPool::add()
 
 void mg::RedisConnectionPool::remove()
 {
-    LOG_TRACE("redis remove called");
+    LOG_TRACE("redis {} remove called", this->_name);
     std::lock_guard<std::mutex> guard(_mutex);
     while (_queue.size() > _minsize)
     {
@@ -150,8 +151,69 @@ void mg::RedisConnectionPool::remove()
         if (front->getVacantTime().getSeconds() < _idletimeout)
             break;
         _queue.pop_front();
-        LOG_TRACE("redis remove {}", (void *)front);
+        LOG_TRACE("redis {} remove {}", this->_name, (void *)front);
         SAFE_DELETE(front);
         this->_totalsize--;
     }
+}
+
+mg::RedisPoolManager::RedisPoolManager(EventLoop *loop)
+    : _loop(loop)
+{
+    ;
+}
+
+mg::RedisPoolManager::~RedisPoolManager()
+{
+    ;
+}
+
+bool mg::RedisPoolManager::initial(const std::string &configPath)
+{
+    PARSE_JSON_FILE(config, configPath);
+    return this->initial(config);
+}
+
+bool mg::RedisPoolManager::initial(nlohmann::json &config)
+{
+    if (this->_loop == nullptr)
+    {
+        _thread.reset(new mg::EventLoopThread("RedisPoolManager"));
+        _loop = _thread->startLoop();
+    }
+    for (auto &item : config.items())
+    {
+        if (!item.value().is_object())
+            continue;
+        auto pool = std::make_shared<RedisConnectionPool>(this->_loop, item.key());
+        if (!pool->initial(item.value(), item.key()))
+            assert(0 && "redis pool initial failed");
+        pool->setKeepAlive();
+        if (!pool->start())
+            assert(0 && "redis pool start failed");
+        this->_pools[item.key()] = pool;
+    }
+    return true;
+}
+
+void mg::RedisPoolManager::quit()
+{
+    for (auto &pool : _pools)
+        pool.second->quit();
+}
+
+std::shared_ptr<mg::RedisConnectionPool> mg::RedisPoolManager::getPool(const std::string &poolName)
+{
+    auto it = this->_pools.find(poolName);
+    if (it == this->_pools.end())
+        return nullptr;
+    return it->second;
+}
+
+std::shared_ptr<mg::RedisConnection> mg::RedisPoolManager::getHandle(const std::string &poolName)
+{
+    auto pool = this->getPool(poolName);
+    if (!pool)
+        return nullptr;
+    return pool->getHandle();
 }

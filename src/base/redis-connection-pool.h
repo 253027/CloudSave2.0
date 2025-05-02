@@ -17,10 +17,10 @@ namespace mg
     class EventLoop;
     class EventLoopThread;
 
-    class RedisConnectionPool : public Singleton<RedisConnectionPool>
+    class RedisConnectionPool
     {
     public:
-        RedisConnectionPool(EventLoop *loop = nullptr);
+        RedisConnectionPool(EventLoop *loop = nullptr, const std::string &name = "");
 
         ~RedisConnectionPool();
 
@@ -68,6 +68,7 @@ namespace mg
         EventLoop *_loop;
         std::unique_ptr<mg::EventLoopThread> _thread;
         std::deque<RedisConnection *> _queue;
+        std::string _name;
         std::string _host;
         std::string _password;
         uint8_t _db;
@@ -80,6 +81,28 @@ namespace mg
         std::mutex _mutex;
         std::condition_variable _condition;
         bool _keepalive;
+    };
+
+    class RedisPoolManager : public Singleton<RedisPoolManager>
+    {
+    public:
+        RedisPoolManager(EventLoop *loop = nullptr);
+
+        ~RedisPoolManager();
+
+        bool initial(const std::string &configPath);
+        bool initial(nlohmann::json &config);
+
+        void quit();
+
+        std::shared_ptr<RedisConnectionPool> getPool(const std::string &poolName);
+
+        std::shared_ptr<RedisConnection> getHandle(const std::string &poolName);
+
+    private:
+        std::map<std::string, std::shared_ptr<RedisConnectionPool>> _pools;
+        EventLoop *_loop;
+        std::unique_ptr<mg::EventLoopThread> _thread;
     };
 };
 

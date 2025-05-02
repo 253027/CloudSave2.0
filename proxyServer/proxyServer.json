@@ -14,13 +14,15 @@
         "idletimeout": 60
     },
     "redis": {
-        "ip": "127.0.0.1",
-        "port": 12700,
-        "password": "",
-        "db": 0,
-        "maxsize": 32,
-        "minsize": 16,
-        "timeout": 3,
-        "idletimeout": 60
+        "unRead": {
+            "ip": "127.0.0.1",
+            "port": 12700,
+            "password": "",
+            "db": 0,
+            "maxsize": 32,
+            "minsize": 16,
+            "timeout": 3,
+            "idletimeout": 60
+        }
     }
 }
