@@ -3,7 +3,7 @@
 #include "login.h"
 #include "session.h"
 #include "user.h"
-#include "../src/common/common.h"
+#include "messageCache.h"
 #include "../src/base/log.h"
 
 mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::string &data)
@@ -111,32 +111,10 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, std::shared_p
     {
     case IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT:
     {
-        uint32_t from = request.from();
-        uint32_t to = request.to();
-        if (from == to)
-        {
-            LOG_INFO("{} send message to self", link->name());
+        uint32_t messageId = this->sendSingleMessage(request);
+        if (!messageId)
             return;
-        }
-
-        uint32_t userSession = Session::get().getSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
-        if (!userSession)
-            userSession = Session::get().addSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
-
-        uint32_t peerSession = Session::get().getSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
-        if (!peerSession)
-            peerSession = Session::get().addSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
-
-        if (!peerSession || !userSession)
-        {
-            LOG_ERROR("{} invalid session from[{}]: {} to[{}]: {}", link->name(), from, userSession, to, peerSession);
-            return;
-        }
-
-        uint32_t relation = Session::get().getRelation(from, to, true);
-        if (!relation)
-            relation = Session::get().addRelation(from, to);
-        Session::get().saveMessage(relation, request);
+        request.set_messsage_id(messageId);
         break;
     }
     }
@@ -147,4 +125,30 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, std::shared_p
     response.setSequenceNumber(data->getSequenceNumber());
     response.setPBMessage(&request);
     mg::TcpPacketParser::get().send(link, response.dump());
+}
+
+uint32_t HandlerMap::sendSingleMessage(IM::Message::MessageData &request)
+{
+    uint32_t from = request.from();
+    uint32_t to = request.to();
+    if (from == to)
+        return 0;
+
+    uint32_t userSession = Session::get().getSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+    if (!userSession)
+        userSession = Session::get().addSession(from, to, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+
+    uint32_t peerSession = Session::get().getSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+    if (!peerSession)
+        peerSession = Session::get().addSession(to, from, IM::BaseDefine::MESSAGE_TYPE_SINGLE_TEXT);
+
+    if (!peerSession || !userSession)
+        return 0;
+
+    uint32_t relation = Session::get().getRelation(from, to, true);
+    if (!relation)
+        relation = Session::get().addRelation(from, to);
+    Session::get().saveMessage(relation, request);
+
+    return MessageCache::get().getMessageId(relation);
 }

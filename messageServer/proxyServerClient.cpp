@@ -191,6 +191,7 @@ void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
             response.set_from(user);
             response.set_to(peer);
             response.set_session_type(IM::BaseDefine::SESSION_TYPE_SINGLE);
+            response.set_messsage_id(request.messsage_id());
 
             PduMessage pdu;
             pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);

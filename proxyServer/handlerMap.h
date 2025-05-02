@@ -3,6 +3,7 @@
 
 #include "../src/base/singleton.h"
 #include "../src/base/function-callbacks.h"
+#include "../src/common/common.h"
 
 #include <memory>
 #include <unordered_map>
@@ -19,6 +20,7 @@ private:
     void getChangedFriendList(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
 
     void sendMessage(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
+    uint32_t sendSingleMessage(IM::Message::MessageData &message);
 };
 
 #endif // __HANDLER_MAP_H__
