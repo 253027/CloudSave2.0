@@ -139,8 +139,11 @@ void MessageServer::acceptorCallback(int fd, const mg::InternetAddress &peerAddr
     sockaddr_in local;
     ::memset(&local, 0, sizeof(local));
     socklen_t addresslen = sizeof(local);
-    if (::getsockname(fd, (sockaddr *)&local, &addresslen) < 0)
+
+    int ret = TEMP_FAILURE_RETRY(::getsockname(fd, (sockaddr *)&local, &addresslen));
+    if (ret < 0)
     {
+        TEMP_FAILURE_RETRY(::close(fd));
         LOG_ERROR("get local address failed");
         return;
     }
