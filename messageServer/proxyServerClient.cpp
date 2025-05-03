@@ -210,11 +210,11 @@ void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
     std::string sendData = pdu.dump();
     auto user = MessageUserManger::get().getUserByUserId(request.from());
     if (user)
-        user->boardcastData(sendData);
+        user->boardcastData(sendData, request.messsage_id(), request.to());
 
     auto peer = MessageUserManger::get().getUserByUserId(request.to());
     if (peer)
-        peer->boardcastData(sendData);
+        peer->boardcastData(sendData, request.messsage_id(), request.from());
 }
 
 void ProxyServerClient::_handleGetFriendsListResponse(const std::string &data)

@@ -6,6 +6,8 @@
 #include "../src/protocal/imPduBase.h"
 
 #include <string>
+#include <list>
+#include <tuple>
 
 class ClientConnection : public ConnectionBase, public mg::TcpConnection
 {
@@ -31,6 +33,8 @@ public:
 
     void send(const std::string &data);
 
+    void addToSendList(uint32_t message_id, uint32_t from);
+
     /**
      * @brief 更新用户状态至loginServer
      */
@@ -50,12 +54,15 @@ private:
 
     void handleSendMessage(const std::string &data);
 
+    void handleTimeoutMessage();
+
 private:
-    std::string _loginName;   // 登录名
-    uint32_t _userId;         // 登录ID
-    uint32_t _clientType;     // 登录平台
-    bool _isValid;            // 连接是否经过验证
-    uint16_t _sendPerSeconds; // 每秒钟发送次数
+    std::string _loginName;                                         // 登录名
+    uint32_t _userId;                                               // 登录ID
+    uint32_t _clientType;                                           // 登录平台
+    bool _isValid;                                                  // 连接是否经过验证
+    uint16_t _sendPerSeconds;                                       // 每秒钟发送次数
+    std::list<std::tuple<uint32_t, uint32_t, uint32_t>> _send_list; // 已发送但未收到确认的消息 message_id-other_id-timestamp
 };
 
 class ClientConnectionManger : public Singleton<ClientConnectionManger>

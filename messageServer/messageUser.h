@@ -39,7 +39,7 @@ public:
 
     inline uint32_t getUserId() { return this->_user_id; }
 
-    void boardcastData(const std::string &data);
+    void boardcastData(const std::string &data, uint32_t message_id = 0, uint32_t other = 0);
 
 private:
     bool _isValid;

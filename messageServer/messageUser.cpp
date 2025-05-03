@@ -121,13 +121,15 @@ std::weak_ptr<ClientConnection> MessageUser::getValidConnectionByName(const std:
     return it->second;
 }
 
-void MessageUser::boardcastData(const std::string &data)
+void MessageUser::boardcastData(const std::string &data, uint32_t message_id, uint32_t other)
 {
     for (auto &connection : this->_connectionMemo)
     {
         auto link = connection.second.lock();
         if (!link)
             continue;
+        if (message_id && other)
+            link->addToSendList(message_id, other);
         link->send(data);
     }
 }

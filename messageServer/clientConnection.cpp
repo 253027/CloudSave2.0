@@ -5,6 +5,13 @@
 #include "../src/base/log.h"
 #include "../src/common/common-macro.h"
 
+#include <atomic>
+
+static std::atomic<uint32_t> up_message_total_count = {0};        // 上行消息总数
+static std::atomic<uint32_t> up_message_miss_total_count = {0};   // 上行消息丢包数
+static std::atomic<uint32_t> down_message_total_count = {0};      // 下行消息总数
+static std::atomic<uint32_t> down_message_miss_total_count = {0}; // 下行消息丢包数
+
 ClientConnection::ClientConnection(mg::EventLoop *loop, const std::string &name, int sockfd,
                                    const mg::InternetAddress &localAddress, const mg::InternetAddress &peerAddress)
     : ConnectionBase(), TcpConnection(loop, name, sockfd, localAddress, peerAddress),
@@ -22,6 +29,7 @@ void ClientConnection::connectionChangeCallback(const mg::TcpConnectionPointer &
         ClientConnectionManger::get().addConnection(link->name(), link);
         link->runEvery(1.0, [this]()
                        { this->_sendPerSeconds = 0; });
+        link->runEvery(1.0, std::bind(&ClientConnection::handleTimeoutMessage, this));
         LOG_INFO("new client connection:{}", link->name());
     }
     else
@@ -103,6 +111,12 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
 void ClientConnection::send(const std::string &data)
 {
     this->ConnectionBase::send(shared_from_this(), data);
+}
+
+void ClientConnection::addToSendList(uint32_t message_id, uint32_t from)
+{
+    down_message_total_count++;
+    this->_send_list.emplace_back(message_id, from, mg::TimeStamp::now().getSeconds());
 }
 
 void ClientConnection::updateUserStatus(uint32_t status)
@@ -246,6 +260,21 @@ void ClientConnection::handleSendMessage(const std::string &data)
     message.set_attach_data(this->name());
     pdu.setPBMessage(&message);
     mg::TcpPacketParser::get().send(std::move(proxyClient->connection()), pdu.dump());
+}
+
+void ClientConnection::handleTimeoutMessage()
+{
+    uint32_t curTime = mg::TimeStamp::now().getSeconds();
+    for (auto it = this->_send_list.begin(); it != this->_send_list.end();)
+    {
+        uint32_t message_id, other, time;
+        std::tie(message_id, other, time) = *it;
+        if (curTime < time + TIMEOUT_WAITING_MSG_DATA_ACK)
+            break;
+        it = this->_send_list.erase(it);
+        down_message_miss_total_count++;
+        LOG_ERROR("message {} between {} and {} missed", message_id, other, this->getUserId());
+    }
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)

@@ -8,7 +8,10 @@
 #define CLIENT_TIMEOUT 120000000
 #define MOBILE_CLIENT_TIMEOUT 60000000 * 5
 #define HTTP_CONN_TIMEOUT 60000000
+
+// 时间间隔单位都是秒
 #define MAX_SEND_MESSAGE_PERSECOND 10
+#define TIMEOUT_WAITING_MSG_DATA_ACK 15
 
 #include "../base/tcp-connection.h"
 #include "../base/inet-address.h"
