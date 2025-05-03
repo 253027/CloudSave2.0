@@ -21,9 +21,7 @@ mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int s
 
 mg::TcpConnection::~TcpConnection()
 {
-#ifdef _DEBUG
     LOG_TRACE("{} called ~TcpConnection()", this->_name);
-#endif
     assert(_state == DISCONNECTED);
 }
 
@@ -118,9 +116,7 @@ void mg::TcpConnection::connectionEstablished()
 
 void mg::TcpConnection::connectionDestoryed()
 {
-#ifdef _DEBUG
     LOG_TRACE("{} destroyed", this->_name);
-#endif
     assert(_loop->isInOwnerThread());
     if (this->_state == CONNECTED)
     {
@@ -146,6 +142,7 @@ mg::TimerId mg::TcpConnection::runAt(TimeStamp time, std::function<void()> callb
 {
     mg::TimerId id = this->_loop->runAt(time, std::move(callback));
     this->_timerIds.emplace_back(std::move(id), id._timer->expiration());
+    LOG_DEBUG("{} runAt new TimerId {}", this->name(), id._sequence);
     return this->_timerIds.back().first;
 }
 
@@ -153,6 +150,7 @@ mg::TimerId mg::TcpConnection::runAfter(double delay, std::function<void()> call
 {
     mg::TimerId id = this->_loop->runAfter(delay, std::move(callback));
     this->_timerIds.emplace_back(std::move(id), id._timer->expiration());
+    LOG_DEBUG("{} runAfter new TimerId {}", this->name(), id._sequence);
     return this->_timerIds.back().first;
 }
 
@@ -160,6 +158,7 @@ mg::TimerId mg::TcpConnection::runEvery(double interval, std::function<void()> c
 {
     mg::TimerId id = this->_loop->runEvery(interval, std::move(callback));
     this->_timerIds.emplace_back(std::move(id), mg::TimeStamp());
+    LOG_DEBUG("{} runEvery new TimerId {}", this->name(), id._sequence);
     return this->_timerIds.back().first;
 }
 
