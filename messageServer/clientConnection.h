@@ -33,7 +33,9 @@ public:
 
     void send(const std::string &data);
 
-    void addToSendList(uint32_t message_id, uint32_t from);
+    void addToSendList(uint32_t message_id, uint32_t other);
+
+    void removeFromSendList(uint32_t message_id, uint32_t other);
 
     /**
      * @brief 更新用户状态至loginServer
@@ -55,6 +57,8 @@ private:
     void handleSendMessage(const std::string &data);
 
     void handleTimeoutMessage();
+
+    void handleSendMessageAck(const std::string &data);
 
 private:
     std::string _loginName;                                         // 登录名

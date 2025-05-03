@@ -114,7 +114,7 @@ void HandlerMap::sendMessage(const mg::TcpConnectionPointer &link, std::shared_p
         uint32_t messageId = this->sendSingleMessage(request);
         if (!messageId)
             return;
-        request.set_messsage_id(messageId);
+        request.set_message_id(messageId);
         break;
     }
     }

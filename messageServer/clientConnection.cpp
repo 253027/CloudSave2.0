@@ -104,6 +104,9 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ:
             this->handleGetLatestFriendList(data);
             break;
+        case IM::BaseDefine::COMMAND_MESSAGE_DATA_ACK:
+            this->handleSendMessageAck(data);
+            break;
         }
     }
 }
@@ -113,10 +116,24 @@ void ClientConnection::send(const std::string &data)
     this->ConnectionBase::send(shared_from_this(), data);
 }
 
-void ClientConnection::addToSendList(uint32_t message_id, uint32_t from)
+void ClientConnection::addToSendList(uint32_t message_id, uint32_t other)
 {
     down_message_total_count++;
-    this->_send_list.emplace_back(message_id, from, mg::TimeStamp::now().getSeconds());
+    this->_send_list.emplace_back(message_id, other, mg::TimeStamp::now().getSeconds());
+}
+
+void ClientConnection::removeFromSendList(uint32_t message_id, uint32_t other)
+{
+    for (auto it = this->_send_list.begin(); it != this->_send_list.end(); it++)
+    {
+        uint32_t a, b;
+        std::tie(a, b, std::ignore) = *it;
+        if (a == message_id && b == other)
+        {
+            this->_send_list.erase(it);
+            break;
+        }
+    }
 }
 
 void ClientConnection::updateUserStatus(uint32_t status)
@@ -275,6 +292,13 @@ void ClientConnection::handleTimeoutMessage()
         down_message_miss_total_count++;
         LOG_ERROR("message {} between {} and {} missed", message_id, other, this->getUserId());
     }
+}
+
+void ClientConnection::handleSendMessageAck(const std::string &data)
+{
+    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageDataAck, message, data);
+    uint32_t other = message.to() == this->getUserId() ? message.from() : message.to();
+    this->removeFromSendList(message.message_id(), other);
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)

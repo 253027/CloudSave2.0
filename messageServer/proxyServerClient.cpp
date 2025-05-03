@@ -191,7 +191,7 @@ void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
             response.set_from(user);
             response.set_to(peer);
             response.set_session_type(IM::BaseDefine::SESSION_TYPE_SINGLE);
-            response.set_messsage_id(request.messsage_id());
+            response.set_message_id(request.message_id());
 
             PduMessage pdu;
             pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
@@ -210,11 +210,11 @@ void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
     std::string sendData = pdu.dump();
     auto user = MessageUserManger::get().getUserByUserId(request.from());
     if (user)
-        user->boardcastData(sendData, request.messsage_id(), request.to());
+        user->boardcastData(sendData, request.message_id(), request.to());
 
     auto peer = MessageUserManger::get().getUserByUserId(request.to());
     if (peer)
-        peer->boardcastData(sendData, request.messsage_id(), request.from());
+        peer->boardcastData(sendData, request.message_id(), request.from());
 }
 
 void ProxyServerClient::_handleGetFriendsListResponse(const std::string &data)
