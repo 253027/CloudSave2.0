@@ -57,7 +57,7 @@ bool MessageServer::initial(const std::string &configPath)
             std::string ip = server["ip"];
             uint16_t port = server["port"];
             _loginClientList.emplace_back(std::unique_ptr<LoginServerClient>(new LoginServerClient(mg::IPV4_DOMAIN, mg::TCP_SOCKET, _loop.get(),
-                                                                                                   mg::InternetAddress(ip, port), ip)));
+                                                                                                   mg::InternetAddress(ip, port), "loginServerClient")));
         }
     }
 
@@ -68,7 +68,7 @@ bool MessageServer::initial(const std::string &configPath)
             std::string ip = server["ip"];
             uint16_t port = server["port"];
             _proxyServertList.emplace_back(std::unique_ptr<ProxyServerClient>(new ProxyServerClient(mg::IPV4_DOMAIN, mg::TCP_SOCKET, _loop.get(),
-                                                                                                    mg::InternetAddress(ip, port), ip)));
+                                                                                                    mg::InternetAddress(ip, port), "proxyServerClient")));
         }
     }
 
