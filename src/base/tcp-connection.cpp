@@ -16,6 +16,7 @@ mg::TcpConnection::TcpConnection(EventLoop *loop, const std::string &name, int s
     this->_channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
     this->_channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
     this->_socket->setKeepLive(true);
+    this->enableRecycleClear();
 }
 
 mg::TcpConnection::~TcpConnection()
@@ -87,7 +88,7 @@ void mg::TcpConnection::send(const std::string &data)
     if (_loop->isInOwnerThread())
         this->sendInOwnerLoop(data);
     else
-        _loop->run(std::bind((void(TcpConnection::*)(const std::string &))(&TcpConnection::sendInOwnerLoop), this, data));
+        _loop->run(std::bind((void (TcpConnection::*)(const std::string &))(&TcpConnection::sendInOwnerLoop), this, data));
 }
 
 void mg::TcpConnection::send(Buffer &data)
@@ -99,7 +100,7 @@ void mg::TcpConnection::send(Buffer &data)
     else
     {
         std::string buffer = data.retrieveAllAsString();
-        _loop->run(std::bind((void(TcpConnection::*)(const std::string &))(&TcpConnection::sendInOwnerLoop), this, buffer));
+        _loop->run(std::bind((void (TcpConnection::*)(const std::string &))(&TcpConnection::sendInOwnerLoop), this, buffer));
     }
 }
 
