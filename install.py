@@ -97,9 +97,17 @@ def make_hiredis():
     print("hiredis completed")
 
 
+def make_mysql_dev():
+    print("mysql dev installing...")
+    os.chdir(current_path)
+    run_command("sudo apt-get install libmysqlclient-dev")
+    print("mysql dev completed")
+
+
 if __name__ == "__main__":
     make_spdlog()
     make_protobuf()
     make_protocal_message()
     make_redis()
     make_hiredis()
+    make_mysql_dev()
