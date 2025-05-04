@@ -40,24 +40,13 @@ namespace mg
 
         RedisValue(const std::string &str) : RedisValue(str.c_str(), str.size()) {}
 
-        inline operator int()
+        template <typename T>
+        inline operator T()
         {
+            static_assert(std::is_integral<T>::value,
+                          "RedisValue::operator onli support interger");
             if (type != REDIS_REPLY_TYPE_INTEGER)
-                throw std::runtime_error("RedisValue::operator size_t()");
-            return value;
-        }
-
-        inline operator uint32_t()
-        {
-            if (type != REDIS_REPLY_TYPE_INTEGER)
-                throw std::runtime_error("RedisValue::operator size_t()");
-            return value;
-        }
-
-        inline operator size_t()
-        {
-            if (type != REDIS_REPLY_TYPE_INTEGER)
-                throw std::runtime_error("RedisValue::operator size_t()");
+                throw std::runtime_error("RedisValue::operator is not interger)");
             return value;
         }
 
