@@ -25,7 +25,7 @@ uint32_t Session::getSession(uint32_t from, uint32_t to, uint32_t type, bool tom
     }
 
     if (sql->next())
-        return sql->getData<uint32_t>("id");
+        return sql->getData("id");
 
     return 0;
 }
@@ -63,7 +63,7 @@ uint32_t Session::getRelation(uint32_t from, uint32_t to, bool insert)
     auto data = std::make_tuple(from, to);
     if (!sql->select("RelationShip", column, "user=? AND peer=? AND status=0", data))
         return insert ? this->addRelation(from, to) : 0;
-    return sql->next() ? sql->getData<uint32_t>("id") : 0;
+    return sql->next() ? sql->getData("id") : 0;
 }
 
 uint32_t Session::addRelation(uint32_t from, uint32_t to)
@@ -77,7 +77,7 @@ uint32_t Session::addRelation(uint32_t from, uint32_t to)
         auto data = std::make_tuple(from, to);
         if (sql->select("RelationShip", column, "user=? AND peer=?", data) && sql->next())
         {
-            uint32_t id = std::stoi(sql->getData("id"));
+            uint32_t id = sql->getData("id");
             std::array<std::string, 2> set = {"status", "updateTime"};
             auto data = std::make_tuple(0, mg::TimeStamp::now().getSeconds(), id);
             return sql->update("RelationShip", set, "id=", data) ? id : 0;

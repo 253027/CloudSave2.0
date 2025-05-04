@@ -22,7 +22,7 @@ bool User::getFriendsList(uint32_t userId, std::vector<uint32_t> &list, uint32_t
     }
 
     while (sql->next())
-        list.push_back(sql->getData<uint32_t>("peer"));
+        list.push_back(sql->getData("peer"));
 
     return true;
 }
@@ -41,12 +41,28 @@ bool User::getFriendsInfo(uint32_t userId, IM::BaseDefine::UserInformation &info
     if (!sql->next())
         return false;
 
-    info.set_user_id(sql->getData<uint32_t>("id"));
-    info.set_user_gender(sql->getData<uint8_t>("sex"));
-    info.set_user_nick_name(sql->getData("nick"));
-    info.set_email(sql->getData("email"));
-    info.set_user_real_name(sql->getData("name"));
-    info.set_user_tel(sql->getData("telphone"));
-    info.set_avatar_url(sql->getData("avatar"));
+    info.set_user_id(sql->getData("id"));
+    info.set_user_gender(sql->getData("sex"));
+    {
+        std::string nick = sql->getData("nick");
+        info.set_user_nick_name(nick);
+    }
+    {
+        std::string email = sql->getData("email");
+        info.set_email(email);
+    }
+    {
+        std::string name = sql->getData("name");
+        info.set_user_real_name(name);
+    }
+    {
+        std::string telphone = sql->getData("telphone");
+        info.set_user_tel(telphone);
+    }
+    {
+        std::string avatar = sql->getData("avatar");
+        info.set_avatar_url(avatar);
+    }
+
     return true;
 }

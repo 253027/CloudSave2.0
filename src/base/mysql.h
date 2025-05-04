@@ -19,7 +19,6 @@
 
 namespace mg
 {
-    template <typename T>
     class AnyType
     {
     public:
@@ -30,7 +29,8 @@ namespace mg
             this->_data.assign(buffer, buffer + size);
         }
 
-        operator T()
+        template <typename T>
+        inline operator T()
         {
             if (std::is_integral<T>::value)
             {
@@ -39,13 +39,13 @@ namespace mg
                     switch (this->_data.size())
                     {
                     case 1:
-                        return *(reinterpret_cast<uint8_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const uint8_t *>(this->_data.data()));
                     case 2:
-                        return *(reinterpret_cast<uint16_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const uint16_t *>(this->_data.data()));
                     case 4:
-                        return *(reinterpret_cast<uint32_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const uint32_t *>(this->_data.data()));
                     case 8:
-                        return *(reinterpret_cast<uint64_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const uint64_t *>(this->_data.data()));
                     default:
                         throw std::runtime_error("Unsupported size for unsigned integral type");
                     }
@@ -55,13 +55,13 @@ namespace mg
                     switch (this->_data.size())
                     {
                     case 1:
-                        return *(reinterpret_cast<int8_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const int8_t *>(this->_data.data()));
                     case 2:
-                        return *(reinterpret_cast<int16_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const int16_t *>(this->_data.data()));
                     case 4:
-                        return *(reinterpret_cast<int32_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const int32_t *>(this->_data.data()));
                     case 8:
-                        return *(reinterpret_cast<int64_t *>(this->_data.data()));
+                        return *(reinterpret_cast<const int64_t *>(this->_data.data()));
                     default:
                         throw std::runtime_error("Unsupported size for signed integral type");
                     }
@@ -72,9 +72,9 @@ namespace mg
                 switch (this->_data.size())
                 {
                 case sizeof(float):
-                    return *(reinterpret_cast<float *>(this->_data.data()));
+                    return *(reinterpret_cast<const float *>(this->_data.data()));
                 case sizeof(double):
-                    return *(reinterpret_cast<double *>(this->_data.data()));
+                    return *(reinterpret_cast<const double *>(this->_data.data()));
                 default:
                     throw std::runtime_error("Unsupported size for floating point type");
                 }
@@ -84,40 +84,57 @@ namespace mg
         }
 
         template <typename U>
-        bool operator==(const U &data)
+        inline bool operator==(const U &data)
         {
             return data == this->operator U();
         }
 
         template <typename U>
-        bool operator!=(const U &data)
+        inline bool operator!=(const U &data)
         {
             return data != this->operator U();
         }
 
-    private:
-        std::vector<u_char> _data;
-    };
+        template <typename U>
+        inline bool operator<(const U &data)
+        {
+            return data < this->operator U();
+        }
 
-    template <>
-    class AnyType<std::string>
-    {
-    public:
-        AnyType() {}
+        template <typename U>
+        inline bool operator>(const U &data)
+        {
+            return data > this->operator U();
+        }
 
-        AnyType(char *buffer, size_t size) : _data(buffer, buffer + size) {}
+        template <typename U>
+        inline bool operator<=(const U &data)
+        {
+            return data <= this->operator U();
+        }
 
-        operator std::string()
+        template <typename U>
+        inline bool operator>=(const U &data)
+        {
+            return data >= this->operator U();
+        }
+
+        inline operator const char *()
+        {
+            return this->_data.c_str();
+        }
+
+        inline operator std::string()
         {
             return this->_data;
         }
 
-        bool operator==(const std::string &data)
+        inline bool operator==(const std::string &data)
         {
             return data == this->_data;
         }
 
-        bool operator!=(const std::string &data)
+        inline bool operator!=(const std::string &data)
         {
             return data != this->_data;
         }
@@ -138,8 +155,7 @@ namespace mg
         bool connect(const std::string &username, const std::string &password,
                      const std::string &databasename, const std::string &ip, uint16_t port);
 
-        template <typename T>
-        AnyType<T> getData(const std::string &fieldname);
+        AnyType getData(const std::string &fieldname);
 
         template <typename U, typename T = std::tuple<>>
         bool select(const std::string &tablename, U &column, const std::string &where = "", T &&data = std::tuple<>());
@@ -218,40 +234,6 @@ namespace mg
         MYSQL_BIND *_bind_param;
         MYSQL_BIND *_store_bind;
     };
-
-    template <typename T = std::string>
-    AnyType<T> Mysql::getData(const std::string &fieldname)
-    {
-        if (!_res || !_field)
-        {
-            LOG_ERROR("Result set or field is null");
-            return AnyType<T>();
-        }
-
-        int index = -1, colNums = mysql_num_fields(_res);
-        for (int i = 0; i < colNums; i++)
-        {
-            if (!::strcmp(fieldname.c_str(), _field[i].name))
-            {
-                index = i;
-                break;
-            }
-        }
-        if (index == -1)
-        {
-            LOG_ERROR("Unknown Column: {}", fieldname);
-            return AnyType<T>();
-        }
-
-        MYSQL_BIND *bind = this->_store_bind + index;
-        if (!bind->buffer)
-        {
-            LOG_ERROR("Buffer for column {} is null", fieldname);
-            return AnyType<T>();
-        }
-
-        return AnyType<T>(static_cast<char *>(bind->buffer), *(bind->length));
-    }
 
     template <typename U>
     std::string Mysql::parseInsert(const std::string &tablename, U &column)

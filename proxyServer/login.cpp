@@ -22,12 +22,24 @@ bool Login::doLogin(const std::string &userName, const std::string &password, IM
         if (connection->getData("password") != password)
             return false;
 
-        info.set_user_id(connection->getData<uint32_t>("id"));
-        info.set_user_gender(connection->getData<uint32_t>("sex"));
-        info.set_user_nick_name(connection->getData("nick"));
-        info.set_email(connection->getData("email"));
-        info.set_user_tel(connection->getData("telphone"));
-        info.set_avatar_url(connection->getData("avatar"));
+        info.set_user_id(connection->getData("id"));
+        info.set_user_gender(connection->getData("sex"));
+        {
+            std::string nick = connection->getData("nick");
+            info.set_user_nick_name(nick);
+        }
+        {
+            std::string email = connection->getData("email");
+            info.set_email(email);
+        }
+        {
+            std::string telphone = connection->getData("telphone");
+            info.set_user_tel(telphone);
+        }
+        {
+            std::string avatar = connection->getData("avatar");
+            info.set_avatar_url(avatar);
+        }
     }
 
     return true;

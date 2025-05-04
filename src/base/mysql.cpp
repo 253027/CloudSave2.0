@@ -26,6 +26,39 @@ bool mg::Mysql::connect(const std::string &username, const std::string &password
     return res != nullptr;
 }
 
+mg::AnyType mg::Mysql::getData(const std::string &fieldname)
+{
+    if (!_res || !_field)
+    {
+        LOG_ERROR("Result set or field is null");
+        return AnyType();
+    }
+
+    int index = -1, colNums = mysql_num_fields(_res);
+    for (int i = 0; i < colNums; i++)
+    {
+        if (!::strcmp(fieldname.c_str(), _field[i].name))
+        {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1)
+    {
+        LOG_ERROR("Unknown Column: {}", fieldname);
+        return AnyType();
+    }
+
+    MYSQL_BIND *bind = this->_store_bind + index;
+    if (!bind->buffer)
+    {
+        LOG_ERROR("Buffer for column {} is null", fieldname);
+        return AnyType();
+    }
+
+    return AnyType(static_cast<char *>(bind->buffer), *(bind->length));
+}
+
 bool mg::Mysql::query(const std::string &sql)
 {
     freeResult();
