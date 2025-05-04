@@ -10,7 +10,7 @@ set(TARGET messageServer)
 message(STATUS "EXECUTABLE_OUTPUT_PATH: ${EXECUTABLE_OUTPUT_PATH}")
 
 add_executable(${TARGET} ${CUR_SRC})
-target_link_libraries(${TARGET} mgnetframe protocal)
+target_link_libraries(${TARGET} mgnetframe protocol)
 
 message(STATUS "=========messageServer done==========")
 message(STATUS "")

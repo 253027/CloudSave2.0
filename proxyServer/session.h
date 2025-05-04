@@ -2,8 +2,8 @@
 #define __SESSION_H__
 
 #include "../src/base/singleton.h"
-#include "../src/protocal/IM.BaseDefine.pb.h"
-#include "../src/protocal/IM.Message.pb.h"
+#include "../src/protocol/IM.BaseDefine.pb.h"
+#include "../src/protocol/IM.Message.pb.h"
 
 #include <cstdint>
 

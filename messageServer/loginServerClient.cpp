@@ -4,10 +4,10 @@
 #include "../src/base/tcp-connection.h"
 #include "../src/base/log.h"
 #include "../src/base/tcp-packet-parser.h"
-#include "../src/protocal/IM.Server.pb.h"
-#include "../src/protocal/imPduBase.h"
-#include "../src/protocal/IM.BaseDefine.pb.h"
-#include "../src/protocal/IM.Other.pb.h"
+#include "../src/protocol/IM.Server.pb.h"
+#include "../src/protocol/imPduBase.h"
+#include "../src/protocol/IM.BaseDefine.pb.h"
+#include "../src/protocol/IM.Other.pb.h"
 #include "../src/common/common.h"
 
 LoginServerClient::LoginServerClient(int domain, int type, mg::EventLoop *loop,

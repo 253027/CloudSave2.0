@@ -1,6 +1,6 @@
 #!/bin/sh
 SRC_DIR=.
-DST_DIR=../src/protocal
+DST_DIR=../src/protocol
 
 if [ $# -ge 1 ]; then
     for proto in "$@"; do

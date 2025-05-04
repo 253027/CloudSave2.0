@@ -4,7 +4,7 @@
 #include "../src/base/event-loop.h"
 #include "../src/base/tcp-client.h"
 #include "../src/base/log.h"
-#include "../src/protocal/IM.Login.pb.h"
+#include "../src/protocol/IM.Login.pb.h"
 
 ProxyServerClient::ProxyServerClient(int domain, int type, mg::EventLoop *loop,
                                      const mg::InternetAddress &address, const std::string &name)

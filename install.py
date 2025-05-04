@@ -57,11 +57,11 @@ def make_spdlog():
     print("spdlog completed")
 
 
-def make_protocal_message():
-    print("protocal message installing...")
+def make_protocol_message():
+    print("protocol message installing...")
     os.chdir(current_path)
     run_command("cd message && ./generate.sh")
-    print("protocal message completed")
+    print("protocol message completed")
 
 
 def make_redis():
@@ -107,7 +107,7 @@ def make_mysql_dev():
 if __name__ == "__main__":
     make_spdlog()
     make_protobuf()
-    make_protocal_message()
+    make_protocol_message()
     make_redis()
     make_hiredis()
     make_mysql_dev()

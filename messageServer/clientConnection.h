@@ -3,7 +3,7 @@
 
 #include "../src/common/common.h"
 #include "../src/base/tcp-connection.h"
-#include "../src/protocal/imPduBase.h"
+#include "../src/protocol/imPduBase.h"
 
 #include <string>
 #include <list>

@@ -28,6 +28,6 @@ endif()
 
 target_link_libraries(mgnetframe PUBLIC spdlog mysqlclient protobuf hiredis)
 
-add_subdirectory(protocal)
+add_subdirectory(protocol)
 message(STATUS "================src done===============")
 message(STATUS "")
