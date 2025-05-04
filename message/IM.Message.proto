@@ -21,3 +21,13 @@ message MessageDataAck
     required uint32 message_id = 3;
     required IM.BaseDefine.SessionType session_type = 4;
 }
+
+message TimeRequest
+{
+
+}
+
+message TimeResponse
+{
+    required uint32 time_stamp = 1;
+}

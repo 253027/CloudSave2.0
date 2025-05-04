@@ -107,6 +107,9 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         case IM::BaseDefine::COMMAND_MESSAGE_DATA_ACK:
             this->handleSendMessageAck(data);
             break;
+        case IM::BaseDefine::COMMAND_TIME_REQUEST:
+            this->handleGetTimeRequest(data);
+            break;
         }
     }
 }
@@ -299,6 +302,18 @@ void ClientConnection::handleSendMessageAck(const std::string &data)
     PARSE_PROTOBUF_MESSAGE(IM::Message::MessageDataAck, message, data);
     uint32_t other = message.to() == this->getUserId() ? message.from() : message.to();
     this->removeFromSendList(message.message_id(), other);
+}
+
+void ClientConnection::handleGetTimeRequest(const std::string &data)
+{
+    PARSE_PROTOBUF_MESSAGE(IM::Message::TimeRequest, message, data);
+    IM::Message::TimeResponse response;
+    response.set_time_stamp(mg::TimeStamp::now().getSeconds());
+    PduMessage pdu;
+    pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
+    pdu.setCommandId(IM::BaseDefine::COMMAND_TIME_RESPONSE);
+    pdu.setPBMessage(&response);
+    mg::TcpPacketParser::get().send(shared_from_this(), pdu.dump());
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)

@@ -60,6 +60,8 @@ private:
 
     void handleSendMessageAck(const std::string &data);
 
+    void handleGetTimeRequest(const std::string &data);
+
 private:
     std::string _loginName;                                         // 登录名
     uint32_t _userId;                                               // 登录ID
