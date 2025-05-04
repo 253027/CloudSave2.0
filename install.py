@@ -88,7 +88,6 @@ def make_hiredis():
     os.chdir(current_path)
     run_command(
         "tar -xvzf hiredis-1.3.0.tar.gz && "
-        "mkdir -p hiredis && "
         "cd hiredis-1.3.0 && "
         "mkdir -p build && "
         "cd build && cmake .. && "
