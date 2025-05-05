@@ -14,7 +14,7 @@ bool Login::doLogin(const std::string &userName, const std::string &password, IM
     if (!connection->select("UserInformation", column, "name=?", data))
         return false;
 
-    while (connection->next())
+    if (connection->next())
     {
         std::string salt = connection->getData("salt");
 
@@ -40,7 +40,7 @@ bool Login::doLogin(const std::string &userName, const std::string &password, IM
             std::string avatar = connection->getData("avatar");
             info.set_avatar_url(avatar);
         }
+        return true;
     }
-
-    return true;
+    return false;
 }
