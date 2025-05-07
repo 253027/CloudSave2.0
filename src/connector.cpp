@@ -2,6 +2,8 @@
 #include "event-loop.h"
 #include "log.h"
 
+#include <atomic>
+
 const int mg::Connector::_maxRetryDelayMileSeconds = 30000;
 const int mg::Connector::_initialRetryDelayMileSeconds = 500;
 
