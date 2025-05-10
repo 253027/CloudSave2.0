@@ -1,6 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-project(loginServer)
-
 aux_source_directory(. CUR_SRC)
 
 message(STATUS "======loginServer Configuring======")

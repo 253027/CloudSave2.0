@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 message(STATUS "============src Configuring============")
-project(FrameWork)
 
 # set if make shared library
 set(MGNET_BUILD_SHARED ON)
 # dependency include path
-set(INCLUDE_PATH ${PROJECT_SOURCE_DIR}/spdlog/include)
+set(INCLUDE_PATH ${PROJECT_SOURCE_DIR}/spdlog-1.15.2/include)
 include_directories(${INCLUDE_PATH})
 
 message(STATUS "INCLUDE_PATH: ${INCLUDE_PATH}")
