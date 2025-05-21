@@ -9,7 +9,14 @@
 
 // 日志相关操作的宏封装
 #define INITLOG(configuration) mg::Logger::getInstance()->init(configuration)
-#define BASELOG(logger, level, ...) (logger)->log(spdlog::source_loc{__FILE__, __LINE__, __func__}, level, __VA_ARGS__)
+#define BASELOG(logger, level, ...)                                                              \
+    do                                                                                           \
+    {                                                                                            \
+        if (logger)                                                                              \
+        {                                                                                        \
+            (logger)->log(spdlog::source_loc{__FILE__, __LINE__, __func__}, level, __VA_ARGS__); \
+        }                                                                                        \
+    } while (0)
 
 #ifdef _DEBUG
 #define LOG_TRACE(...) BASELOG(mg::Logger::getInstance()->getLogger(), spdlog::level::trace, __VA_ARGS__)
