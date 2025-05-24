@@ -88,7 +88,6 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
             continue;
         }
 
-        data = message->getPBmessage().retrieveAllAsString();
         switch (message->getCommandId())
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
@@ -96,19 +95,22 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
             LOG_TRACE("{} heart beat message", link->name());
             break;
         case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_REQ:
-            this->handleLoginRequest(data);
+            this->handleLoginRequest(std::move(message));
             break;
         case IM::BaseDefine::COMMAND_MESSAGE_DATA:
-            this->handleSendMessage(data);
+            this->handleSendMessage(std::move(message));
             break;
         case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ:
-            this->handleGetLatestFriendList(data);
+            this->handleGetLatestFriendList(std::move(message));
             break;
         case IM::BaseDefine::COMMAND_MESSAGE_DATA_ACK:
-            this->handleSendMessageAck(data);
+            this->handleSendMessageAck(std::move(message));
             break;
         case IM::BaseDefine::COMMAND_TIME_REQUEST:
-            this->handleGetTimeRequest(data);
+            this->handleGetTimeRequest(std::move(message));
+            break;
+        case IM::BaseDefine::COMMAND_MESSAGE_UNREAD_COUNT_REQ:
+            this->handleGetUnReadMessageCount(std::move(message));
             break;
         }
     }
@@ -172,7 +174,7 @@ void ClientConnection::updateUserStatus(uint32_t status)
     MessageServer::get().boardcastLoginServer(pdu.dump());
 }
 
-void ClientConnection::handleLoginRequest(const std::string &data)
+void ClientConnection::handleLoginRequest(std::unique_ptr<PduMessage> data)
 {
     if (!this->_loginName.empty())
     {
@@ -180,7 +182,8 @@ void ClientConnection::handleLoginRequest(const std::string &data)
         return;
     }
 
-    PARSE_PROTOBUF_MESSAGE(IM::Login::LoginRequest, request, data);
+    PARSE_PROTOBUF_MESSAGE(IM::Login::LoginRequest, request,
+                           data->getPBmessage().retrieveAllAsString());
 
     uint32_t result = 0;
     std::string resultString = "Server abnormality";
@@ -234,9 +237,10 @@ void ClientConnection::handleLoginRequest(const std::string &data)
     connection->send(messagePdu.dump()); // send to proxy server valid this user
 }
 
-void ClientConnection::handleGetLatestFriendList(const std::string &data)
+void ClientConnection::handleGetLatestFriendList(std::unique_ptr<PduMessage> data)
 {
-    PARSE_PROTOBUF_MESSAGE(IM::Buddy::IMGetFriendListRequest, request, data);
+    PARSE_PROTOBUF_MESSAGE(IM::Buddy::IMGetFriendListRequest, request,
+                           data->getPBmessage().retrieveAllAsString());
     uint32_t result = 0;
     std::string resultString = "Server abnormality";
     auto connection = ProxyServerClientManger::get().getHandle();
@@ -254,9 +258,10 @@ void ClientConnection::handleGetLatestFriendList(const std::string &data)
     connection->send(pdu.dump());
 }
 
-void ClientConnection::handleSendMessage(const std::string &data)
+void ClientConnection::handleSendMessage(std::unique_ptr<PduMessage> data)
 {
-    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageData, message, data);
+    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageData, message,
+                           data->getPBmessage().retrieveAllAsString());
     if (message.message_data().empty())
         return;
     if (++this->_sendPerSeconds > MAX_SEND_MESSAGE_PERSECOND)
@@ -297,16 +302,18 @@ void ClientConnection::handleTimeoutMessage()
     }
 }
 
-void ClientConnection::handleSendMessageAck(const std::string &data)
+void ClientConnection::handleSendMessageAck(std::unique_ptr<PduMessage> data)
 {
-    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageDataAck, message, data);
+    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageDataAck, message,
+                           data->getPBmessage().retrieveAllAsString());
     uint32_t other = message.to() == this->getUserId() ? message.from() : message.to();
     this->removeFromSendList(message.message_id(), other);
 }
 
-void ClientConnection::handleGetTimeRequest(const std::string &data)
+void ClientConnection::handleGetTimeRequest(std::unique_ptr<PduMessage> data)
 {
-    PARSE_PROTOBUF_MESSAGE(IM::Message::TimeRequest, message, data);
+    PARSE_PROTOBUF_MESSAGE(IM::Message::TimeRequest, message,
+                           data->getPBmessage().retrieveAllAsString());
     IM::Message::TimeResponse response;
     response.set_time_stamp(mg::TimeStamp::now().getSeconds());
     PduMessage pdu;
@@ -314,6 +321,11 @@ void ClientConnection::handleGetTimeRequest(const std::string &data)
     pdu.setCommandId(IM::BaseDefine::COMMAND_TIME_RESPONSE);
     pdu.setPBMessage(&response);
     this->send(pdu.dump());
+}
+
+void ClientConnection::handleGetUnReadMessageCount(std::unique_ptr<PduMessage> data)
+{
+    ;
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)

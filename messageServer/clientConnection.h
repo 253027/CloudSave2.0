@@ -50,17 +50,19 @@ private:
     void messageCallback(const mg::TcpConnectionPointer &link, mg::Buffer *buf, mg::TimeStamp time) override;
 
 private:
-    void handleLoginRequest(const std::string &data);
+    void handleLoginRequest(std::unique_ptr<PduMessage> data);
 
-    void handleGetLatestFriendList(const std::string &data);
+    void handleGetLatestFriendList(std::unique_ptr<PduMessage> data);
 
-    void handleSendMessage(const std::string &data);
+    void handleSendMessage(std::unique_ptr<PduMessage> data);
 
     void handleTimeoutMessage();
 
-    void handleSendMessageAck(const std::string &data);
+    void handleSendMessageAck(std::unique_ptr<PduMessage> data);
 
-    void handleGetTimeRequest(const std::string &data);
+    void handleGetTimeRequest(std::unique_ptr<PduMessage> data);
+
+    void handleGetUnReadMessageCount(std::unique_ptr<PduMessage> data);
 
 private:
     std::string _loginName;                                         // 登录名

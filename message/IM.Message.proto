@@ -31,3 +31,9 @@ message TimeResponse
 {
     required uint32 time_stamp = 1;
 }
+
+message MessageUnReadCountRequest
+{
+    required uint32 user_id = 1;
+    optional bytes attach_data = 2;
+}
