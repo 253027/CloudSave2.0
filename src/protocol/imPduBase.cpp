@@ -37,6 +37,7 @@ bool PduMessage::setPBMessage(const google::protobuf::MessageLite *message)
     std::vector<u_char> buffer(message->ByteSizeLong());
     if (!message->SerializeToArray(buffer.data(), message->ByteSizeLong()))
         return false;
+    this->_buffer.retrieve(this->_buffer.readableBytes());
     this->_buffer.append(reinterpret_cast<char *>(buffer.data()), buffer.size());
     return true;
 }
