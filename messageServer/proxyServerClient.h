@@ -35,11 +35,11 @@ public:
     void send(const std::string &data);
 
 private:
-    void _handleVerifyDataResponse(const std::string &data);
+    void _handleVerifyDataResponse(std::unique_ptr<PduMessage> data);
 
-    void _handleSendMessageResponse(const std::string &data);
+    void _handleSendMessageResponse(std::unique_ptr<PduMessage> data);
 
-    void _handleGetFriendsListResponse(const std::string &data);
+    void _handleGetFriendsListResponse(std::unique_ptr<PduMessage> data);
 
 private:
     std::unique_ptr<mg::TcpClient> _client;

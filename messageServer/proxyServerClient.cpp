@@ -66,7 +66,6 @@ void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
             continue;
         }
 
-        data = message->getPBmessage().retrieveAllAsString();
         switch (message->getCommandId())
         {
         case IM::BaseDefine::COMMAND_ID_OTHER_HEARTBEAT:
@@ -77,27 +76,27 @@ void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
         }
         case IM::BaseDefine::COMMAND_ID_OTHER_VALIDATE_RSP:
         {
-            this->_handleVerifyDataResponse(data);
+            this->_handleVerifyDataResponse(std::move(message));
             break;
         }
         case IM::BaseDefine::COMMAND_MESSAGE_DATA:
         {
-            this->_handleSendMessageResponse(data);
+            this->_handleSendMessageResponse(std::move(message));
             break;
         }
         case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_RES:
         {
-            this->_handleGetFriendsListResponse(data);
+            this->_handleGetFriendsListResponse(std::move(message));
             break;
         }
         }
     }
 }
 
-void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
+void ProxyServerClient::_handleVerifyDataResponse(std::unique_ptr<PduMessage> data)
 {
     IM::Server::VerifyDataResponse message;
-    if (!message.ParseFromString(data))
+    if (!message.ParseFromString(data->getPBmessage().retrieveAllAsString()))
     {
         LOG_ERROR("{} parse protobuf message error", this->_client->connection()->name());
         return;
@@ -173,10 +172,10 @@ void ProxyServerClient::_handleVerifyDataResponse(const std::string &data)
     connection->send(pdu.dump());
 }
 
-void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
+void ProxyServerClient::_handleSendMessageResponse(std::unique_ptr<PduMessage> data)
 {
     IM::Message::MessageData request;
-    if (!request.ParseFromString(data))
+    if (!request.ParseFromString(data->getPBmessage().retrieveAllAsString()))
         return;
 
     {
@@ -217,10 +216,10 @@ void ProxyServerClient::_handleSendMessageResponse(const std::string &data)
         peer->boardcastData(sendData, request.message_id(), request.from());
 }
 
-void ProxyServerClient::_handleGetFriendsListResponse(const std::string &data)
+void ProxyServerClient::_handleGetFriendsListResponse(std::unique_ptr<PduMessage> data)
 {
     IM::Buddy::IMGetFriendListResponse response;
-    if (!response.ParseFromString(data))
+    if (!response.ParseFromString(data->getPBmessage().retrieveAllAsString()))
         return;
 
     uint32_t uid = response.user_id();
