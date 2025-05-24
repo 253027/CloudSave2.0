@@ -201,7 +201,7 @@ void ClientConnection::handleLoginRequest(const std::string &data)
         message.setServiceId(IM::BaseDefine::SERVER_ID_LOGIN);
         message.setCommandId(IM::BaseDefine::COMMAND_LOGIN_RES_USER_LOGIN);
         message.setPBMessage(&response);
-        mg::TcpPacketParser::get().send(shared_from_this(), message.dump());
+        this->send(message.dump());
         return;
     }
 
@@ -231,7 +231,7 @@ void ClientConnection::handleLoginRequest(const std::string &data)
     proxyRequest.set_password(request.password());
     proxyRequest.set_attach_data(this->name());
     messagePdu.setPBMessage(&proxyRequest);
-    mg::TcpPacketParser::get().send(std::move(connection->connection()), messagePdu.dump()); // send to proxy server valid this user
+    connection->send(messagePdu.dump()); // send to proxy server valid this user
 }
 
 void ClientConnection::handleGetLatestFriendList(const std::string &data)
@@ -279,7 +279,7 @@ void ClientConnection::handleSendMessage(const std::string &data)
     message.set_create_time(mg::TimeStamp::now().getSeconds());
     message.set_attach_data(this->name());
     pdu.setPBMessage(&message);
-    mg::TcpPacketParser::get().send(std::move(proxyClient->connection()), pdu.dump());
+    proxyClient->send(pdu.dump());
 }
 
 void ClientConnection::handleTimeoutMessage()
@@ -313,7 +313,7 @@ void ClientConnection::handleGetTimeRequest(const std::string &data)
     pdu.setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
     pdu.setCommandId(IM::BaseDefine::COMMAND_TIME_RESPONSE);
     pdu.setPBMessage(&response);
-    mg::TcpPacketParser::get().send(shared_from_this(), pdu.dump());
+    this->send(pdu.dump());
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)
