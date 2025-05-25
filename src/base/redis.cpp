@@ -98,6 +98,50 @@ bool mg::RedisConnection::DEL(const std::string &key)
     return this->parseReply(_temp);
 }
 
+bool mg::RedisConnection::HGET(const std::string &key, const std::string &field, RedisResult &result)
+{
+    this->freeReply();
+    this->_reply = static_cast<redisReply *>(redisCommand(this->_context, "HGET %s %s",
+                                                          key.c_str(), field.c_str()));
+    return this->parseReply(result);
+}
+
+bool mg::RedisConnection::HGETALL(const std::string &key, RedisResult &result)
+{
+    this->freeReply();
+    this->_reply = static_cast<redisReply *>(redisCommand(this->_context, "HGETALL %s", key.c_str()));
+    return this->parseReply(result);
+}
+
+bool mg::RedisConnection::HEXISTS(const std::string &key, const std::string &field, RedisResult &result)
+{
+    this->freeReply();
+    this->_reply = static_cast<redisReply *>(redisCommand(this->_context, "HEXISTS %s %s",
+                                                          key.c_str(), field.c_str()));
+    return this->parseReply(result);
+}
+
+bool mg::RedisConnection::HMGET(const std::string &key, std::initializer_list<std::string> &&fields, RedisResult &result)
+{
+    return this->HMGET(key, fields, result);
+}
+
+bool mg::RedisConnection::HDEL(const std::string &key, const std::string &field)
+{
+    this->freeReply();
+    this->_reply = static_cast<redisReply *>(redisCommand(this->_context, "HDEL %s %s",
+                                                          key.c_str(), field.c_str()));
+    return this->parseReply(RedisResult());
+}
+
+bool mg::RedisConnection::HDEL(const std::string &key, std::vector<std::string> &fields)
+{
+    this->freeReply();
+    std::vector<std::string> _fields = {"HDEL", key};
+    _fields.insert(_fields.end(), fields.begin(), fields.end());
+    return this->execByParams(_fields);
+}
+
 void mg::RedisConnection::freeReply()
 {
     if (this->_reply)
@@ -119,56 +163,6 @@ bool mg::RedisConnection::checkReply()
     return true;
 }
 
-bool mg::RedisConnection::parseReply(RedisResult &result)
-{
-    if (!this->checkReply())
-        return false;
-    result.type = static_cast<RedisReplyType>(this->_reply->type);
-    switch (this->_reply->type)
-    {
-    case REDIS_REPLY_TYPE_STRING:
-    case REDIS_REPLY_TYPE_STATUS:
-    {
-        result.str = std::string(this->_reply->str, this->_reply->len);
-        break;
-    }
-    case REDIS_REPLY_TYPE_INTEGER:
-    {
-        result.value = this->_reply->integer;
-        break;
-    }
-    case REDIS_REPLY_TYPE_ERROR:
-    {
-        result.str = std::string(this->_reply->str, this->_reply->len);
-        return false;
-    }
-    case REDIS_REPLY_TYPE_ARRAY:
-    {
-        int count = this->_reply->elements;
-        for (int i = 0; i < count; i++)
-        {
-            auto &reply = this->_reply->element[i];
-            if (reply->str)
-                result.array.emplace_back(reply->str, reply->len);
-            else
-            {
-                LOG_WARN("value is null: {}", i);
-                result.array.emplace_back("");
-            }
-        }
-        break;
-    }
-    case REDIS_REPLY_TYPE_NIL:
-    {
-        result.str = "REDIS_REPLY_TYPE_NIL";
-        break;
-    }
-    default:
-        return false;
-    }
-    return true;
-}
-
 bool mg::RedisConnection::execByParams(std::vector<std::string> &params)
 {
     this->freeReply();
@@ -183,8 +177,5 @@ bool mg::RedisConnection::execByParams(std::vector<std::string> &params)
 
     this->_reply = static_cast<redisReply *>(redisCommandArgv(this->_context, params.size(),
                                                               args.data(), lens.data()));
-    if (!this->checkReply())
-        return false;
-
-    return true;
+    return this->checkReply();
 }
