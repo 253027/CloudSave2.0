@@ -26,6 +26,10 @@ enum RedisReplyType
 
 namespace mg
 {
+    /**
+     * @note When performing type conversion with `RedisResult`, converting to `std::string` or `std::vector<std::string>` will trigger `std::move`.
+     *        After the move assignment is performed on the target object, `RedisResult` will no longer hold the query result.
+     */
     struct RedisValue
     {
         RedisReplyType type;
@@ -40,14 +44,16 @@ namespace mg
 
         RedisValue(const std::string &str) : RedisValue(str.c_str(), str.size()) {}
 
-        template <typename T>
+        template <typename T, typename = typename std::enable_if<std::is_integral<T>::value ||
+                                                                 std::is_floating_point<T>::value ||
+                                                                 std::is_enum<T>::value>::type>
         inline operator T()
         {
-            static_assert(std::is_integral<T>::value,
-                          "RedisValue::operator onli support interger");
+            // static_assert(std::is_integral<T>::value,
+            //               "RedisValue::operator onli support interger");
             if (type != REDIS_REPLY_TYPE_INTEGER)
                 throw std::runtime_error("RedisValue::operator is not interger)");
-            return value;
+            return static_cast<T>(value);
         }
 
         inline operator std::string()
@@ -59,14 +65,14 @@ namespace mg
             {
                 throw std::runtime_error("RedisValue::operator std::string()");
             }
-            return str;
+            return std::move(str);
         }
 
         inline operator std::vector<std::string>()
         {
             if (type != REDIS_REPLY_TYPE_ARRAY)
                 throw std::runtime_error("RedisValue::operator std::vector<std::string>()");
-            return array;
+            return std::move(array);
         }
 
         inline void reset()
