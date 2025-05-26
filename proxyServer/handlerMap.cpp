@@ -26,6 +26,8 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
         return std::bind(&HandlerMap::sendMessage, this, std::move(link), std::move(message));
     case IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_REQ:
         return std::bind(&HandlerMap::getChangedFriendList, this, std::move(link), std::move(message));
+    case IM::BaseDefine::COMMAND_MESSAGE_UNREAD_REQ:
+        return std::bind(&HandlerMap::getUnReadMessageCount, this, std::move(link), std::move(message));
     }
 
     return nullptr;
@@ -45,7 +47,7 @@ void HandlerMap::login(const mg::TcpConnectionPointer &link, std::shared_ptr<Pdu
         std::string userName = request.user_name();
         std::string password = request.password();
 
-        IM::BaseDefine::UserInformation *info = response.mutable_user_info();
+        IM::DataStruct::UserInformation *info = response.mutable_user_info();
         *response.mutable_attach_data() = std::move(request.attach_data());
         *response.mutable_user_name() = userName;
 
@@ -87,7 +89,7 @@ void HandlerMap::getChangedFriendList(const mg::TcpConnectionPointer &link, std:
 
     for (auto &id : list)
     {
-        IM::BaseDefine::UserInformation info;
+        IM::DataStruct::UserInformation info;
         if (!User::get().getFriendsInfo(id, info))
             continue;
         response.add_user_list()->CopyFrom(info);
@@ -150,5 +152,14 @@ uint32_t HandlerMap::sendSingleMessage(IM::Message::MessageData &request)
         relation = Session::get().addRelation(from, to);
     Session::get().saveMessage(relation, request);
 
-    return MessageCache::get().getMessageId(relation);
+    uint32_t messageId = MessageCache::get().getMessageId(relation);
+    if (messageId)
+        MessageCache::get().setUnReadMessage(to, relation, messageId);
+
+    return messageId;
+}
+
+void HandlerMap::getUnReadMessageCount(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data)
+{
+    ;
 }

@@ -1,6 +1,7 @@
 syntax = "proto2";
 package IM.Login;
 import "IM.BaseDefine.proto";
+import "IM.DataStruct.proto";
 option optimize_for = LITE_RUNTIME;
 
 message LoginRequest
@@ -17,7 +18,7 @@ message LoginResponse
     required IM.BaseDefine.RefuseType refuse_type = 2;
     optional string result_string = 3;
     optional IM.BaseDefine.UserStatusType status_type = 4;
-    optional IM.BaseDefine.UserInformation user_info = 5;
+    optional IM.DataStruct.UserInformation user_info = 5;
 }
 
 // command base id: 0x0101

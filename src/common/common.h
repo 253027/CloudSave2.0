@@ -27,6 +27,7 @@
 #include "../protocol/IM.Other.pb.h"
 #include "../protocol/IM.Message.pb.h"
 #include "../protocol/IM.Buddy.pb.h"
+#include "../protocol/IM.DataStruct.pb.h"
 #include "common-macro.h"
 
 class ConnectionBase

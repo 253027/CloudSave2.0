@@ -9,7 +9,7 @@
 class Login : public Singleton<Login>
 {
 public:
-    bool doLogin(const std::string &userName, const std::string &password, IM::BaseDefine::UserInformation &info);
+    bool doLogin(const std::string &userName, const std::string &password, IM::DataStruct::UserInformation &info);
 };
 
 #endif // __LOGIN_H__

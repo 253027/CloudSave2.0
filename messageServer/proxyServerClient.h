@@ -41,6 +41,8 @@ private:
 
     void _handleGetFriendsListResponse(std::unique_ptr<PduMessage> data);
 
+    void _handleGetUnReadMessage(std::unique_ptr<PduMessage> data);
+
 private:
     std::unique_ptr<mg::TcpClient> _client;
 };

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package IM.Buddy;
-import "IM.BaseDefine.proto";
+import "IM.DataStruct.proto";
 option optimize_for = LITE_RUNTIME;
 
 message IMGetFriendListRequest
@@ -14,6 +14,6 @@ message IMGetFriendListResponse
 {
 	required uint32 user_id = 1;
 	required uint32 latest_update_time = 2;
-	repeated IM.BaseDefine.UserInformation user_list = 3;		
+	repeated IM.DataStruct.UserInformation user_list = 3;		
 	optional bytes attach_data = 20;
 }

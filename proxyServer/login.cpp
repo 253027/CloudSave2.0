@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-bool Login::doLogin(const std::string &userName, const std::string &password, IM::BaseDefine::UserInformation &info)
+bool Login::doLogin(const std::string &userName, const std::string &password, IM::DataStruct::UserInformation &info)
 {
     auto connection = mg::MysqlConnectionPool::get().getHandle();
     if (!connection)

@@ -109,8 +109,8 @@ void ClientConnection::messageCallback(const mg::TcpConnectionPointer &link, mg:
         case IM::BaseDefine::COMMAND_TIME_REQUEST:
             this->handleGetTimeRequest(std::move(message));
             break;
-        case IM::BaseDefine::COMMAND_MESSAGE_UNREAD_COUNT_REQ:
-            this->handleGetUnReadMessageCount(std::move(message));
+        case IM::BaseDefine::COMMAND_MESSAGE_UNREAD_REQ:
+            this->handleGetUnReadMessage(std::move(message));
             break;
         }
     }
@@ -323,9 +323,19 @@ void ClientConnection::handleGetTimeRequest(std::unique_ptr<PduMessage> data)
     this->send(pdu.dump());
 }
 
-void ClientConnection::handleGetUnReadMessageCount(std::unique_ptr<PduMessage> data)
+void ClientConnection::handleGetUnReadMessage(std::unique_ptr<PduMessage> data)
 {
-    ;
+    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageUnReadCountRequest, message,
+                           data->getPBmessage().retrieveAllAsString());
+
+    auto proxyClient = ProxyServerClientManger::get().getHandle();
+    if (!proxyClient)
+        return;
+
+    message.set_user_id(this->getUserId());
+    message.set_attach_data(this->name());
+    data->setPBMessage(&message);
+    proxyClient->send(data->dump());
 }
 
 void ClientConnectionManger::addConnection(const std::string &name, const mg::TcpConnectionPointer &connection)

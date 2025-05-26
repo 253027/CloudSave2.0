@@ -1,0 +1,26 @@
+syntax = "proto2";
+import "IM.BaseDefine.proto";
+package IM.DataStruct;
+option optimize_for = LITE_RUNTIME;
+
+message UserInformation
+{
+    required uint32 user_id = 1;
+    required uint32 user_gender = 2;    //man:1 woman:2 neutral:3
+    required string user_nick_name = 3;
+    required string email = 4;
+    optional string user_real_name = 5;
+    required string user_tel = 6;
+    required string avatar_url = 7;
+}
+
+message UnReadMessage
+{
+    required uint32 session_id                          = 1;
+    required IM.BaseDefine.SessionType session_type     = 2;
+    required uint32 last_sequence                       = 3;
+    required uint32 latest_sequence                     = 4;
+    required bytes message_data                         = 5;
+    required IM.BaseDefine.MessageType message_type     = 6;
+    required uint32 from_user_id                        = 7;
+}

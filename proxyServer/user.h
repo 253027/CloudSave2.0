@@ -12,7 +12,7 @@ class User : public Singleton<User>
 public:
     bool getFriendsList(uint32_t userId, std::vector<uint32_t> &list, uint32_t lastUpdateTime = 0);
 
-    bool getFriendsInfo(uint32_t userId, IM::BaseDefine::UserInformation &info);
+    bool getFriendsInfo(uint32_t userId, IM::DataStruct::UserInformation &info);
 };
 
 #endif //__USER_H__

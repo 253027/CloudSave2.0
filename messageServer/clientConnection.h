@@ -62,7 +62,7 @@ private:
 
     void handleGetTimeRequest(std::unique_ptr<PduMessage> data);
 
-    void handleGetUnReadMessageCount(std::unique_ptr<PduMessage> data);
+    void handleGetUnReadMessage(std::unique_ptr<PduMessage> data);
 
 private:
     std::string _loginName;                                         // 登录名

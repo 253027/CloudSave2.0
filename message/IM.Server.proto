@@ -1,6 +1,7 @@
 syntax = "proto2";
 package IM.Server;
 import "IM.BaseDefine.proto";
+import "IM.DataStruct.proto";
 option optimize_for = LITE_RUNTIME;
 
 // command base id: 0x0709
@@ -33,6 +34,6 @@ message VerifyDataResponse
 	required string user_name = 1;
 	required uint32 result_code = 2;
 	optional string result_string = 3;
-	optional IM.BaseDefine.UserInformation user_info = 4;
+	optional IM.DataStruct.UserInformation user_info = 4;
 	optional bytes attach_data = 20;
 }

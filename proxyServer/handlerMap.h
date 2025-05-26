@@ -21,6 +21,8 @@ private:
 
     void sendMessage(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
     uint32_t sendSingleMessage(IM::Message::MessageData &message);
+
+    void getUnReadMessageCount(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data);
 };
 
 #endif // __HANDLER_MAP_H__

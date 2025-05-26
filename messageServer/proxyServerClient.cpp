@@ -89,6 +89,11 @@ void ProxyServerClient::messageCallback(const mg::TcpConnectionPointer &link, mg
             this->_handleGetFriendsListResponse(std::move(message));
             break;
         }
+        case IM::BaseDefine::COMMAND_MESSAGE_UNREAD_RES:
+        {
+            this->_handleGetUnReadMessage(std::move(message));
+            break;
+        }
         }
     }
 }
@@ -142,7 +147,7 @@ void ProxyServerClient::_handleVerifyDataResponse(std::unique_ptr<PduMessage> da
     if (userByName->getUnvalidConnectionCount() == 0)
         MessageUserManger::get().removeUserByUserName(loginName);
 
-    IM::BaseDefine::UserInformation information = message.user_info();
+    IM::DataStruct::UserInformation information = message.user_info();
     auto userById = MessageUserManger::get().getUserByUserId(information.user_id());
 
     if (!userById)
@@ -166,7 +171,7 @@ void ProxyServerClient::_handleVerifyDataResponse(std::unique_ptr<PduMessage> da
 
     LOG_INFO("{} {} login success", connection->name(), userById->getUserId());
     response.set_refuse_type(IM::BaseDefine::REFUSE_REASON_NONE);
-    IM::BaseDefine::UserInformation *userInfo = response.mutable_user_info();
+    IM::DataStruct::UserInformation *userInfo = response.mutable_user_info();
     userInfo->Swap(&information);
     pdu.setPBMessage(&response);
     connection->send(pdu.dump());
@@ -234,6 +239,11 @@ void ProxyServerClient::_handleGetFriendsListResponse(std::unique_ptr<PduMessage
     pdu.setCommandId(IM::BaseDefine::COMMAND_ID_FRIEND_LIST_FRIEND_RES);
     pdu.setPBMessage(&response);
     userConnection->send(pdu.dump());
+}
+
+void ProxyServerClient::_handleGetUnReadMessage(std::unique_ptr<PduMessage> data)
+{
+    ;
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

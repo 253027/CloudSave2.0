@@ -27,7 +27,7 @@ bool User::getFriendsList(uint32_t userId, std::vector<uint32_t> &list, uint32_t
     return true;
 }
 
-bool User::getFriendsInfo(uint32_t userId, IM::BaseDefine::UserInformation &info)
+bool User::getFriendsInfo(uint32_t userId, IM::DataStruct::UserInformation &info)
 {
     auto sql = mg::MysqlConnectionPool::get().getHandle();
     if (!sql)

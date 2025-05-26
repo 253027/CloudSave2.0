@@ -30,7 +30,8 @@ enum MessageCmdID
     COMMAND_MESSAGE_DATA_ACK            = 0x0302;
     COMMAND_TIME_REQUEST                = 0x0303;
     COMMAND_TIME_RESPONSE               = 0x0304;
-    COMMAND_MESSAGE_UNREAD_COUNT_REQ    = 0x0305;
+    COMMAND_MESSAGE_UNREAD_REQ          = 0x0305;
+    COMMAND_MESSAGE_UNREAD_RES          = 0x0306;
 }
 
 enum OtherCmdID
@@ -81,20 +82,10 @@ enum UserStatusType
     USER_STATUS_LEAVE = 3;
 }
 
-message UserInformation
-{
-    required uint32 user_id = 1;
-    required uint32 user_gender = 2;    //man:1 woman:2 neutral:3
-    required string user_nick_name = 3;
-    required string email = 4;
-    optional string user_real_name = 5;
-    required string user_tel = 6;
-    required string avatar_url = 7;
-}
-
 enum MessageType
 {
-    MESSAGE_TYPE_SINGLE_TEXT = 1;
+    MESSAGE_TYPE_SINGLE_TEXT    = 1;
+    MESSAGE_TYPE_SINGLE_AUDIO   = 2;
 }
 
 enum SessionType
