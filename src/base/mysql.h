@@ -14,6 +14,7 @@
 #include "macros.h"
 
 #include <string>
+#include <type_traits>
 #include <sstream>
 #include <mysql/mysql.h>
 
@@ -29,7 +30,8 @@ namespace mg
             this->_data.assign(buffer, buffer + size);
         }
 
-        template <typename T>
+        template <typename T,
+                  typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
         inline operator T()
         {
             if (std::is_integral<T>::value)
@@ -38,13 +40,13 @@ namespace mg
                 {
                     switch (this->_data.size())
                     {
-                    case 1:
+                    case sizeof(uint8_t):
                         return *(reinterpret_cast<const uint8_t *>(this->_data.data()));
-                    case 2:
+                    case sizeof(uint16_t):
                         return *(reinterpret_cast<const uint16_t *>(this->_data.data()));
-                    case 4:
+                    case sizeof(uint32_t):
                         return *(reinterpret_cast<const uint32_t *>(this->_data.data()));
-                    case 8:
+                    case sizeof(uint64_t):
                         return *(reinterpret_cast<const uint64_t *>(this->_data.data()));
                     default:
                         throw std::runtime_error("Unsupported size for unsigned integral type");
@@ -54,13 +56,13 @@ namespace mg
                 {
                     switch (this->_data.size())
                     {
-                    case 1:
+                    case sizeof(int8_t):
                         return *(reinterpret_cast<const int8_t *>(this->_data.data()));
-                    case 2:
+                    case sizeof(int16_t):
                         return *(reinterpret_cast<const int16_t *>(this->_data.data()));
-                    case 4:
+                    case sizeof(int32_t):
                         return *(reinterpret_cast<const int32_t *>(this->_data.data()));
-                    case 8:
+                    case sizeof(int64_t):
                         return *(reinterpret_cast<const int64_t *>(this->_data.data()));
                     default:
                         throw std::runtime_error("Unsupported size for signed integral type");
@@ -81,6 +83,21 @@ namespace mg
             }
 
             throw std::runtime_error("Unsupported type conversion");
+        }
+
+        inline operator std::string()
+        {
+            return std::move(this->_data);
+        }
+
+        template <typename T,
+                  typename = typename std::enable_if<std::is_same<T, uint8_t>::value ||
+                                                     std::is_same<T, int8_t>::value ||
+                                                     std::is_same<T, char>::value ||
+                                                     std::is_same<T, u_char>::value>::type>
+        inline operator std::vector<T>()
+        {
+            return {this->_data.begin(), this->_data.end()};
         }
 
         template <typename U>
@@ -119,16 +136,6 @@ namespace mg
             return data >= this->operator U();
         }
 
-        inline operator const char *()
-        {
-            return this->_data.c_str();
-        }
-
-        inline operator std::string()
-        {
-            return this->_data;
-        }
-
         inline bool operator==(const std::string &data)
         {
             return data == this->_data;
@@ -147,6 +154,19 @@ namespace mg
     {
         friend class MysqlConnectionPool;
 
+        template <typename T>
+        struct is_std_tuple : std::false_type
+        {
+        };
+
+        template <typename... Args>
+        struct is_std_tuple<std::tuple<Args...>> : std::true_type
+        {
+        };
+
+        template <typename T>
+        using decay_t = typename std::decay<T>::type;
+
     public:
         Mysql();
 
@@ -157,14 +177,28 @@ namespace mg
 
         AnyType getData(const std::string &fieldname);
 
-        template <typename U, typename T = std::tuple<>>
-        bool select(const std::string &tablename, U &column, const std::string &where = "", T &&data = std::tuple<>());
+        template <typename T = std::tuple<>,
+                  typename = typename std::enable_if<is_std_tuple<decay_t<T>>::value>::type>
+        bool select(const std::string &sql, T &&condition = T())
+        {
+            if (!this->doBindAndExec(sql, condition))
+                return false;
+            return this->storeResult();
+        }
 
-        template <typename T, typename U>
-        bool insert(const std::string &tablename, U &column, T &data);
+        template <typename T,
+                  typename = typename std::enable_if<is_std_tuple<decay_t<T>>::value>::type>
+        bool insert(const std::string &sql, T &&data = T())
+        {
+            return this->doBindAndExec(sql, data);
+        }
 
-        template <typename T, typename U>
-        bool update(const std::string &tablename, U &set, const std::string &where, T &data);
+        template <typename T,
+                  typename = typename std::enable_if<is_std_tuple<decay_t<T>>::value>::type>
+        bool update(const std::string &sql, T &&data = T())
+        {
+            return this->doBindAndExec(sql, data);
+        }
 
         bool query(const std::string &sql);
 
@@ -188,25 +222,6 @@ namespace mg
         void freeResult();
 
     private:
-        template <typename U>
-        std::string parseInsert(const std::string &tablename, U &column);
-
-        template <typename U>
-        std::string parseUpdate(const std::string &tablename, U &set, const std::string &where);
-
-        template <typename U>
-        std::string parseSelect(const std::string &tablename, U &set, const std::string &where);
-
-        template <typename T>
-        struct is_std_array : std::false_type
-        {
-        };
-
-        template <typename T, std::size_t N>
-        struct is_std_array<std::array<T, N>> : std::true_type
-        {
-        };
-
         template <typename T>
         bool doBindAndExec(const std::string &sql, T &data);
 
@@ -234,82 +249,6 @@ namespace mg
         MYSQL_BIND *_bind_param;
         MYSQL_BIND *_store_bind;
     };
-
-    template <typename U>
-    std::string Mysql::parseInsert(const std::string &tablename, U &column)
-    {
-        std::ostringstream sql;
-        sql << "INSERT INTO `" << tablename << "` (`";
-        std::string field, value;
-        for (auto &x : column)
-            field += x, field += "`, `", value += "?, ";
-        field = field.substr(0, field.size() - 3);
-        value = value.substr(0, value.size() - 2);
-        sql << field << ") VALUES (" << value << ")";
-        return sql.str();
-    }
-
-    template <typename U>
-    std::string Mysql::parseUpdate(const std::string &tablename, U &set, const std::string &where)
-    {
-        std::ostringstream sql;
-        sql << "UPDATE `" << tablename << "` SET `";
-        std::string field1, filed2;
-        for (auto &value : set)
-            field1 += value, field1 += "`=?, `";
-        sql << field1.substr(0, field1.size() - 3);
-        if (where.empty())
-            return sql.str();
-        sql << " WHERE " << where;
-        return sql.str();
-    }
-
-    template <typename U>
-    std::string Mysql::parseSelect(const std::string &tablename, U &set, const std::string &where)
-    {
-        std::ostringstream sql;
-        if (set.empty())
-            sql << "SELECT *";
-        else
-        {
-            sql << "SELECT `";
-            for (int i = 0; i < set.size() - 1; i++)
-                sql << set[i] << "`, `";
-            sql << set.back() << "`";
-        }
-        sql << " FROM `" << tablename << "`";
-        if (!where.empty())
-            sql << " WHERE " << where;
-        return sql.str();
-    }
-
-    template <typename U, typename T>
-    bool Mysql::select(const std::string &tablename, U &column, const std::string &where, T &&data)
-    {
-        static_assert(is_std_array<U>::value, "select only support std::array");
-        std::string sql = this->parseSelect(tablename, column, where);
-        if (!this->doBindAndExec(sql, data))
-            return false;
-        return this->storeResult();
-    }
-
-    template <typename T, typename U>
-    bool Mysql::insert(const std::string &tablename, U &column, T &data)
-    {
-        static_assert(is_std_array<U>::value, "insert only support std::array");
-        static_assert(std::tuple_size<U>::value == std::tuple_size<T>::value,
-                      "column size must equal to data size");
-        std::string sql = this->parseInsert(tablename, column);
-        return this->doBindAndExec(sql, data);
-    }
-
-    template <typename T, typename U>
-    bool Mysql::update(const std::string &tablename, U &set, const std::string &where, T &data)
-    {
-        static_assert(is_std_array<U>::value, "update set field only support std::array");
-        std::string sql = this->parseUpdate(tablename, set, where);
-        return this->doBindAndExec(sql, data);
-    }
 
     template <typename T>
     bool Mysql::doBindAndExec(const std::string &sql, T &data)
