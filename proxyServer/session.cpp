@@ -104,9 +104,9 @@ void Session::saveMessage(uint32_t relation, IM::Message::MessageData &message)
     if (!handle)
         return;
 
-    std::string sql = "INSERT INTO `MessageContent_0` (`relation`, `user`, `peer`, `type`, `status`, `createTime`, `content`) \
-                       VALUES (?, ?, ?, ?, ?, ?, ?)";
+    std::string sql = "INSERT INTO `MessageContent` (`relation`, `user`, `peer`, `type`, `status`, `createTime`, `content`, `messageId`) \
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     auto data = std::make_tuple(relation, message.from(), message.to(), static_cast<int>(message.message_type()),
-                                0, message.create_time(), std::ref(message.message_data()));
+                                0, message.create_time(), std::ref(message.message_data()), message.message_id());
     handle->insert(sql, data);
 }
