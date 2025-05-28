@@ -9,9 +9,10 @@ bool Login::doLogin(const std::string &userName, const std::string &password, IM
     if (!connection)
         return false;
 
-    std::array<std::string, 0> column;
+    std::string sql = "SELECT * FROM `UserInformation` WHERE `name`=?";
+
     auto data = std::make_tuple(userName);
-    if (!connection->select("UserInformation", column, "name=?", data))
+    if (!connection->select(sql, data))
         return false;
 
     if (connection->next())

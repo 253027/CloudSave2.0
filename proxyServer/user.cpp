@@ -3,64 +3,65 @@
 
 bool User::getFriendsList(uint32_t userId, std::vector<uint32_t> &list, uint32_t lastUpdateTime)
 {
-    auto sql = mg::MysqlConnectionPool::get().getHandle();
-    if (!sql)
+    auto handle = mg::MysqlConnectionPool::get().getHandle();
+    if (!handle)
         return false;
 
-    std::array<std::string, 3> column = {"user", "peer", "updateTime"};
     if (lastUpdateTime)
     {
+        std::string sql = "SELECT `peer` FROM `RelationShip` WHERE `user`=? AND `updateTime`<=? AND `stauts`=0";
         auto data = std::make_tuple(userId, lastUpdateTime);
-        if (!sql->select("RelationShip", column, "user=? AND updateTime <=? AND status=0", data))
+        if (!handle->select(sql, data))
             return false;
     }
     else
     {
+        std::string sql = "SELECT `peer` FROM `RelationShip` WHERE `user`=? AND `status`=0";
         auto data = std::make_tuple(userId);
-        if (!sql->select("RelationShip", column, "user=? AND status=0", data))
+        if (!handle->select(sql, data))
             return false;
     }
 
-    while (sql->next())
-        list.push_back(sql->getData("peer"));
+    while (handle->next())
+        list.push_back(handle->getData("peer"));
 
     return true;
 }
 
 bool User::getFriendsInfo(uint32_t userId, IM::DataStruct::UserInformation &info)
 {
-    auto sql = mg::MysqlConnectionPool::get().getHandle();
-    if (!sql)
+    auto handle = mg::MysqlConnectionPool::get().getHandle();
+    if (!handle)
         return false;
 
-    std::array<std::string, 0> column;
+    std::string sql = "SELECT * FROM `UserInformation` WHERE `id`=?";
     auto data = std::make_tuple(userId);
-    if (!sql->select("UserInformation", column, "id=?", data))
+    if (!handle->select(sql, data))
         return false;
 
-    if (!sql->next())
+    if (!handle->next())
         return false;
 
-    info.set_user_id(sql->getData("id"));
-    info.set_user_gender(sql->getData("sex"));
+    info.set_user_id(handle->getData("id"));
+    info.set_user_gender(handle->getData("sex"));
     {
-        std::string nick = sql->getData("nick");
+        std::string nick = handle->getData("nick");
         info.set_user_nick_name(nick);
     }
     {
-        std::string email = sql->getData("email");
+        std::string email = handle->getData("email");
         info.set_email(email);
     }
     {
-        std::string name = sql->getData("name");
+        std::string name = handle->getData("name");
         info.set_user_real_name(name);
     }
     {
-        std::string telphone = sql->getData("telphone");
+        std::string telphone = handle->getData("telphone");
         info.set_user_tel(telphone);
     }
     {
-        std::string avatar = sql->getData("avatar");
+        std::string avatar = handle->getData("avatar");
         info.set_avatar_url(avatar);
     }
 
