@@ -1,5 +1,6 @@
 syntax = "proto2";
 import "IM.BaseDefine.proto";
+import "IM.DataStruct.proto";
 package IM.Message;
 option optimize_for = LITE_RUNTIME;
 
@@ -32,8 +33,15 @@ message TimeResponse
     required uint32 time_stamp = 1;
 }
 
-message MessageUnReadCountRequest
+message MessageUnReadRequest
 {
     required uint32 user_id = 1;
     optional bytes attach_data = 2;
+}
+
+message MessageUnReadResponse
+{
+    required uint32 user_id = 1;
+    repeated IM.DataStruct.UnReadMessage list = 2;
+    optional bytes attach_data = 3;
 }

@@ -161,5 +161,24 @@ uint32_t HandlerMap::sendSingleMessage(IM::Message::MessageData &request)
 
 void HandlerMap::getUnReadMessageCount(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data)
 {
-    ;
+    IM::Message::MessageUnReadRequest request;
+    if (!request.ParseFromString(data->getPBmessage().retrieveAllAsString()))
+        return;
+
+    data->setServiceId(IM::BaseDefine::SERVER_ID_MESSAGE);
+    data->setCommandId(IM::BaseDefine::COMMAND_MESSAGE_UNREAD_RES);
+
+    IM::Message::MessageUnReadResponse response;
+    response.set_user_id(request.user_id());
+    response.set_attach_data(request.attach_data());
+
+    std::vector<IM::DataStruct::UnReadMessage> message;
+    MessageCache::get().getUnReadMessage(request.user_id(), message);
+    if (!Session::get().getMessage(message))
+        return;
+
+    for (auto &item : message)
+        response.add_list()->Swap(&item);
+
+    mg::TcpPacketParser::get().send(link, data->dump());
 }

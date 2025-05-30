@@ -243,7 +243,19 @@ void ProxyServerClient::_handleGetFriendsListResponse(std::unique_ptr<PduMessage
 
 void ProxyServerClient::_handleGetUnReadMessage(std::unique_ptr<PduMessage> data)
 {
-    ;
+    IM::Message::MessageUnReadResponse response;
+    if (!response.ParseFromString(data->getPBmessage().retrieveAllAsString()))
+        return;
+
+    uint32_t uid = response.user_id();
+    std::string name = response.attach_data();
+    response.clear_attach_data();
+    auto userConnection = MessageUserManger::get().getConnectionByHandle(uid, name).lock();
+    if (!userConnection)
+        return;
+
+    data->setPBMessage(&response);
+    userConnection->send(data->dump());
 }
 
 void ProxyServerClientManger::addConnection(ProxyServerClient *connection)

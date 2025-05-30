@@ -1,4 +1,5 @@
 #include "messageCache.h"
+#include "session.h"
 #include "../src/base/log.h"
 #include "../src/base/redis-connection-pool.h"
 
@@ -15,7 +16,7 @@ uint32_t MessageCache::getMessageId(uint32_t relationId)
 
     mg::RedisResult result;
     std::stringstream ss;
-    ss << "message_id_" << relationId;
+    ss << "message:unread:" << relationId;
     if (!handle->INCR(ss.str(), result))
     {
         LOG_ERROR("realtion: {}, redis INCR failed: {}", relationId, result.str);
@@ -33,7 +34,7 @@ void MessageCache::setUnReadMessage(uint32_t userId, uint32_t relationId, uint32
         LOG_ERROR("get redis handle failed");
         return;
     }
-    std::string key = "un_read_user_" + std::to_string(userId);
+    std::string key = "user:unread:" + std::to_string(userId);
     if (!handle->HSET(key, std::to_string(relationId), std::to_string(messageId)))
         LOG_ERROR("redis HSET failed {}, {}, {}", key, relationId, messageId);
 }
@@ -49,15 +50,21 @@ void MessageCache::getUnReadMessage(uint32_t userId, std::vector<UnReadMessage> 
 
     mg::RedisResult result;
 
-    std::string key = "un_read_user_" + std::to_string(userId);
+    std::string key = "user:unread:" + std::to_string(userId);
     if (!handle->HGETALL(key, result))
         return;
-    handle.reset();
 
     std::vector<std::string> values = result;
     for (int i = 0, len = values.size(); i < len; i += 2)
     {
         UnReadMessage temp;
+        if (handle->GET("message:read:" + values[i], result))
+        {
+            if (result.type == mg::RedisReplyType::REDIS_REPLY_TYPE_NIL)
+                temp.set_last_sequence(0);
+            else
+                temp.set_last_sequence(result);
+        }
         temp.set_session_id(std::stoi(values[i]));
         temp.set_latest_sequence(std::stoi(values[i + 1]));
     }

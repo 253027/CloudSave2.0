@@ -325,7 +325,7 @@ void ClientConnection::handleGetTimeRequest(std::unique_ptr<PduMessage> data)
 
 void ClientConnection::handleGetUnReadMessage(std::unique_ptr<PduMessage> data)
 {
-    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageUnReadCountRequest, message,
+    PARSE_PROTOBUF_MESSAGE(IM::Message::MessageUnReadRequest, message,
                            data->getPBmessage().retrieveAllAsString());
 
     auto proxyClient = ProxyServerClientManger::get().getHandle();

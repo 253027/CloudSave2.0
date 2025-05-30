@@ -13,15 +13,13 @@ uint32_t Session::getSession(uint32_t from, uint32_t to, uint32_t type, bool tom
     if (!tomb)
     {
         std::string sql = "SELECT `id` FROM `Session` WHERE `user`=? AND `peer`=? AND `type`=? AND `status`=0";
-        auto data = std::make_tuple(from, to, type);
-        if (!handle->select(sql, data))
+        if (!handle->select(sql, std::make_tuple(from, to, type)))
             return 0;
     }
     else
     {
         std::string sql = "SELECT `id` FROM `Session` WHERE `user`=? AND `peer`=?";
-        auto data = std::make_tuple(from, to);
-        if (!handle->select(sql, data))
+        if (!handle->select(sql, std::make_tuple(from, to)))
             return 0;
     }
 
@@ -42,13 +40,11 @@ uint32_t Session::addSession(uint32_t from, uint32_t to, uint32_t type)
     if (id)
     {
         std::string sql = "UPDATE `Session` SET `status`=0 WHERE `id`=?";
-        auto data = std::make_tuple(id);
-        return !handle->update(sql, data) ? 0 : id;
+        return !handle->update(sql, std::make_tuple(id)) ? 0 : id;
     }
 
     std::string sql = "INSERT INTO `Session` (`user`, `peer`, `type`, `status`) VALUES (?, ?, ?, 0)";
-    auto data = std::make_tuple(from, to, type);
-    if (!handle->insert(sql, data))
+    if (!handle->insert(sql, std::make_tuple(from, to, type)))
         return 0;
 
     return this->getSession(from, to, type, false);
@@ -61,8 +57,7 @@ uint32_t Session::getRelation(uint32_t from, uint32_t to, bool insert)
         return 0;
 
     std::string sql = "SELECT `id` FROM `RelationShip` WHERE `user`=? AND `peer`=? AND `status`=0";
-    auto data = std::make_tuple(from, to);
-    if (!handle->select(sql, data))
+    if (!handle->select(sql, std::make_tuple(from, to)))
         return insert ? this->addRelation(from, to) : 0;
     return handle->next() ? handle->getData("id") : 0;
 }
@@ -109,4 +104,30 @@ void Session::saveMessage(uint32_t relation, IM::Message::MessageData &message)
     auto data = std::make_tuple(relation, message.from(), message.to(), static_cast<int>(message.message_type()),
                                 0, message.create_time(), std::ref(message.message_data()), message.message_id());
     handle->insert(sql, data);
+}
+
+bool Session::getMessage(std::vector<IM::DataStruct::UnReadMessage> &message)
+{
+    auto handle = mg::MysqlConnectionPool::get().getHandle();
+    if (!handle)
+        return false;
+
+    std::string sql = "SELECT * FROM `MessageContent` WHERE `messageId`<=? AND `relation`=?";
+    for (auto &item : message)
+    {
+        if (!handle->select(sql, std::make_tuple(item.latest_sequence(), item.session_id())))
+            continue;
+
+        while (handle->next())
+        {
+            item.set_session_type(IM::BaseDefine::SESSION_TYPE_SINGLE);
+            item.set_message_data(handle->getData("content"));
+            uint32_t type = handle->getData("type");
+            item.set_message_type(static_cast<IM::BaseDefine::MessageType>(type));
+            item.set_from_user_id(handle->getData("peer"));
+            item.set_create_time(handle->getData("createTime"));
+        }
+    }
+
+    return true;
 }

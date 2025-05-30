@@ -23,4 +23,5 @@ message UnReadMessage
     required bytes message_data                         = 5;
     required IM.BaseDefine.MessageType message_type     = 6;
     required uint32 from_user_id                        = 7;
+    required uint32 create_time                         = 8;
 }
