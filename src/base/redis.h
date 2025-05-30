@@ -13,19 +13,19 @@
 #include <vector>
 #include <list>
 
-enum RedisReplyType
-{
-    REDIS_REPLY_TYPE_UNKNOWN,
-    REDIS_REPLY_TYPE_STRING,
-    REDIS_REPLY_TYPE_ARRAY,
-    REDIS_REPLY_TYPE_INTEGER,
-    REDIS_REPLY_TYPE_NIL,
-    REDIS_REPLY_TYPE_STATUS,
-    REDIS_REPLY_TYPE_ERROR
-};
-
 namespace mg
 {
+    enum RedisReplyType
+    {
+        REDIS_REPLY_TYPE_UNKNOWN,
+        REDIS_REPLY_TYPE_STRING,
+        REDIS_REPLY_TYPE_ARRAY,
+        REDIS_REPLY_TYPE_INTEGER,
+        REDIS_REPLY_TYPE_NIL,
+        REDIS_REPLY_TYPE_STATUS,
+        REDIS_REPLY_TYPE_ERROR
+    };
+
     /**
      * @note When performing type conversion with `RedisResult`, converting to `std::string` or `std::vector<std::string>` will trigger `std::move`.
      *        After the move assignment is performed on the target object, `RedisResult` will no longer hold the query result.
