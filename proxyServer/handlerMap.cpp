@@ -28,6 +28,8 @@ mg::Handler HandlerMap::getCallBack(const mg::TcpConnectionPointer &link, std::s
         return std::bind(&HandlerMap::getChangedFriendList, this, std::move(link), std::move(message));
     case IM::BaseDefine::COMMAND_MESSAGE_UNREAD_REQ:
         return std::bind(&HandlerMap::getUnReadMessageCount, this, std::move(link), std::move(message));
+    case IM::BaseDefine::COMMAND_MESSAGE_DATA_ACK:
+        return std::bind(&HandlerMap::handleMessageDataAck, this, std::move(link), std::move(message));
     }
 
     return nullptr;
@@ -180,5 +182,19 @@ void HandlerMap::getUnReadMessageCount(const mg::TcpConnectionPointer &link, std
     for (auto &item : message)
         response.add_list()->Swap(&item);
 
+    data->setPBMessage(&response);
     mg::TcpPacketParser::get().send(link, data->dump());
+}
+
+void HandlerMap::handleMessageDataAck(const mg::TcpConnectionPointer &link, std::shared_ptr<PduMessage> data)
+{
+    IM::Message::MessageDataAck request;
+    if (!request.ParseFromString(data->getPBmessage().retrieveAllAsString()))
+        return;
+
+    uint32_t relation = Session::get().getRelation(request.from(), request.to());
+    if (!relation)
+        return;
+
+    MessageCache::get().setReadMessage(relation, request.message_id());
 }

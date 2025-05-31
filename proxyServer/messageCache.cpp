@@ -69,3 +69,15 @@ void MessageCache::getUnReadMessage(uint32_t userId, std::vector<UnReadMessage> 
         temp.set_latest_sequence(std::stoi(values[i + 1]));
     }
 }
+
+void MessageCache::setReadMessage(uint32_t relationId, uint32_t messageId)
+{
+    auto handle = mg::RedisPoolManager::get().getHandle("unRead");
+    if (!handle)
+    {
+        LOG_ERROR("get redis handle failed relation: {}, messageId: {}", relationId, messageId);
+        return;
+    }
+
+    handle->SET("message:read:" + std::to_string(relationId), std::to_string(messageId));
+}

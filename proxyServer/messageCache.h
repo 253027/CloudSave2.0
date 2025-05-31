@@ -20,6 +20,8 @@ public:
 
     void setUnReadMessage(uint32_t userId, uint32_t relationId, uint32_t messageId);
     void getUnReadMessage(uint32_t userId, std::vector<UnReadMessage> &message);
+
+    void setReadMessage(uint32_t relationId, uint32_t messageId);
 };
 
 #endif //  __MESSAGE_CACHE_H__

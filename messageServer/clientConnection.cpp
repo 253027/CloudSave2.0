@@ -304,6 +304,12 @@ void ClientConnection::handleTimeoutMessage()
 
 void ClientConnection::handleSendMessageAck(std::unique_ptr<PduMessage> data)
 {
+    {
+        auto proxyClient = ProxyServerClientManger::get().getHandle();
+        if (proxyClient)
+            proxyClient->send(data->dump());
+    }
+
     PARSE_PROTOBUF_MESSAGE(IM::Message::MessageDataAck, message,
                            data->getPBmessage().retrieveAllAsString());
     uint32_t other = message.to() == this->getUserId() ? message.from() : message.to();
