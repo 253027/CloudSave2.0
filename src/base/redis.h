@@ -202,7 +202,7 @@ namespace mg
     inline bool RedisConnection::parseReply(T &&result)
     {
         static_assert(std::is_same<typename std::remove_reference<T>::type, RedisResult>::value,
-                      "RedisConnection::INCR() only support RedisResult");
+                      "RedisConnection::parseReply() only support RedisResult");
         if (!this->checkReply())
             return false;
 
